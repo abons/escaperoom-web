@@ -29,6 +29,17 @@ test('defaultsAndFields', () => {
   assert.deepEqual(r.things[0].zone, { x: 0.1, y: 0.1, w: 0.1, h: 0.1 });
 });
 
+test('sequenceLockParses', () => {
+  const r = parseStory('s', `{"title":"T","rooms":[{"id":"a","title":"A","task":"t","walls":{},
+    "things":[{"id":"c","wall":"north","x":0.1,"y":0.1,"w":0.1,"h":0.1,"text":"t","code":"STHM","input":"sequence"}],
+    "exit":{"wall":"south","x":0.1,"y":0.1,"w":0.1,"h":0.1,"code":"MHTSC","input":"sequence","text":"o"}}]}`).rooms[0];
+  assert.equal(r.things[0].inputType, Input.SEQUENCE);
+  assert.equal(r.things[0].len, 4);
+  assert.equal(r.exit.inputType, Input.SEQUENCE);
+  assert.equal(r.exit.len, 5);
+  assert.ok(Input.SEQUENCE.valid(r.exit.code));
+});
+
 test('needsStringOrArrayAndOwnLocks', () => {
   const r = parseStory('s', `{"title":"T","rooms":[{"id":"a","title":"A","task":"t","walls":{},
     "things":[

@@ -1,18 +1,20 @@
-// Code pad: len slots and the keys of one input type (digits, letters, dirs, colors).
+// Code pad: len slots and the keys of one input type (digits, letters, dirs, colors, sequence).
 import { h, button } from './ui.js';
 import { t } from './i18n.js';
 
 const COLORS = { R: '#D64545', G: '#3FA34D', B: '#3D6FD6', Y: '#E6C229', W: '#F2F2F2', K: '#111111' };
 const ARROWS = { N: '▲', E: '▶', S: '▼', W: '◀' };
+const SYMBOLS = { S: '★', M: '☾', H: '♥', D: '◆', T: '▲', C: '●' };
 
 const KEYS = {
   digits: [...'1234567890'],
   letters: [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'],
   dirs: [...'NESW'],
   colors: [...'RGBYWK'],
+  sequence: [...'SMHDTC'],
 };
 const DARK_TEXT = { W: true, Y: true };
-const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3 };
+const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3, sequence: 3 };
 
 /**
  * Returns {el, handleKey(e)}. onSubmit(code) is called when the slots are full or OK is pressed;
@@ -21,6 +23,8 @@ const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3 };
  */
 export function codePad(type, len, onSubmit) {
   if (!KEYS[type]) type = 'digits';
+  // what a token looks like on a key or in a slot
+  const glyph = (c) => (type === 'dirs' ? ARROWS[c] : type === 'sequence' ? SYMBOLS[c] : c);
   let typed = '';
   const slots = [];
   const slotRow = h('div', { class: 'cp-slots' });
@@ -39,7 +43,7 @@ export function codePad(type, len, onSubmit) {
       if (type === 'colors') {
         // colour is never the only carrier: the name is written on it
         s.style.background = COLORS[c]; s.style.color = DARK_TEXT[c] ? '#111' : '#fff'; s.textContent = t('color_' + c);
-      } else s.textContent = type === 'dirs' ? ARROWS[c] : c;
+      } else s.textContent = glyph(c);
     });
   };
 
@@ -61,10 +65,10 @@ export function codePad(type, len, onSubmit) {
   for (let i = 0; i < keys.length; i += per) {
     const row = h('div', { class: 'cp-row' });
     for (const c of keys.slice(i, i + per)) {
-      const k = h('button', { type: 'button', class: 'cp-key', 'aria-label': type === 'dirs' ? ARROWS[c] : type === 'colors' ? t('color_' + c) : c, onclick: () => press(c) });
+      const k = h('button', { type: 'button', class: 'cp-key', 'aria-label': type === 'colors' ? t('color_' + c) : glyph(c), onclick: () => press(c) });
       if (type === 'colors') {
         k.style.background = COLORS[c]; k.style.color = DARK_TEXT[c] ? '#111' : '#fff'; k.textContent = t('color_' + c);
-      } else k.textContent = type === 'dirs' ? ARROWS[c] : c;
+      } else k.textContent = glyph(c);
       row.append(k);
     }
     el.append(row);

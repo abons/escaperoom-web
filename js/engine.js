@@ -69,6 +69,8 @@ const INPUTS = [
   makeInput('letters', LETTERS),
   makeInput('dirs', 'NESW'),
   makeInput('colors', 'RGBYWK'),
+  // symbols tapped in a fixed order: S star, M moon, H heart, D diamond, T triangle, C circle
+  makeInput('sequence', 'SMHDTC'),
 ];
 
 /** Kinds of own lock. Every code is a string of single-character tokens. */
@@ -77,6 +79,7 @@ export const Input = Object.freeze({
   LETTERS: INPUTS[1],
   DIRS: INPUTS[2],
   COLORS: INPUTS[3],
+  SEQUENCE: INPUTS[4],
   values: INPUTS,
   /** Unknown keys fall back to DIGITS. */
   parse(key) { return INPUTS.find((i) => i.key === key) || INPUTS[0]; },

@@ -43,6 +43,12 @@ function checkLock(who, code, input, len) {
   assert.equal(t.normalise(code).length, len, `${who}: code '${code}' is not len ${len}`);
 }
 
+test('sequenceLockIsCheckedLikeTheRest', () => {
+  checkLock('fixture', 'SMHT', 'sequence', 4);
+  assert.throws(() => checkLock('fixture', 'SMX', 'sequence', 3));
+  assert.throws(() => checkLock('fixture', 'SMH', 'sequence', 4));
+});
+
 test('there are stories', () => {
   assert.ok(stories.length > 0, `no stories in ${dir}`);
 });

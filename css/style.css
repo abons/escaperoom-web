@@ -160,6 +160,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .cp-letters .cp-key { width: 40px; height: 40px; font-size: 16px; }
 .cp-colors .cp-key { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--accent); font-size: 11px; }
 .cp-colors .cp-slot { font-size: 9px; }
+.cp-sequence .cp-key { width: 56px; height: 56px; font-size: 24px; }
 .cp-key:active { filter: brightness(1.4); }
 .cp-actions { display: flex; gap: 6px; align-self: stretch; margin-top: 8px; }
 .cp-actions .btn { flex: 1; }

@@ -366,6 +366,21 @@ test('allNotesOverReachedRooms', () => {
   assert.equal(p.allNotes().length, 1);
 });
 
+test('sequenceInput', () => {
+  assert.ok(Input.SEQUENCE.valid('smhdtc'));
+  assert.ok(!Input.SEQUENCE.valid('SMX'));
+  assert.equal(Input.parse('sequence'), Input.SEQUENCE);
+  const seq = mkStory('q', 'nl', 'Q', '', '', '', [
+    room('x', 'X', 'taak', '', {}, [], exit(Side.SOUTH, z, 'SMHT', [], null, 'klaar', { input: 'sequence' })),
+  ]);
+  const p = new Progress(seq);
+  assert.equal(seq.rooms[0].exit.len, 4);
+  assert.equal(p.checkCode('SMTH'), false); // same tokens, wrong order
+  assert.equal(p.checkCode('SMH'), false);
+  assert.equal(p.checkCode('smht'), true);
+  assert.equal(p.checkCode(' SMHT '), true);
+});
+
 test('inputTypes', () => {
   assert.ok(Input.DIGITS.valid('0123'));
   assert.ok(!Input.DIGITS.valid('12a'));
