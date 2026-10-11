@@ -1,7 +1,7 @@
 // Mirror of ProgressTest.kt
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Progress, Side, ExitAsk, Outcome, Input, CondKind } from '../js/engine.js';
+import { Progress, Coins, Side, ExitAsk, Outcome, Input, CondKind } from '../js/engine.js';
 import { z, item, thing, exit, combo, room, story as mkStory, variant, cond } from './_helpers.mjs';
 
 const key = item('k', 'sleutel');
@@ -170,10 +170,12 @@ test('hintsRevealInOrderPerRoom', () => {
   assert.equal(p.hintAvailable(), false);
   assert.equal(p.revealHint(), null);
   assert.equal(p.hintsUsed(), 2);
+  assert.equal(p.hintCoinsSpent(), Coins.LAST_LAYER_COST);
   p.leave();
   assert.deepEqual(p.hintsShown(), []);
   assert.equal(p.revealHint(), 'x');
   assert.equal(p.hintsUsed(), 3);
+  assert.equal(p.hintCoinsSpent(), Coins.LAST_LAYER_COST);
 });
 
 test('roomCounts', () => {

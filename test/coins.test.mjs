@@ -37,7 +37,18 @@ test('spendClampsAtZero', () => {
 test('constants', () => {
   assert.equal(Coins.START, 5);
   assert.equal(Coins.DAILY, 1);
-  assert.equal(Coins.HINT_COST, 1);
+  assert.equal(Coins.LAST_LAYER_COST, 2);
+});
+
+test('hintCostPerLayer', () => {
+  const L = Coins.LAST_LAYER_COST;
+  assert.deepEqual([0, 1, 2].map((i) => Coins.hintCost(i, 3)), [0, 1, L]);
+  assert.deepEqual([0, 1, 2, 3].map((i) => Coins.hintCost(i, 4)), [0, 1, 1, L]);
+  assert.deepEqual([0, 1].map((i) => Coins.hintCost(i, 2)), [0, L]);
+  assert.equal(Coins.hintCost(0, 1), 0);
+  assert.equal(Coins.hintsCost(0, 3), 0);
+  assert.equal(Coins.hintsCost(2, 3), 1);
+  assert.equal(Coins.hintsCost(3, 3), 1 + L);
 });
 
 test('walletFreshPurseGetsOnlyStart', () => {
