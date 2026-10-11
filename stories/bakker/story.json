@@ -13,9 +13,9 @@
       "difficulty": 2,
       "hints": [
         "De deur naar het magazijn zit op slot. Zoek eerst iets in de bakkerij dat ook dicht zit.",
-        "De oven heeft draaiknoppen en wil een getal. Op de westmuur staat een bord met Teuns vaste regel. In het kassalaatje ligt iets waar een sleutel aan kan.",
-        "Haal de sleutel uit de oven. Pak de hanger uit het kassalaatje. Selecteer de ene in je tas en tik op de andere.",
-        "De ovenstand is 180: toets 1, 8, 0. Combineer de losse sleutel met de hanger en gebruik de hele sleutel op de deur naar het magazijn."
+        "De oven heeft draaiknoppen en wil een getal. Op de westmuur staat een bord met Teuns vaste regel.",
+        "Het schoolbord noemt 180 graden: toets 1, 8, 0. In de oven zit iets meegebakken; in het kassalaatje ligt iets om mee te snijden.",
+        "Selecteer het broodmes in je tas en tik op het broodje met de sleutel. Gebruik daarna de sleutel op de deur naar het magazijn."
       ],
       "task": "Vind de sleutel van het magazijn en kom door de deur op de zuidmuur.",
       "intro": "Meelstof zweeft in de zon. Achter de toonbank ruikt het naar versgebakken brood, maar er staat niemand achter de kassa.",
@@ -29,8 +29,8 @@
         {
           "id": "kassa", "wall": "north", "x": 0.03, "y": 0.5, "w": 0.27, "h": 0.19,
           "label": "Kassa",
-          "text": "Aan de kassa hangt een briefje: 'Ben even weg. De ovens mogen niet uit. Niet zoeken, het komt goed. T.' In het laatje ligt een houten sleutelhanger in de vorm van een broodje.",
-          "gives": { "id": "hanger", "name": "sleutelhanger" }
+          "text": "Aan de kassa hangt een briefje: 'Ben even weg. De ovens mogen niet uit. Niet zoeken, het komt goed. T.' In het laatje ligt een broodmes.",
+          "gives": { "id": "broodmes", "name": "broodmes" }
         },
         {
           "id": "kalender", "wall": "north", "x": 0.66, "y": 0.25, "w": 0.2, "h": 0.2,
@@ -45,17 +45,17 @@
         {
           "id": "oven", "wall": "east", "x": 0.4, "y": 0.45, "w": 0.42, "h": 0.25,
           "label": "Bakoven",
-          "text": "De ovendeur klikt open op een warme bakplaat met een broodje en een lege plek ernaast. Achter het rooster zit een losse sleutel geklemd. Je pakt hem.",
+          "text": "De ovendeur klikt open. Op de bakplaat ligt een broodje waar het oog van een sleutel uit steekt: hij is meegebakken. Je pakt het broodje met een doek.",
           "code": "180", "input": "digits", "len": 3,
           "closeup": "oven-knoppen",
-          "gives": { "id": "sleutel_los", "name": "losse sleutel" }
+          "gives": { "id": "broodje_sleutel", "name": "broodje met sleutel" }
         }
       ],
       "combos": [
         {
-          "a": "sleutel_los", "b": "hanger",
+          "a": "broodje_sleutel", "b": "broodmes",
           "gives": { "id": "magazijnsleutel", "name": "magazijnsleutel" },
-          "text": "De sleutel past precies in de ring van het broodje. Nu heb je een hele sleutel.",
+          "text": "Je snijdt het broodje open: een sleutel, nog warm.",
           "consumes": true
         }
       ],
@@ -71,17 +71,17 @@
       "title": "Het magazijn",
       "difficulty": 3,
       "hints": [
-        "De trap naar boven zit op slot. Het geheime graan in de kist op de westmuur bewaart de sleutel, en de kist wil kleuren.",
+        "Het hek voor de trap zit op slot. Het geheime graan in de kist op de westmuur bewaart de sleutel, en de kist wil kleuren.",
         "Je ziet niet alles met gewoon licht. Zoek een lamp in het gereedschap en kijk wat er gebeurt met de balk boven de meelzakken.",
         "Pak de UV-lamp uit de kast, selecteer hem in je tas en kijk naar de noord- en westmuur. Tik op wat gaat gloeien.",
-        "Van links naar rechts gloeien: blauw, geel, rood, wit. Toets op de graankist B, Y, R, W en pak de trapsleutel."
+        "Van links naar rechts gloeien: blauw, geel, rood, wit. De kist heeft zes knoppen, maar je hebt er vier nodig. Toets B, Y, R, W en pak de trapsleutel."
       ],
       "task": "Open de graankist met het geheime graan en haal de trapsleutel eruit.",
       "intro": "Zakken meel tot aan het plafond, een lange houten balk en een koelcel. Het is koel en schemerig, en iemand is hier vanmorgen druk geweest.",
       "walls": {
         "north": "De noordmuur: stellingen vol meelzakken onder een houten balk.",
         "east": "De oostmuur: een gereedschapskast.",
-        "south": "De zuidmuur: een trapdeur naar de woning boven.",
+        "south": "De zuidmuur: de trap naar de woning boven, met een afgesloten traphek ervoor.",
         "west": "De westmuur: een graankist met gekleurde knoppen en een koelcel."
       },
       "variants": [
@@ -130,8 +130,8 @@
       "exit": {
         "wall": "south", "x": 0.36, "y": 0.45, "w": 0.55, "h": 0.4,
         "needs": "trapsleutel",
-        "stuck": "De trapdeur zit op slot. Het slot is klein en oud, en past op een sleutel aan een lintje.",
-        "text": "De trapsleutel past. Je loopt de krakende trap op naar de woning boven de bakkerij."
+        "stuck": "De trap ligt er open en bloot bij, maar het traphek zit dicht met een klein, oud slot. Er hoort een sleutel aan een lintje bij.",
+        "text": "De trapsleutel past. Het hek zwaait open en je loopt de krakende trap op naar de woning boven de bakkerij."
       }
     },
     {
@@ -140,7 +140,7 @@
       "difficulty": 3,
       "hints": [
         "De deur aan de zuidkant wil vier cijfers: een aantal gasten en een leeftijd. Beide staan ergens in deze kamer.",
-        "De taart op de tafel is nog niet te openen: er is vuur en iets om op te steken nodig. Het kistje op de westmuur wil pijlen, en de fotolijst kent een route.",
+        "De taart op de tafel is nog niet te openen: er zijn kaarsjes en iets om ze mee aan te steken nodig. Het kistje op de westmuur wil pijlen, en de fotolijst kent een route.",
         "Kaarsjes uit de servieskast, lucifers tussen de bankkussens. De route op de achterkant van de foto opent het kistje met de brief.",
         "Foto: Noord, Oost, Zuid, West. De brief noemt twaalf gasten, de taart zestig kaarsjes. De code is 1260."
       ],
@@ -165,7 +165,7 @@
         {
           "id": "servieskast", "wall": "east", "x": 0.0, "y": 0.16, "w": 0.4, "h": 0.72,
           "label": "Servieskast",
-          "text": "Achter de borden ligt een ongeopend doosje met een potloodstreep: 'zestig', in Fiens handschrift. Je pakt het.",
+          "text": "Achter de borden ligt een ongeopend doosje kaarsjes, met Fiens handschrift op het etiket. Je pakt het.",
           "gives": { "id": "kaarsjes", "name": "doosje kaarsjes" }
         },
         {
@@ -176,11 +176,11 @@
         {
           "id": "bank", "wall": "west", "x": 0.36, "y": 0.5, "w": 0.44, "h": 0.25,
           "label": "Bank",
-          "text": "Tussen de kussens: een doosje lucifers van café 't Anker. Handig voor het geval dat. Je neemt ze mee.",
+          "text": "Tussen de kussens: een doosje lucifers van café 't Anker. Je neemt ze mee.",
           "gives": { "id": "lucifers", "name": "lucifers" }
         },
         {
-          "id": "kistje", "wall": "west", "x": 0.15, "y": 0.4, "w": 0.13, "h": 0.32,
+          "id": "kistje", "wall": "west", "x": 0.06, "y": 0.39, "w": 0.22, "h": 0.33,
           "label": "Pijlenkistje",
           "text": "Het kistje klikt open. Een brief van Teun aan Fien: 'Het spelletje loopt. De buur zoekt zich suf. Twaalf gasten om vier uur, de taart moet aan.'",
           "code": "NESW", "input": "dirs", "len": 4,
