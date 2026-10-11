@@ -74,8 +74,28 @@ function helpSeen() {
 }
 function showHelp() {
   try { localStorage.setItem('escaperoom.help_seen', '1'); } catch (e) { /* ignore */ }
-  showPanel(t('help_title'), t('help_body'), t('ok'), () => showMenu());
+  showPanel(t('help_title'), t('help_body'), t('ok'), () => showMenu(), { label: t('copy_stats'), onClick: copyStats });
 }
+
+// Play time and wrong tries per room of every started story, as JSON on the clipboard (scripts/calibratie.py in the Android repo).
+async function copyStats() {
+  const json = Progress.exportJson(stories.map((s) => saves.load(s)).filter((p) => p.started));
+  try {
+    await navigator.clipboard.writeText(json);
+    toast(t('stats_copied'));
+  } catch (e) {
+    const ta = h('textarea', { class: 'stats-box', readonly: 'readonly', rows: '6' });
+    ta.value = json;
+    modal({ title: t('copy_stats'), content: ta, buttons: [{ label: t('ok'), primary: true }] });
+    ta.select();
+  }
+}
+
+// A tab in the background is not play time (the save is written here: the last action may be long ago).
+document.addEventListener('visibilitychange', () => {
+  if (screen !== 'room' || !progress) return;
+  if (document.hidden) { progress.pause(); saves.save(progress); } else progress.resume();
+});
 
 // A short buzz for a wrong try or a tap beside every zone (no animation); silent where unsupported.
 function buzz(ms) {
@@ -93,6 +113,9 @@ function goMenu() {
 }
 
 function setScreen(node, name) {
+  // Play time runs only while the room screen is up; leaving it saves what was counted.
+  if (screen === 'room' && name !== 'room' && progress) { progress.pause(); saves.save(progress); }
+  if (name === 'room' && progress) progress.resume();
   screen = name;
   app.textContent = '';
   app.append(node);
@@ -142,11 +165,11 @@ function storyCard(story) {
 }
 
 // ---- text panel
-function showPanel(title, body, buttonText, onDone) {
+function showPanel(title, body, buttonText, onDone, extra) {
   const col = h('div', { class: 'panel' }, h('h1', { class: 'panel-title' }, title), h('div', { class: 'panel-body' }, body));
   setScreen(h('div', { class: 'panel-wrap' },
     h('div', { class: 'scroll grow' }, col),
-    h('div', { class: 'panel-btn' }, button(buttonText, onDone)),
+    h('div', { class: 'panel-btn' }, ...(extra ? [button(extra.label, extra.onClick, true)] : []), button(buttonText, onDone)),
   ), 'panel');
 }
 

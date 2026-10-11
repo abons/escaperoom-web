@@ -248,15 +248,43 @@ export class Progress {
     /** The wall the player is looking at; saved. */
     this.side = Side.NORTH;
     this.hintCounts = new Map();
+    /** Active play time per room id, in ms. Optional in the save; measuring only, never shown as a reward. */
+    this.playMs = new Map();
+    /** Wrong tries per room id (see #mistake). Optional in the save. */
+    this.mistakes = new Map();
+    /** ms clock; tests replace it. */
+    this.clock = () => Date.now();
+    this.lastActive = null;
   }
+
+  /** A gap between two actions counts at most this long (2 min): reading counts, walking away does not. */
+  static IDLE_MS = 120000;
+
+  /** The room screen is up: start counting (no-op when already counting). */
+  resume() { if (this.lastActive === null) this.lastActive = this.clock(); }
+
+  /** Screen left or tab/app in the background: credit the time so far and stop counting. */
+  pause() { this.#touch(); this.lastActive = null; }
+
+  /** Credit the gap since the last action to the current room, at most IDLE_MS. No-op while paused. */
+  #touch() {
+    if (this.lastActive === null) return;
+    const now = this.clock();
+    const gap = Math.min(Math.max(now - this.lastActive, 0), Progress.IDLE_MS);
+    this.playMs.set(this.room.id, (this.playMs.get(this.room.id) ?? 0) + gap);
+    this.lastActive = now;
+  }
+
+  #mistake() { this.mistakes.set(this.room.id, (this.mistakes.get(this.room.id) ?? 0) + 1); }
 
   get room() { return this.story.rooms[this.roomIndex]; }
   get started() { return this.finished || this.roomIndex > 0 || this.found.size > 0; }
 
-  look(s) { this.side = s; }
+  look(s) { this.#touch(); this.side = s; }
 
   /** Select an item you hold; the same id again deselects; null clears. Items not held are ignored. */
   select(id) {
+    this.#touch();
     if (id === null || id === undefined) this.selected = null;
     else if (id === this.selected) this.selected = null;
     else if (this.items.has(id)) this.selected = id;
@@ -271,7 +299,7 @@ export class Progress {
   #applySelected(key, rest, consumes) {
     const sel = this.selected;
     if (sel === null) return null;
-    if (!rest.includes(sel) || !this.items.has(sel)) return null;
+    if (!rest.includes(sel) || !this.items.has(sel)) { this.#mistake(); return null; } // wrong item used
     if (!this.applied.has(key)) this.applied.set(key, new Set());
     this.applied.get(key).add(sel);
     if (consumes) { this.items.delete(sel); this.selected = null; }
@@ -303,6 +331,7 @@ export class Progress {
   #thing(t) { return typeof t === 'string' ? this.room.things.find((x) => x.id === t) : t; }
 
   tap(thingOrId) {
+    this.#touch();
     const thing = this.#thing(thingOrId);
     if (!thing || !this.visible(thing)) return Outcome.wrong();
     if (this.found.has(thing.id)) return Outcome.said(thing.text);
@@ -319,6 +348,7 @@ export class Progress {
 
   /** Try the own lock of thing: right opens it, wrong is Outcome.wrong. */
   tryCode(thingOrId, code) {
+    this.#touch();
     const thing = this.#thing(thingOrId);
     if (!thing || !this.visible(thing)) return Outcome.wrong();
     if (this.found.has(thing.id)) return Outcome.said(thing.text);
@@ -326,7 +356,7 @@ export class Progress {
     if (c === null || c === undefined) return Outcome.wrong();
     if (this.#remaining(thing.id, thing.needs).length > 0) return Outcome.blocked(thing.stuck ?? '');
     const t = Input.parse(thing.input);
-    if (t.normalise(code) !== t.normalise(c)) return Outcome.wrong();
+    if (t.normalise(code) !== t.normalise(c)) { this.#mistake(); return Outcome.wrong(); }
     return this.#open(thing);
   }
 
@@ -342,9 +372,10 @@ export class Progress {
 
   /** Combine two held items with a combo of the current room, either order. */
   combine(a, b) {
+    this.#touch();
     if (!this.items.has(a) || !this.items.has(b)) return Outcome.wrong();
     const c = this.room.combos.find((x) => (x.a === a && x.b === b) || (x.a === b && x.b === a));
-    if (!c) return Outcome.wrong();
+    if (!c) { this.#mistake(); return Outcome.wrong(); }
     if (c.consumes) { this.items.delete(a); this.items.delete(b); }
     this.items.set(c.gives.id, c.gives);
     this.selected = null;
@@ -368,6 +399,7 @@ export class Progress {
 
   /** Tap the exit: applies the selected needed item and says what is next. */
   tapExit() {
+    this.#touch();
     const e = this.room.exit;
     if (!this.exitVisible()) return ExitAsk.WRONG;
     const rest = this.#remaining(this.#exitKey(), e.needs);
@@ -381,14 +413,18 @@ export class Progress {
   }
 
   checkCode(code) {
+    this.#touch();
     const e = this.room.exit;
     if (e.code === null || e.code === undefined) return false;
     const t = Input.parse(e.input);
-    return t.normalise(e.code) === t.normalise(code);
+    const ok = t.normalise(e.code) === t.normalise(code);
+    if (!ok) this.#mistake();
+    return ok;
   }
 
   /** Go through the exit; returns its text. The last room sets finished instead of advancing. */
   leave() {
+    this.#touch();
     const text = this.room.exit.text;
     if (this.roomIndex === this.story.rooms.length - 1) this.finished = true;
     else this.roomIndex++;
@@ -428,6 +464,7 @@ export class Progress {
 
   /** Reveal the next hint of this room; null when none is left. Charging coins is the caller's job. */
   revealHint() {
+    this.#touch();
     const n = this.hintCounts.get(this.room.id) ?? 0;
     if (n >= this.room.hints.length) return null;
     this.hintCounts.set(this.room.id, n + 1);
@@ -443,12 +480,33 @@ export class Progress {
     return s;
   }
 
-  /** Same shape as the Kotlin save: {room, finished, items, found, applied, side, hints} as a string. */
+  /**
+   * Calibration export of this story: {story, rooms:[{id, difficulty, done, playMs, mistakes}]}.
+   * done = the room was left (a partial room is not a measurement). Read by scripts/calibratie.py (Android repo).
+   */
+  statsJson() {
+    return {
+      story: this.story.id,
+      rooms: this.story.rooms.map((r, i) => ({
+        id: r.id, difficulty: r.difficulty, done: this.finished || i < this.roomIndex,
+        playMs: this.playMs.get(r.id) ?? 0, mistakes: this.mistakes.get(r.id) ?? 0,
+      })),
+    };
+  }
+
+  /** One export string for all progresses: a JSON array of statsJson. */
+  static exportJson(progresses) { return JSON.stringify(progresses.map((p) => p.statsJson())); }
+
+  /** Same shape as the Kotlin save: {room, finished, items, found, applied, side, hints, playMs, mistakes} as a string. */
   toJson() {
     const applied = {};
     for (const [k, v] of this.applied) applied[k] = [...v];
     const hints = {};
     for (const [k, v] of this.hintCounts) hints[k] = v;
+    const playMs = {};
+    for (const [k, v] of this.playMs) playMs[k] = v;
+    const mistakes = {};
+    for (const [k, v] of this.mistakes) mistakes[k] = v;
     return JSON.stringify({
       room: this.roomIndex,
       finished: this.finished,
@@ -457,6 +515,8 @@ export class Progress {
       applied,
       side: this.side,
       hints,
+      playMs,
+      mistakes,
     });
   }
 
@@ -476,6 +536,8 @@ export class Progress {
     }
     p.side = Side.known(o.side) ? o.side : Side.NORTH;
     if (isObj(o.hints)) for (const [k, v] of Object.entries(o.hints)) p.hintCounts.set(k, optInt(o.hints, k, 0));
+    if (isObj(o.playMs)) for (const k of Object.keys(o.playMs)) p.playMs.set(k, Math.max(0, optInt(o.playMs, k, 0)));
+    if (isObj(o.mistakes)) for (const k of Object.keys(o.mistakes)) p.mistakes.set(k, Math.max(0, optInt(o.mistakes, k, 0)));
     return p;
   }
 }
