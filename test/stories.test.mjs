@@ -158,7 +158,25 @@ test('itemPlatesWarnWhenMissing', () => {
   }
 });
 
-const appliedCount = (p) => [...p.applied.values()].reduce((a, v) => a + v.size, 0);
+/** Mirror of everyItemIsUsedSomewhere: no decoys, every given item is needed, combined or a held/selected condition. */
+function unusedItems(s) {
+  const given = new Set();
+  const used = new Set();
+  const cond = (c) => { if (c && c.kind !== CondKind.FOUND) used.add(c.id); };
+  for (const r of s.rooms) {
+    for (const t of r.things) { if (t.gives) given.add(t.gives.id); t.needs.forEach((x) => used.add(x)); cond(t.visibleWhen); }
+    for (const c of r.combos) { given.add(c.gives.id); used.add(c.a); used.add(c.b); }
+    r.exit.needs.forEach((x) => used.add(x)); cond(r.exit.visibleWhen);
+    r.variants.forEach((v) => cond(v.when));
+  }
+  return [...given].filter((x) => !used.has(x));
+}
+
+test('everyItemIsUsedSomewhere', () => {
+  for (const s of stories) assert.deepEqual(unusedItems(s), [], `${s.id}: items given but never used`);
+});
+
+const appliedCount =(p) => [...p.applied.values()].reduce((a, v) => a + v.size, 0);
 
 /** Play one thing as far as it goes now: apply held needs one by one, enter its code from the data. */
 function work(p, t) {
