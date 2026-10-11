@@ -1,0 +1,136 @@
+{
+  "format": 1,
+  "difficulty": 2,
+  "lang": "nl",
+  "title": "Het Archief",
+  "blurb": "Je wordt wakker in de kelder van een vergeten archief. Twee kamers, één weg naar buiten.",
+  "intro": "Je komt bij op een koude, stenen vloer. Het ruikt naar stof en oud papier. Boven je hoofd valt een luik dicht; ergens hoor je een slot omdraaien. Het archief is gesloten voor de nacht, en jij zit er nog in.",
+  "outro": "De voordeur zwaait open en de koele nachtlucht slaat je in het gezicht. Achter je blijft het archief zijn geheimen bewaren. Jij niet meer.",
+  "rooms": [
+    {
+      "id": "kelder",
+      "title": "De kelder",
+      "difficulty": 2,
+      "hints": [
+        "Het luik wil een code. Waar in deze kelder staan cijfers geschreven?",
+        "Drie plekken bewaren de cijfers: het wijnrek, het kastje en het schilderij. Het kastje zit op slot en de achterkant van het schilderij is onleesbaar.",
+        "De werkbank geeft een sleutel voor het kastje en een route voor het pijlenslot van de oude kist. In de kist zit iets waarmee je de krassen op het schilderij kunt lezen.",
+        "Kist: West, Noord, Zuid, Oost. Kastje met de sleutel: 4 en 1. Schilderij met het rooster uit de kist: 3. Samen met het rek: 7, 4, 1, 3."
+      ],
+      "task": "Kom uit de kelder via het luik op de zuidmuur. Het slot wil een code van vier cijfers.",
+      "intro": "Een enkele peertje zwaait zachtjes heen en weer en gooit schaduwen over de muren. Het luik naar boven zit stevig op slot.",
+      "walls": {
+        "north": "De noordmuur: een houten wijnrek vol stoffige flessen.",
+        "east": "De oostmuur: een krakkemikkige werkbank vol gereedschap.",
+        "south": "De zuidmuur: een zwaar luik met een cijferslot.",
+        "west": "De westmuur: een afgesloten kastje en een scheef schilderij."
+      },
+      "things": [
+        {
+          "id": "wijnrek", "wall": "north", "x": 0.15, "y": 0.2, "w": 0.7, "h": 0.6,
+          "label": "Wijnrek",
+          "text": "Tussen de flessen ligt een vergeeld etiket, met pen beschreven: 'Eerste cijfer: 7'."
+        },
+        {
+          "id": "werkbank", "wall": "east", "x": 0.1, "y": 0.5, "w": 0.55, "h": 0.35,
+          "label": "Werkbank",
+          "text": "Onder een stapel roestige tangen ligt een kleine sleutel. Op het blad is met krijt een route gekrast: West, Noord, Zuid, Oost. Je steekt de sleutel in je zak.",
+          "gives": { "id": "key_small", "name": "kleine sleutel" }
+        },
+        {
+          "id": "kist", "wall": "east", "x": 0.7, "y": 0.2, "w": 0.25, "h": 0.3,
+          "label": "Oude kist",
+          "text": "Het pijlenslot klikt open. Onder vergeelde kranten ligt een doorzichtig rooster met gaten erin. Dat neem je mee.",
+          "code": "WNSE", "input": "dirs", "len": 4,
+          "closeup": "kist-pijlenslot",
+          "gives": { "id": "stencil", "name": "rooster" }
+        },
+        {
+          "id": "kastje", "wall": "west", "x": 0.05, "y": 0.4, "w": 0.35, "h": 0.4,
+          "label": "Kastje",
+          "text": "Het slot klikt open. Op de binnenkant van het deurtje staat gekrast: 'Tweede en derde cijfer: 4 en 1'.",
+          "needs": "key_small",
+          "stuck": "Het kastje zit op slot. Er hoort een kleine sleutel bij."
+        },
+        {
+          "id": "schilderij", "wall": "west", "x": 0.5, "y": 0.1, "w": 0.4, "h": 0.5,
+          "label": "Schilderij",
+          "text": "Je tilt het schilderij van de haak. Op de achterkant zit een warboel van krassen. Met het rooster erover blijft één regel leesbaar: 'Laatste cijfer: 3'.",
+          "needs": "stencil",
+          "stuck": "De achterkant staat vol krassen en je ziet er niets van. Er zou een hulpmiddel moeten zijn om ze te lezen.",
+          "closeup": "schilderij-achterkant"
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.25, "y": 0.2, "w": 0.5, "h": 0.6,
+        "code": "7413",
+        "text": "Het slot springt open. Je klimt door het luik omhoog, de trap op, naar het kantoor van het archief."
+      }
+    },
+    {
+      "id": "kantoor",
+      "title": "Het kantoor",
+      "difficulty": 2,
+      "hints": [
+        "De kaartlezer wil een doorgangskaart, maar zo'n kaart ligt hier niet zomaar ergens. En er hoort nog iets bij.",
+        "Er zijn twee helften van een kaart. Een ervan zit achter slot, de ander hangt ergens waar je eerst niet op lette. De kluis heeft twee sloten.",
+        "Pak de sleutel in het bureau voor de kluis. De kluis wil ook een code: kijk wat de stilstaande klok aanwijst. Combineer de twee kaartdelen.",
+        "Klok: 1, 4, 3, 5 voor de kluis. Linkerhelft uit de kluis, rechterhelft van het prikbord, samen een kaart. Het stempel achter de klok moet je ook meenemen voor de lezer."
+      ],
+      "task": "Vind de twee helften van de doorgangskaart en een stempel, en open de voordeur.",
+      "intro": "Maanlicht valt door de lamellen over een rommelig bureau. Aan de zuidkant zie je de voordeur, met een kaartlezer ernaast.",
+      "walls": {
+        "north": "De noordmuur: een groot houten bureau onder een raam.",
+        "east": "De oostmuur: een stalen kluis in de muur.",
+        "south": "De zuidmuur: de voordeur met een kaartlezer.",
+        "west": "De westmuur: een stilstaande klok en een vol prikbord."
+      },
+      "things": [
+        {
+          "id": "bureau", "wall": "north", "x": 0.2, "y": 0.45, "w": 0.6, "h": 0.4,
+          "label": "Bureau",
+          "text": "In de onderste la ligt een kleine kluissleutel, geplakt onder een stapel formulieren. Je pakt hem.",
+          "gives": { "id": "key_safe", "name": "kluissleutel" }
+        },
+        {
+          "id": "kluis", "wall": "east", "x": 0.3, "y": 0.3, "w": 0.4, "h": 0.4,
+          "label": "Kluis",
+          "text": "De sleutel draait soepel, maar breekt af in het slot. Je toetst de tijd van de klok in en de deur zwaait open. In de kluis ligt de linkerhelft van een doorgangskaart, met jouw naam erop. Dat is vreemd.",
+          "needs": "key_safe",
+          "consumes": true,
+          "code": "1435", "input": "digits", "len": 4,
+          "closeup": "kluisslot",
+          "stuck": "De kluis zit stevig dicht. Er zit een sleutelgat in.",
+          "gives": { "id": "pass_a", "name": "Doorgangskaart (linkerhelft)" }
+        },
+        {
+          "id": "klok", "wall": "west", "x": 0.05, "y": 0.02, "w": 0.4, "h": 0.15,
+          "label": "Klok",
+          "text": "De klok staat stil op 14:35, de wijzers vastgeroest. Achter het gebarsten glas ligt een rubberen stempel met 'GEZIEN'. Je pakt hem.",
+          "gives": { "id": "stamp", "name": "stempel" }
+        },
+        {
+          "id": "prikbord", "wall": "west", "x": 0.2, "y": 0.2, "w": 0.6, "h": 0.5,
+          "label": "Prikbord",
+          "text": "Roosters, memo's en een verlopen noodnummer. Achter een vergeeld rooster zit de rechterhelft van een doorgangskaart geprikt. Je neemt hem mee.",
+          "closeup": "prikbord-rooster",
+          "gives": { "id": "pass_b", "name": "Doorgangskaart (rechterhelft)" }
+        }
+      ],
+      "combos": [
+        {
+          "a": "pass_a", "b": "pass_b",
+          "gives": { "id": "pass", "name": "Doorgangskaart" },
+          "text": "De twee helften sluiten precies op elkaar. Met een klik zit de doorgangskaart weer heel.",
+          "consumes": true
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.25, "y": 0.15, "w": 0.5, "h": 0.7,
+        "needs": ["pass", "stamp"],
+        "stuck": "De kaartlezer knippert rood. Hij wil een hele doorgangskaart met een stempel erop; een halve kaart leest hij niet.",
+        "text": "Je drukt het stempel op de kaart en houdt hem voor de lezer. Het lampje springt op groen en de deur gaat open."
+      }
+    }
+  ]
+}

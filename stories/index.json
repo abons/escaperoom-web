@@ -1,0 +1,59 @@
+{
+ "stories": [
+  {
+   "id": "archief",
+   "files": [
+    "archief/items/key_safe.png",
+    "archief/items/key_small.png",
+    "archief/items/pass.png",
+    "archief/items/pass_a.png",
+    "archief/items/pass_b.png",
+    "archief/items/stamp.png",
+    "archief/items/stencil.png",
+    "archief/kantoor/east.webp",
+    "archief/kantoor/kluisslot.webp",
+    "archief/kantoor/north.webp",
+    "archief/kantoor/prikbord-rooster.webp",
+    "archief/kantoor/south.webp",
+    "archief/kantoor/west.webp",
+    "archief/kelder/east.webp",
+    "archief/kelder/kist-pijlenslot.webp",
+    "archief/kelder/north.webp",
+    "archief/kelder/schilderij-achterkant.webp",
+    "archief/kelder/south.webp",
+    "archief/kelder/west.webp",
+    "archief/story.json"
+   ]
+  },
+  {
+   "id": "bakker",
+   "files": [
+    "bakker/bakkerij/east.webp",
+    "bakker/bakkerij/north.webp",
+    "bakker/bakkerij/oven-knoppen.webp",
+    "bakker/bakkerij/south.webp",
+    "bakker/bakkerij/west.webp",
+    "bakker/items/hanger.png",
+    "bakker/items/magazijnsleutel.png",
+    "bakker/items/sleutel_los.png",
+    "bakker/items/trapsleutel.png",
+    "bakker/items/uvlamp.png",
+    "bakker/magazijn/east.webp",
+    "bakker/magazijn/graankist-slot.webp",
+    "bakker/magazijn/north-uv.webp",
+    "bakker/magazijn/north.webp",
+    "bakker/magazijn/south.webp",
+    "bakker/magazijn/uv-balk.webp",
+    "bakker/magazijn/west-uv.webp",
+    "bakker/magazijn/west.webp",
+    "bakker/story.json",
+    "bakker/woonkamer/east.webp",
+    "bakker/woonkamer/kistje-pijlenslot.webp",
+    "bakker/woonkamer/north.webp",
+    "bakker/woonkamer/south.webp",
+    "bakker/woonkamer/taart-kaarsen.webp",
+    "bakker/woonkamer/west.webp"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,197 @@
+{
+  "format": 1,
+  "difficulty": 3,
+  "lang": "nl",
+  "title": "De Verdwenen Bakker",
+  "blurb": "Bakker Teun is nergens te vinden, maar zijn oven is nog warm. Drie kamers vol meel, licht en een raadsel dat niet is wat het lijkt.",
+  "intro": "Zaterdagmiddag. Je staat in Bakkerij Brouwer: de deur was open, de oven is warm en Teun, die al dertig jaar jouw brood bewaart, is nergens. Zijn dochter Fien belde je aan: 'Pap is verdwenen, kom je helpen zoeken?' Je stapt naar binnen.",
+  "outro": "De deur zwaait open. Twaalf mensen, slingers en Teun zelf, met een schort vol slagroom. 'Gefeliciteerd met mijn eigen verjaardag!' roept hij. Hij wilde geen feest, hij wilde een speurtocht, en jij was zijn gast. Het briefje, de warme oven, de voetafdrukken: alles klopte opeens.",
+  "rooms": [
+    {
+      "id": "bakkerij",
+      "title": "De bakkerij",
+      "difficulty": 2,
+      "hints": [
+        "De deur naar het magazijn zit op slot. Zoek eerst iets in de bakkerij dat ook dicht zit.",
+        "De oven heeft draaiknoppen en wil een getal. Op de westmuur staat een bord met Teuns vaste regel. In het kassalaatje ligt iets waar een sleutel aan kan.",
+        "Haal de sleutel uit de oven. Pak de hanger uit het kassalaatje. Selecteer de ene in je tas en tik op de andere.",
+        "De ovenstand is 180: toets 1, 8, 0. Combineer de losse sleutel met de hanger en gebruik de hele sleutel op de deur naar het magazijn."
+      ],
+      "task": "Vind de sleutel van het magazijn en kom door de deur op de zuidmuur.",
+      "intro": "Meelstof zweeft in de zon. Achter de toonbank ruikt het naar versgebakken brood, maar er staat niemand achter de kassa.",
+      "walls": {
+        "north": "De noordmuur: een houten toonbank met een kassa en een kalender.",
+        "east": "De oostmuur: de grote bakoven met draaiknoppen.",
+        "south": "De zuidmuur: de deur naar het magazijn.",
+        "west": "De westmuur: lege broodrekken en een schoolbord met de dagaanbieding."
+      },
+      "things": [
+        {
+          "id": "kassa", "wall": "north", "x": 0.1, "y": 0.45, "w": 0.5, "h": 0.35,
+          "label": "Kassa",
+          "text": "Aan de kassa hangt een briefje: 'Ben even weg. De ovens mogen niet uit. Niet zoeken, het komt goed. T.' In het laatje ligt een houten sleutelhanger in de vorm van een broodje.",
+          "gives": { "id": "hanger", "name": "sleutelhanger" }
+        },
+        {
+          "id": "kalender", "wall": "north", "x": 0.65, "y": 0.1, "w": 0.28, "h": 0.3,
+          "label": "Kalender",
+          "text": "Vandaag, zaterdag, is met rode stift omcirkeld. Eronder, in potlood: 'Niets inplannen! F. komt om 16:00 met de rest.'"
+        },
+        {
+          "id": "schoolbord", "wall": "west", "x": 0.15, "y": 0.15, "w": 0.7, "h": 0.4,
+          "label": "Schoolbord",
+          "text": "Onderaan de dagaanbieding staat in Teuns krabbel: 'Oma's regel: brood gaat altijd in op 180 graden, nooit warmer.' Vandaag staat er geen brood op het bord, alleen: 'Grote taart in de maak.'"
+        },
+        {
+          "id": "oven", "wall": "east", "x": 0.2, "y": 0.3, "w": 0.6, "h": 0.5,
+          "label": "Bakoven",
+          "text": "De ovendeur klikt open op een warme bakplaat met een broodje en een lege plek ernaast. Achter het rooster zit een losse sleutel geklemd. Je pakt hem.",
+          "code": "180", "input": "digits", "len": 3,
+          "closeup": "oven-knoppen",
+          "gives": { "id": "sleutel_los", "name": "losse sleutel" }
+        }
+      ],
+      "combos": [
+        {
+          "a": "sleutel_los", "b": "hanger",
+          "gives": { "id": "magazijnsleutel", "name": "magazijnsleutel" },
+          "text": "De sleutel past precies in de ring van het broodje. Nu heb je een hele sleutel.",
+          "consumes": true
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.25, "y": 0.2, "w": 0.5, "h": 0.6,
+        "needs": "magazijnsleutel",
+        "stuck": "De deur naar het magazijn zit op slot. Er hoort een sleutel bij, en die ligt hier ergens.",
+        "text": "De sleutel draait zwaar maar soepel. Achter de deur ligt een gang naar het magazijn."
+      }
+    },
+    {
+      "id": "magazijn",
+      "title": "Het magazijn",
+      "difficulty": 3,
+      "hints": [
+        "De trap naar boven zit op slot. Het geheime graan in de kist op de westmuur bewaart de sleutel, en de kist wil kleuren.",
+        "Je ziet niet alles met gewoon licht. Zoek een lamp in het gereedschap en kijk wat er gebeurt met de balk boven de meelzakken.",
+        "Pak de UV-lamp uit de kast, selecteer hem in je tas en kijk naar de noord- en westmuur. Tik op wat gaat gloeien.",
+        "Van links naar rechts gloeien: blauw, geel, rood, wit. Toets op de graankist B, Y, R, W en pak de trapsleutel."
+      ],
+      "task": "Open de graankist met het geheime graan en haal de trapsleutel eruit.",
+      "intro": "Zakken meel tot aan het plafond, een lange houten balk en een koelcel. Het is koel en schemerig, en iemand is hier vanmorgen druk geweest.",
+      "walls": {
+        "north": "De noordmuur: stellingen vol meelzakken onder een houten balk.",
+        "east": "De oostmuur: een gereedschapskast.",
+        "south": "De zuidmuur: een trapdeur naar de woning boven.",
+        "west": "De westmuur: een graankist met gekleurde knoppen en een koelcel."
+      },
+      "variants": [
+        { "wall": "north", "when": { "selected": "uvlamp" }, "image": "north-uv" },
+        { "wall": "west", "when": { "selected": "uvlamp" }, "image": "west-uv" }
+      ],
+      "things": [
+        {
+          "id": "meelzakken", "wall": "north", "x": 0.1, "y": 0.35, "w": 0.55, "h": 0.5,
+          "label": "Meelzakken",
+          "text": "Vier soorten meel, elk met een gekleurd touwtje: rood, geel, blauw en wit. Teun draaide de volgorde elke week om."
+        },
+        {
+          "id": "uvvegen", "wall": "north", "x": 0.1, "y": 0.05, "w": 0.8, "h": 0.2,
+          "label": "Gloeiende vegen",
+          "visible": { "selected": "uvlamp" },
+          "text": "Onder het paarse licht gloeien vier vegen op de balk, van links naar rechts: blauw, geel, rood, wit. Iemand veegde er zijn vingers af.",
+          "closeup": "uv-balk"
+        },
+        {
+          "id": "gereedschapskast", "wall": "east", "x": 0.15, "y": 0.45, "w": 0.6, "h": 0.4,
+          "label": "Gereedschapskast",
+          "text": "Tussen sponzen en emmers ligt een zwarte lamp met een paarse lens: een UV-lamp om meelsporen te vinden. Kies hem in je tas om ermee te schijnen.",
+          "gives": { "id": "uvlamp", "name": "UV-lamp" }
+        },
+        {
+          "id": "graankist", "wall": "west", "x": 0.1, "y": 0.5, "w": 0.4, "h": 0.33,
+          "label": "Graankist",
+          "text": "Het deksel veert open en het geheime graan ruikt zoet. Onderin ligt een trapsleutel aan een lintje.",
+          "code": "BYRW", "input": "colors", "len": 4,
+          "closeup": "graankist-slot",
+          "gives": { "id": "trapsleutel", "name": "trapsleutel" }
+        },
+        {
+          "id": "koelcel", "wall": "west", "x": 0.55, "y": 0.15, "w": 0.35, "h": 0.68,
+          "label": "Koelcel",
+          "text": "Op het enige dienblad staan twaalf gebakjes onder folie. Een briefje: 'Niet opeten, tot 16:00. F.'"
+        },
+        {
+          "id": "uvvoeten", "wall": "west", "x": 0.05, "y": 0.85, "w": 0.9, "h": 0.14,
+          "label": "Gloeiende voetafdrukken",
+          "visible": { "selected": "uvlamp" },
+          "text": "Onder UV zie je glimmende voetafdrukken, kris-kras, van minstens tien mensen. Allemaal gaan ze naar de trap en weer terug."
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.25, "y": 0.15, "w": 0.5, "h": 0.7,
+        "needs": "trapsleutel",
+        "stuck": "De trapdeur zit op slot. Het slot is klein en oud, en past op een sleutel aan een lintje.",
+        "text": "De trapsleutel past. Je loopt de krakende trap op naar de woning boven de bakkerij."
+      }
+    },
+    {
+      "id": "woonkamer",
+      "title": "De woonkamer boven",
+      "difficulty": 3,
+      "hints": [
+        "De deur aan de zuidkant wil vier cijfers: een aantal gasten en een leeftijd. Beide staan ergens in deze kamer.",
+        "De taart op de tafel is nog niet te openen: er is vuur en iets om op te steken nodig. Het kistje op de westmuur wil pijlen, en de fotolijst kent een route.",
+        "Kaarsjes uit de servieskast, lucifers tussen de bankkussens. De route op de achterkant van de foto opent het kistje met de brief.",
+        "Foto: Noord, Oost, Zuid, West. De brief noemt twaalf gasten, de taart zestig kaarsjes. De code is 1260."
+      ],
+      "task": "Lees de brief van Teun aan zijn dochter en open de deur naar de gang. Het slot wil vier cijfers.",
+      "intro": "Een gezellige kamer met een gedekte tafel en veel te veel borden voor één man. Op de bank liggen kussens.",
+      "walls": {
+        "north": "De noordmuur: een grote tafel met een taartdoos, gedekt voor een hele groep.",
+        "east": "De oostmuur: een servieskast en een lijst met een foto.",
+        "south": "De zuidmuur: de deur naar de gang, met een cijferslot en een kaartje: 'Aantal gasten, dan zijn leeftijd.'",
+        "west": "De westmuur: een bank met kussens en een kistje met pijlen."
+      },
+      "things": [
+        {
+          "id": "taart", "wall": "north", "x": 0.15, "y": 0.4, "w": 0.7, "h": 0.4,
+          "label": "Taartdoos",
+          "needs": ["kaarsjes", "lucifers"],
+          "consumes": true,
+          "stuck": "Een prachtige taart, maar zonder kaarsjes en iets om ze aan te steken zie je niet wat erop staat.",
+          "text": "Je zet de kaarsjes erin en steekt ze aan. Op de taart staat met slagroom: zestig kaarsjes voor Teun.",
+          "closeup": "taart-kaarsen"
+        },
+        {
+          "id": "servieskast", "wall": "east", "x": 0.05, "y": 0.15, "w": 0.4, "h": 0.6,
+          "label": "Servieskast",
+          "text": "Achter de borden ligt een ongeopend doosje met een potloodstreep: 'zestig', in Fiens handschrift. Je pakt het.",
+          "gives": { "id": "kaarsjes", "name": "doosje kaarsjes" }
+        },
+        {
+          "id": "fotolijst", "wall": "east", "x": 0.55, "y": 0.2, "w": 0.35, "h": 0.3,
+          "label": "Foto in lijst",
+          "text": "Op de foto fietst Teun als jongen. Achterop staat zijn route: eerst naar het noorden, dan oost, dan zuid, dan west."
+        },
+        {
+          "id": "bank", "wall": "west", "x": 0.5, "y": 0.35, "w": 0.45, "h": 0.5,
+          "label": "Bank",
+          "text": "Tussen de kussens: een doosje lucifers van café 't Anker. Handig voor het geval dat. Je neemt ze mee.",
+          "gives": { "id": "lucifers", "name": "lucifers" }
+        },
+        {
+          "id": "kistje", "wall": "west", "x": 0.1, "y": 0.5, "w": 0.35, "h": 0.3,
+          "label": "Pijlenkistje",
+          "text": "Het kistje klikt open. Een brief van Teun aan Fien: 'Het spelletje loopt. De buur zoekt zich suf. Twaalf gasten om vier uur, de taart moet aan.'",
+          "code": "NESW", "input": "dirs", "len": 4,
+          "closeup": "kistje-pijlenslot"
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.25, "y": 0.2, "w": 0.5, "h": 0.6,
+        "code": "1260",
+        "text": "Het slot springt open. Aantal gasten, dan zijn leeftijd: twaalf en zestig. Je duwt de deur open."
+      }
+    }
+  ]
+}
