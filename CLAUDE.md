@@ -13,6 +13,7 @@ text `#EDE3D0`, accent `#D9A441`.
 - `stories/` - copied from the Android assets by `scripts/sync-assets.py`, which also writes
   `stories/index.json` (the precache list and the plate lookup). Never edit `stories/` by hand.
 - `sw.js` - offline. ⚠️ **Bump `CACHE` whenever shipped files change**, or installed copies keep the old ones.
+  ⚠️ **`python scripts/check-cache.py` exits 1 when `stories/` or any `SHELL` file differs from `main`/HEAD without a `CACHE` bump** (shell list read from `sw.js`; forgotten once, 2026-10-11). Run it before committing. It diffs the working tree, so on `main` an already-committed change is invisible: pass a ref (`check-cache.py HEAD~1`).
 - `manifest.webmanifest`, `icons/` (`scripts/make-icons.py` renders the PNGs).
 
 ## Test
