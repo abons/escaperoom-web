@@ -492,7 +492,7 @@ export const Coins = Object.freeze({
     return 1;
   },
   /** Coins spent on the first `n` layers of a room with `total` layers. */
-  hintsCost(n, total) { let s = 0; for (let i = 0; i < n; i++) s += Coins.hintCost(i, total); return s; },
+  hintsCost(n, total) { let s = 0; for (let i = 0; i < Math.min(n, total); i++) s += Coins.hintCost(i, total); return s; },
   /** Reward for solving a room: its difficulty, 1..5. */
   reward(difficulty) { return Math.min(5, Math.max(1, Math.trunc(difficulty))); },
   /** Strict `<` on yyyyMMdd, so setting the clock back opens nothing. */

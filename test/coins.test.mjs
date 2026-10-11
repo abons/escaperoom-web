@@ -49,6 +49,7 @@ test('hintCostPerLayer', () => {
   assert.equal(Coins.hintsCost(0, 3), 0);
   assert.equal(Coins.hintsCost(2, 3), 1);
   assert.equal(Coins.hintsCost(3, 3), 1 + L);
+  assert.equal(Coins.hintsCost(5, 3), 1 + L); // more hints in the save than layers now: no extra charge
 });
 
 test('walletFreshPurseGetsOnlyStart', () => {

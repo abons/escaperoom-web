@@ -80,7 +80,11 @@ export function codePad(type, len, onSubmit) {
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => { cleared = true; typed = ''; refresh(); }, 500);
   });
-  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) back.addEventListener(ev, () => clearTimeout(pressTimer));
+  // the click after a long press may never come (Chrome drops it, or the finger slides off): don't swallow the next tap
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) back.addEventListener(ev, () => {
+    clearTimeout(pressTimer);
+    if (cleared) setTimeout(() => { cleared = false; }, 400);
+  });
   const ok = button(t('ok'), submit);
   el.append(h('div', { class: 'cp-actions' }, back, ok));
   const refreshOk = () => { ok.disabled = !typed; };
