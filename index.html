@@ -30,13 +30,14 @@
     var nl = (navigator.language || '').slice(0, 2) === 'nl';
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault(); deferred = e;
+      if (btn) btn.remove();
       btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'btn small';
       btn.textContent = nl ? 'Installeer app' : 'Install app';
       btn.style.cssText = 'position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50';
       btn.onclick = function () {
         var d = deferred; deferred = null; btn.remove();
-        d.prompt();
+        try { d.prompt(); } catch (err) { /* offered again on the next event */ }
       };
       document.body.appendChild(btn);
     });
