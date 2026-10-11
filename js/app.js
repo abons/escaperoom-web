@@ -304,13 +304,16 @@ function outcome(p, th, o) {
     case 'applied': say(t('applied', itemName(p, o.item))); break;
     case 'needsCode':
       refreshStatus();
-      askCode(o.thing.input || 'digits', o.thing.len || (o.thing.code || '').length, (code) => {
+    {
+      const ask = () => askCode(o.thing.input || 'digits', o.thing.len || (o.thing.code || '').length, (code) => {
         let r = p.tryCode(th, code);
         if (r.kind === 'wrong') r = { kind: 'blocked', text: t('code_wrong') };
         outcome(p, th, r);
         saves.save(p);
       });
+      if (th.closeup) showCloseup(p, th, th.label || '', ask); else ask();
       break;
+    }
     default: break;
   }
 }
@@ -347,7 +350,7 @@ function askCode(type, len, onCode) {
   });
 }
 
-function showCloseup(p, th, msg) {
+function showCloseup(p, th, msg, enterCode) {
   const src = plate(p.story.id, `${p.room.id}/${th.closeup}`);
   const visual = src
     ? h('img', { class: 'closeup-img', src, alt: th.label || '' })
@@ -355,7 +358,9 @@ function showCloseup(p, th, msg) {
   modal({
     className: 'closeup',
     content: h('div', { class: 'closeup-col' }, visual, h('div', { class: 'closeup-text' }, msg)),
-    buttons: [{ label: t('close'), primary: true }],
+    buttons: enterCode
+      ? [{ label: t('code_title'), primary: true, onClick: enterCode }, { label: t('close') }]
+      : [{ label: t('close'), primary: true }],
   });
 }
 
