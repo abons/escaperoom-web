@@ -30,6 +30,9 @@ const stack = [];
 
 export function modalOpen() { return stack.length > 0; }
 
+/** Close every open modal (browser back, leaving a screen). */
+export function closeAllModals() { while (stack.length) stack[stack.length - 1].close(); }
+
 /**
  * modal({title, message, content, buttons:[{label, primary, onClick}], cancelable, className})
  * A button handler returning false keeps the modal open. Returns {close}.

@@ -1,7 +1,7 @@
 // Escape Room (web): menu, panels and the room screen. The engine decides; this file mirrors it.
 import { parseStory, Progress, Coins, Wallet, Difficulty, Saves } from './engine.js';
 import { lang, t } from './i18n.js';
-import { h, button, modal, modalOpen, toast } from './ui.js';
+import { h, button, modal, modalOpen, closeAllModals, toast } from './ui.js';
 import { Wall } from './wall.js';
 import { codePad } from './codepad.js';
 
@@ -88,6 +88,7 @@ function setScreen(node, name) {
 // ---- menu
 function showMenu(fromHistory) {
   if (fromHistory) pushed = false;
+  closeAllModals();
   progress = null; ui = {};
   const col = h('div', { class: 'menu' },
     h('h1', { class: 'title' }, 'Escape Room'),

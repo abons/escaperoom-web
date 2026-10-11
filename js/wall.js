@@ -48,9 +48,9 @@ export class Wall {
     if (src !== old || !same || !this.imgLayer.firstChild) this.setImage(src, same && !!old && !!src);
     this.el.dataset.side = side;
     this.el.classList.toggle('has-plate', !!src);
+    this.src = src;
     this.drawPlaceholder();
     this.drawZones();
-    this.src = src;
   }
 
   setImage(src, fade) {

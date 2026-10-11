@@ -1,7 +1,7 @@
 /* Service worker: cache-first app shell, precache of every story file, network-first index.html.
  * To ship a new version: bump CACHE below (escaperoom-v1 -> escaperoom-v2). Old caches are deleted on activate.
  * All paths are relative to this file, so it works under a sub-path (GitHub Pages). */
-const CACHE = 'escaperoom-v1';
+const CACHE = 'escaperoom-v2';
 
 const SHELL = [
   './',
@@ -10,6 +10,10 @@ const SHELL = [
   './css/style.css',
   './js/app.js',
   './js/engine.js',
+  './js/ui.js',
+  './js/wall.js',
+  './js/codepad.js',
+  './js/i18n.js',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
