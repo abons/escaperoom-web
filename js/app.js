@@ -31,7 +31,7 @@ let names = {};
 let ui = {}; // refs of the room screen
 
 // ---- plates
-const EXTS = ['png', 'webp', 'jpg'];
+const EXTS = ['webp', 'png', 'jpg'];
 function plate(storyId, name) {
   const set = files.get(storyId);
   if (!set) return null;
@@ -65,7 +65,21 @@ async function boot() {
   } catch (e) {
     console.warn(e);
   }
-  showMenu(true);
+  if (helpSeen()) showMenu(true); else showHelp();
+}
+
+// ---- first-time help (own key, so clearing a save never brings it back)
+function helpSeen() {
+  try { return localStorage.getItem('escaperoom.help_seen') === '1'; } catch (e) { return true; }
+}
+function showHelp() {
+  try { localStorage.setItem('escaperoom.help_seen', '1'); } catch (e) { /* ignore */ }
+  showPanel(t('help_title'), t('help_body'), t('ok'), () => showMenu());
+}
+
+// A short buzz for a wrong try or a tap beside every zone (no animation); silent where unsupported.
+function buzz(ms) {
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* ignore */ }
 }
 
 // ---- history: the browser back button returns to the menu
@@ -91,7 +105,10 @@ function showMenu(fromHistory) {
   closeAllModals();
   progress = null; ui = {};
   const col = h('div', { class: 'menu' },
-    h('h1', { class: 'title' }, 'Escape Room'),
+    h('div', { class: 'menu-head' },
+      h('h1', { class: 'title' }, 'Escape Room'),
+      button('?', showHelp, true, 'small'),
+    ),
     h('p', { class: 'sub' }, t('start_sub')),
     h('p', { class: 'coins-line' }, '● ' + wallet.balance()),
   );
@@ -171,6 +188,7 @@ function showRoom() {
   wall.onTurn = turn;
   wall.onThing = onThing;
   wall.onExit = onExit;
+  wall.onMiss = () => buzz(10);
 
   const top = h('div', { class: 'room-top' },
     h('div', { class: 'room-head' },
@@ -190,7 +208,7 @@ function showRoom() {
     h('button', { type: 'button', class: 'arrow right', onclick: () => turn(1), 'aria-label': t('turn_right') }, '›'),
   );
 
-  const msg = h('div', { class: 'msg' });
+  const msg = h('div', { class: 'msg', 'aria-live': 'polite' });
   const msgBox = h('div', { class: 'msgbox' }, msg);
   const sel = h('div', { class: 'sel' });
   const chips = h('div', { class: 'chips' });
@@ -270,7 +288,7 @@ function onItem(id) {
   if (sel && sel !== id) {
     const o = p.combine(sel, id);
     if (o.kind === 'said') say(o.gained ? gainedMessage(o.text, o.gained) : o.text);
-    else if (o.kind === 'wrong') say(t('wrong_combine'));
+    else if (o.kind === 'wrong') { buzz(40); say(t('wrong_combine')); }
     else if (o.kind === 'blocked') say(o.text);
     refreshStatus();
     saves.save(p);
@@ -300,14 +318,14 @@ function outcome(p, th, o) {
       break;
     }
     case 'blocked': say(o.text); break;
-    case 'wrong': say(t('wrong_use')); break;
+    case 'wrong': buzz(40); say(t('wrong_use')); break;
     case 'applied': say(t('applied', itemName(p, o.item))); break;
     case 'needsCode':
       refreshStatus();
     {
       const ask = () => askCode(o.thing.input || 'digits', o.thing.len || (o.thing.code || '').length, (code) => {
         let r = p.tryCode(th, code);
-        if (r.kind === 'wrong') r = { kind: 'blocked', text: t('code_wrong') };
+        if (r.kind === 'wrong') { buzz(40); r = { kind: 'blocked', text: t('code_wrong') }; }
         outcome(p, th, r);
         saves.save(p);
       });
@@ -327,12 +345,12 @@ function onExit() {
   switch (p.tapExit()) {
     case 'ENTER_CODE':
       askCode(e.input || 'digits', e.len || (e.code || '').length, (code) => {
-        if (p.checkCode(code)) leave(p); else say(t('code_wrong'));
+        if (p.checkCode(code)) leave(p); else { buzz(40); say(t('code_wrong')); }
         saves.save(p);
       });
       break;
     case 'BLOCKED': say(e.stuck || ''); break;
-    case 'WRONG': say(t('wrong_use')); break;
+    case 'WRONG': buzz(40); say(t('wrong_use')); break;
     case 'OPEN': leave(p); break;
     case 'PARTIAL': say(t('applied', appliedItem ? itemName(p, appliedItem) : '')); break;
     default: break;

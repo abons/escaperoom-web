@@ -203,6 +203,7 @@ export function parseStory(id, json) {
   if (format > MAX_FORMAT) throw new Error(`story format ${format} not supported`);
   const rooms = req(o, 'rooms');
   if (!Array.isArray(rooms)) throw new Error('"rooms" is not an array');
+  if (rooms.length === 0) throw new Error('story has no rooms');
   return {
     id, lang: optStr(o, 'lang', 'en'), title: reqStr(o, 'title'),
     blurb: optStr(o, 'blurb'), intro: optStr(o, 'intro'), outro: optStr(o, 'outro'),

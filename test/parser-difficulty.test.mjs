@@ -59,6 +59,10 @@ test('readsStoryFields', () => {
   assert.equal(story('"format":1,"difficulty":4,').difficulty, 4);
 });
 
+test('storyWithoutRoomsIsRejected', () => {
+  assert.throws(() => parseStory('s', '{"title":"T","rooms":[]}'), /no rooms/);
+});
+
 test('newerFormatRejected', () => {
   assert.throws(() => story('"format":2,'), /format 2 not supported/);
 });

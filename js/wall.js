@@ -13,6 +13,7 @@ export class Wall {
     this.onTurn = () => {};
     this.onThing = () => {};
     this.onExit = () => {};
+    this.onMiss = () => {};
     this.room = null;
     this.side = null;
     this.src = null;
@@ -117,6 +118,7 @@ export class Wall {
     const th = this.things.find((x) => x.side === this.side && inZone(x.zone));
     if (th) { this.onThing(th); return; }
     const ex = this.room.exit;
-    if (this.exitOn && ex.side === this.side && inZone(ex.zone)) this.onExit();
+    if (this.exitOn && ex.side === this.side && inZone(ex.zone)) { this.onExit(); return; }
+    this.onMiss();
   }
 }

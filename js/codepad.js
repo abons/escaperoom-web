@@ -11,6 +11,7 @@ const KEYS = {
   dirs: [...'NESW'],
   colors: [...'RGBYWK'],
 };
+const DARK_TEXT = { W: true, Y: true };
 const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3 };
 
 /**
@@ -34,8 +35,10 @@ export function codePad(type, len, onSubmit) {
       s.textContent = '';
       s.style.background = '';
       if (c === undefined) return;
-      if (type === 'colors') s.style.background = COLORS[c];
-      else s.textContent = type === 'dirs' ? ARROWS[c] : c;
+      if (type === 'colors') {
+        // colour is never the only carrier: the name is written on it
+        s.style.background = COLORS[c]; s.style.color = DARK_TEXT[c] ? '#111' : '#fff'; s.textContent = t('color_' + c);
+      } else s.textContent = type === 'dirs' ? ARROWS[c] : c;
     });
   };
 
@@ -52,9 +55,10 @@ export function codePad(type, len, onSubmit) {
   for (let i = 0; i < keys.length; i += per) {
     const row = h('div', { class: 'cp-row' });
     for (const c of keys.slice(i, i + per)) {
-      const k = h('button', { type: 'button', class: 'cp-key', 'aria-label': type === 'dirs' ? ARROWS[c] : c, onclick: () => press(c) });
-      if (type === 'colors') k.style.background = COLORS[c];
-      else k.textContent = type === 'dirs' ? ARROWS[c] : c;
+      const k = h('button', { type: 'button', class: 'cp-key', 'aria-label': type === 'dirs' ? ARROWS[c] : type === 'colors' ? t('color_' + c) : c, onclick: () => press(c) });
+      if (type === 'colors') {
+        k.style.background = COLORS[c]; k.style.color = DARK_TEXT[c] ? '#111' : '#fff'; k.textContent = t('color_' + c);
+      } else k.textContent = type === 'dirs' ? ARROWS[c] : c;
       row.append(k);
     }
     el.append(row);

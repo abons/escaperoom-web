@@ -11,6 +11,8 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.normpath(os.path.join(ROOT, "..", "escaperoom", "app", "src", "main", "assets", "stories"))
+if len(sys.argv) > 1:  # optional: another checkout of the app (e.g. a worktree)
+    SRC = os.path.abspath(sys.argv[1])
 DST = os.path.join(ROOT, "stories")
 SKIP = {".gitkeep"}
 

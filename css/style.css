@@ -28,7 +28,7 @@ h1, h2, h3, p { margin: 0; }
   padding: 10px 16px; min-height: 44px;
 }
 .btn.ghost { background: transparent; color: var(--accent); }
-.btn.small { min-height: 36px; padding: 4px 12px; font-size: 13px; }
+.btn.small { min-height: 48px; padding: 4px 12px; font-size: 13px; }
 .btn:active { filter: brightness(1.15); }
 button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
@@ -158,7 +158,8 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   color: var(--ink); background: var(--card); border: 1px solid var(--accent); border-radius: 8px; padding: 0;
 }
 .cp-letters .cp-key { width: 40px; height: 40px; font-size: 16px; }
-.cp-colors .cp-key { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--accent); }
+.cp-colors .cp-key { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--accent); font-size: 11px; }
+.cp-colors .cp-slot { font-size: 9px; }
 .cp-key:active { filter: brightness(1.4); }
 .cp-actions { display: flex; gap: 6px; align-self: stretch; margin-top: 8px; }
 .cp-actions .btn { flex: 1; }
@@ -178,3 +179,5 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .wall-img, .toast { transition: none; }
 }
+.menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.menu-head .btn { min-width: 48px; }

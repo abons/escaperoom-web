@@ -235,6 +235,10 @@ test('oldSaveStillLoads', () => {
   assert.ok(p.items.has('k'));
 });
 
+test('saveItemWithoutNameIsRejected', () => {
+  assert.throws(() => Progress.fromJson(story, '{"room":0,"items":[{"id":"k"}]}'));
+});
+
 test('roomIndexIsClamped', () => {
   assert.equal(Progress.fromJson(story, '{"room":9}').roomIndex, 1);
   assert.equal(Progress.fromJson(story, '{"room":-3}').roomIndex, 0);
