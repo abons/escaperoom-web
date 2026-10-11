@@ -107,7 +107,7 @@ function showMenu(fromHistory) {
   const col = h('div', { class: 'menu' },
     h('div', { class: 'menu-head' },
       h('h1', { class: 'title' }, 'Escape Room'),
-      button('?', showHelp, true, 'small'),
+      (() => { const b = button('?', showHelp, true, 'small'); b.setAttribute('aria-label', t('help_title')); return b; })(),
     ),
     h('p', { class: 'sub' }, t('start_sub')),
     h('p', { class: 'coins-line' }, '● ' + wallet.balance()),
