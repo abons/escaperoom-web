@@ -433,6 +433,13 @@ export class Progress {
 
   hintsUsed() { let s = 0; for (const v of this.hintCounts.values()) s += v; return s; }
 
+  /** Coins the revealed hints cost, derived from the counts (nothing extra is saved). */
+  hintCoinsSpent() {
+    let s = 0;
+    for (const r of this.story.rooms) s += Coins.hintsCost(this.hintCounts.get(r.id) ?? 0, r.hints.length);
+    return s;
+  }
+
   /** Same shape as the Kotlin save: {room, finished, items, found, applied, side, hints} as a string. */
   toJson() {
     const applied = {};
@@ -476,7 +483,16 @@ export class Progress {
 export const Coins = Object.freeze({
   START: 5,
   DAILY: 1,
-  HINT_COST: 1,
+  /** Price of the last hint layer of a room (user decides after playing; the middle layers cost 1). */
+  LAST_LAYER_COST: 2,
+  /** Cost of hint layer `index` (0-based) of `total`: first free, last LAST_LAYER_COST, between 1. First rule wins. */
+  hintCost(index, total) {
+    if (index <= 0) return 0;
+    if (index >= total - 1) return Coins.LAST_LAYER_COST;
+    return 1;
+  },
+  /** Coins spent on the first `n` layers of a room with `total` layers. */
+  hintsCost(n, total) { let s = 0; for (let i = 0; i < n; i++) s += Coins.hintCost(i, total); return s; },
   /** Reward for solving a room: its difficulty, 1..5. */
   reward(difficulty) { return Math.min(5, Math.max(1, Math.trunc(difficulty))); },
   /** Strict `<` on yyyyMMdd, so setting the clock back opens nothing. */

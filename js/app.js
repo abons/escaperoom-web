@@ -151,7 +151,10 @@ function showPanel(title, body, buttonText, onDone) {
 }
 
 function showOutro(story) {
-  showPanel(t('finished_title'), story.outro, t('to_menu'), goMenu);
+  const p = progress;
+  const used = p ? p.hintsUsed() : 0;
+  const summary = used === 0 ? t('finished_hints_none') : t('finished_hints', used, p.hintCoinsSpent());
+  showPanel(t('finished_title'), story.outro + '\n\n' + summary, t('to_menu'), goMenu);
 }
 
 // ---- play
@@ -409,10 +412,12 @@ function showHints() {
   else msg = list + '\n\n' + t('hint_none');
   const buttons = [{ label: t('ok') }];
   if (available) {
+    const cost = Coins.hintCost(shown.length, p.room.hints.length);
     buttons.unshift({
-      label: t('hint_next', Coins.HINT_COST), primary: true,
+      label: cost === 0 ? t('hint_next_free') : cost === 1 ? t('hint_next', cost) : t('hint_next_many', cost),
+      primary: true,
       onClick: () => {
-        if (wallet.spend(Coins.HINT_COST)) {
+        if (wallet.spend(cost)) {
           p.revealHint();
           saves.save(p);
           refreshStatus();

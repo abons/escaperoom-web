@@ -30,6 +30,10 @@ const nl = {
   coins_reward: '+{0} munten',
   hint_button: 'Hint',
   hint_next: 'Volgende hint ({0} munt)',
+  hint_next_many: 'Volgende hint ({0} munten)',
+  hint_next_free: 'Volgende hint (gratis)',
+  finished_hints: 'Hints gebruikt: {0}, daaraan uitgegeven munten: {1}.',
+  finished_hints_none: 'Geen hints gebruikt.',
   hint_none: 'Geen hints meer voor deze kamer.',
   hints_empty: 'Nog geen hints onthuld.',
   hint_poor: 'Te weinig munten.',
@@ -45,7 +49,7 @@ const nl = {
   load_failed: 'De verhalen konden niet geladen worden.',
   color_R: 'Rood', color_G: 'Groen', color_B: 'Blauw', color_Y: 'Geel', color_W: 'Wit', color_K: 'Zwart',
   help_title: 'Zo speel je',
-  help_body: 'Veeg naar links of rechts, of gebruik de pijlen, om de vier muren van de kamer te bekijken.\n\nTik op dingen op een muur om ze te onderzoeken. De knop \u25ce laat alle plekken oplichten waarop je kunt tikken.\n\nTik onderaan op een voorwerp om het te kiezen en tik dan op het ding waarop je het wilt gebruiken. Met een voorwerp gekozen tik je op een tweede voorwerp om ze te combineren.\n\nVast? De knop Hint kost \u00e9\u00e9n munt per hint. Je krijgt elke dag een munt en meer voor elke kamer die je uitspeelt.\n\nMet de ? in het menu zie je dit opnieuw.',
+  help_body: 'Veeg naar links of rechts, of gebruik de pijlen, om de vier muren van de kamer te bekijken.\n\nTik op dingen op een muur om ze te onderzoeken. De knop \u25ce laat alle plekken oplichten waarop je kunt tikken.\n\nTik onderaan op een voorwerp om het te kiezen en tik dan op het ding waarop je het wilt gebruiken. Met een voorwerp gekozen tik je op een tweede voorwerp om ze te combineren.\n\nVast? De knop Hint geeft hints in lagen: de eerste van een kamer is gratis, de volgende kosten een munt per stuk en de laatste kost twee. Je krijgt elke dag een munt en meer voor elke kamer die je uitspeelt.\n\nMet de ? in het menu zie je dit opnieuw.',
 };
 
 const en = {
@@ -79,6 +83,10 @@ const en = {
   coins_reward: '+{0} coins',
   hint_button: 'Hint',
   hint_next: 'Next hint ({0} coin)',
+  hint_next_many: 'Next hint ({0} coins)',
+  hint_next_free: 'Next hint (free)',
+  finished_hints: 'Hints used: {0}, coins spent on them: {1}.',
+  finished_hints_none: 'No hints used.',
   hint_none: 'No more hints for this room.',
   hints_empty: 'No hints revealed yet.',
   hint_poor: 'Not enough coins.',
@@ -93,7 +101,7 @@ const en = {
   load_failed: 'The stories could not be loaded.',
   color_R: 'Red', color_G: 'Green', color_B: 'Blue', color_Y: 'Yellow', color_W: 'White', color_K: 'Black',
   help_title: 'How to play',
-  help_body: 'Swipe left or right, or use the arrows, to look at the four walls of the room.\n\nTap things on a wall to examine them. The \u25ce button lights up every spot you can tap.\n\nTap an item at the bottom to select it, then tap the thing you want to use it on. With one item selected, tap a second item to combine them.\n\nStuck? The Hint button costs one coin per hint. You earn a coin every day and more for every room you finish.\n\nThe ? on the menu shows this again.',
+  help_body: 'Swipe left or right, or use the arrows, to look at the four walls of the room.\n\nTap things on a wall to examine them. The \u25ce button lights up every spot you can tap.\n\nTap an item at the bottom to select it, then tap the thing you want to use it on. With one item selected, tap a second item to combine them.\n\nStuck? The Hint button gives layered hints: the first of a room is free, the ones after cost a coin each, and the last one costs two. You earn a coin every day and more for every room you finish.\n\nThe ? on the menu shows this again.',
 };
 
 export const lang = (navigator.language || 'en').toLowerCase().startsWith('nl') ? 'nl' : 'en';
