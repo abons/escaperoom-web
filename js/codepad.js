@@ -15,7 +15,8 @@ const DARK_TEXT = { W: true, Y: true };
 const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3 };
 
 /**
- * Returns {el, handleKey(e)}. onSubmit(code) is called when the slots are full or OK is pressed.
+ * Returns {el, handleKey(e)}. onSubmit(code) is called when the slots are full or OK is pressed;
+ * it returns true when the code was right (the caller closes the pad), false to keep it open.
  * For colors the names of the colours are R G B Y W K; for dirs N E S W.
  */
 export function codePad(type, len, onSubmit) {
@@ -29,7 +30,7 @@ export function codePad(type, len, onSubmit) {
     slotRow.append(s);
   }
 
-  const refresh = () => {
+  let refresh = () => {
     slots.forEach((s, i) => {
       const c = typed[i];
       s.textContent = '';
@@ -42,11 +43,16 @@ export function codePad(type, len, onSubmit) {
     });
   };
 
+  // A wrong code (onSubmit returns false) keeps the pad open but empties the slots for another try.
+  const submit = () => {
+    if (!typed) return;
+    if (onSubmit(typed) === false) { typed = ''; refresh(); }
+  };
   const press = (c) => {
     if (typed.length >= len) return;
     typed += c;
     refresh();
-    if (typed.length === len) onSubmit(typed);
+    if (typed.length === len) submit();
   };
 
   const el = h('div', { class: 'codepad cp-' + type }, slotRow);
@@ -63,17 +69,30 @@ export function codePad(type, len, onSubmit) {
     }
     el.append(row);
   }
-  el.append(h('div', { class: 'cp-actions' },
-    button('⌫', () => { if (typed) { typed = typed.slice(0, -1); refresh(); } }),
-    button(t('ok'), () => { if (typed) onSubmit(typed); }),
-  ));
+  // long press on backspace clears everything
+  let pressTimer = null; let cleared = false;
+  const back = button('⌫', () => {
+    if (cleared) { cleared = false; return; }
+    if (typed) { typed = typed.slice(0, -1); refresh(); }
+  });
+  back.addEventListener('pointerdown', () => {
+    cleared = false;
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => { cleared = true; typed = ''; refresh(); }, 500);
+  });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) back.addEventListener(ev, () => clearTimeout(pressTimer));
+  const ok = button(t('ok'), submit);
+  el.append(h('div', { class: 'cp-actions' }, back, ok));
+  const refreshOk = () => { ok.disabled = !typed; };
+  const baseRefresh = refresh;
+  refresh = () => { baseRefresh(); refreshOk(); };
   refresh();
 
   const dirKeys = { ArrowUp: 'N', ArrowRight: 'E', ArrowDown: 'S', ArrowLeft: 'W' };
   const handleKey = (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return false;
     if (e.key === 'Backspace') { if (typed) { typed = typed.slice(0, -1); refresh(); } return true; }
-    if (e.key === 'Enter') { if (typed) onSubmit(typed); return true; }
+    if (e.key === 'Enter') { submit(); return true; }
     let c = e.key.length === 1 ? e.key.toUpperCase() : null;
     if (type === 'dirs' && dirKeys[e.key]) c = dirKeys[e.key];
     if (c && keys.includes(c)) { press(c); e.preventDefault(); return true; }

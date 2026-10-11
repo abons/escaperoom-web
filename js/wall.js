@@ -40,9 +40,9 @@ export class Wall {
     });
   }
 
-  /** Show a wall; a changed plate on the same wall cross-fades. */
+  /** Show a wall; a changed plate, or a turn to another wall of the same room, cross-fades. */
   show({ room, side, src, things, exitVisible, wallName, caption }) {
-    const same = this.room === room && this.side === side;
+    const same = this.room === room; // a turn to another wall of the same room fades too (no slide)
     const old = this.src;
     this.room = room; this.side = side; this.things = things; this.exitOn = exitVisible;
     this.wallName = wallName; this.caption = caption;
