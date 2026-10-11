@@ -174,13 +174,13 @@
           "text": "Op de foto fietst Teun als jongen. Achterop staat zijn route: eerst naar het noorden, dan oost, dan zuid, dan west."
         },
         {
-          "id": "bank", "wall": "west", "x": 0.31, "y": 0.5, "w": 0.5, "h": 0.34,
+          "id": "bank", "wall": "west", "x": 0.36, "y": 0.5, "w": 0.44, "h": 0.25,
           "label": "Bank",
           "text": "Tussen de kussens: een doosje lucifers van café 't Anker. Handig voor het geval dat. Je neemt ze mee.",
           "gives": { "id": "lucifers", "name": "lucifers" }
         },
         {
-          "id": "kistje", "wall": "west", "x": 0.06, "y": 0.39, "w": 0.22, "h": 0.35,
+          "id": "kistje", "wall": "west", "x": 0.15, "y": 0.4, "w": 0.13, "h": 0.32,
           "label": "Pijlenkistje",
           "text": "Het kistje klikt open. Een brief van Teun aan Fien: 'Het spelletje loopt. De buur zoekt zich suf. Twaalf gasten om vier uur, de taart moet aan.'",
           "code": "NESW", "input": "dirs", "len": 4,
