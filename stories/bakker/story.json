@@ -38,12 +38,12 @@
           "text": "Vandaag, zaterdag, is met rode stift omcirkeld. Eronder, in potlood: 'Niets inplannen! F. komt om 16:00 met de rest.'"
         },
         {
-          "id": "schoolbord", "wall": "west", "x": 0.15, "y": 0.15, "w": 0.7, "h": 0.4,
+          "id": "schoolbord", "wall": "west", "x": 0.4, "y": 0.25, "w": 0.38, "h": 0.4,
           "label": "Schoolbord",
           "text": "Onderaan de dagaanbieding staat in Teuns krabbel: 'Oma's regel: brood gaat altijd in op 180 graden, nooit warmer.' Vandaag staat er geen brood op het bord, alleen: 'Grote taart in de maak.'"
         },
         {
-          "id": "oven", "wall": "east", "x": 0.2, "y": 0.3, "w": 0.6, "h": 0.5,
+          "id": "oven", "wall": "east", "x": 0.28, "y": 0.4, "w": 0.5, "h": 0.27,
           "label": "Bakoven",
           "text": "De ovendeur klikt open op een warme bakplaat met een broodje en een lege plek ernaast. Achter het rooster zit een losse sleutel geklemd. Je pakt hem.",
           "code": "180", "input": "digits", "len": 3,
@@ -60,7 +60,7 @@
         }
       ],
       "exit": {
-        "wall": "south", "x": 0.25, "y": 0.2, "w": 0.5, "h": 0.6,
+        "wall": "south", "x": 0.43, "y": 0.28, "w": 0.32, "h": 0.5,
         "needs": "magazijnsleutel",
         "stuck": "De deur naar het magazijn zit op slot. Er hoort een sleutel bij, en die ligt hier ergens.",
         "text": "De sleutel draait zwaar maar soepel. Achter de deur ligt een gang naar het magazijn."
@@ -90,25 +90,25 @@
       ],
       "things": [
         {
-          "id": "meelzakken", "wall": "north", "x": 0.1, "y": 0.35, "w": 0.55, "h": 0.5,
+          "id": "meelzakken", "wall": "north", "x": 0.06, "y": 0.43, "w": 0.84, "h": 0.47,
           "label": "Meelzakken",
           "text": "Vier soorten meel, elk met een gekleurd touwtje: rood, geel, blauw en wit. Teun draaide de volgorde elke week om."
         },
         {
-          "id": "uvvegen", "wall": "north", "x": 0.1, "y": 0.05, "w": 0.8, "h": 0.2,
+          "id": "uvvegen", "wall": "north", "x": 0.48, "y": 0.2, "w": 0.32, "h": 0.15,
           "label": "Gloeiende vegen",
           "visible": { "selected": "uvlamp" },
           "text": "Onder het paarse licht gloeien vier vegen op de balk, van links naar rechts: blauw, geel, rood, wit. Iemand veegde er zijn vingers af.",
           "closeup": "uv-balk"
         },
         {
-          "id": "gereedschapskast", "wall": "east", "x": 0.15, "y": 0.45, "w": 0.6, "h": 0.4,
+          "id": "gereedschapskast", "wall": "east", "x": 0.3, "y": 0.43, "w": 0.4, "h": 0.43,
           "label": "Gereedschapskast",
           "text": "Tussen sponzen en emmers ligt een zwarte lamp met een paarse lens: een UV-lamp om meelsporen te vinden. Kies hem in je tas om ermee te schijnen.",
           "gives": { "id": "uvlamp", "name": "UV-lamp" }
         },
         {
-          "id": "graankist", "wall": "west", "x": 0.1, "y": 0.5, "w": 0.4, "h": 0.33,
+          "id": "graankist", "wall": "west", "x": 0.03, "y": 0.58, "w": 0.36, "h": 0.33,
           "label": "Graankist",
           "text": "Het deksel veert open en het geheime graan ruikt zoet. Onderin ligt een trapsleutel aan een lintje.",
           "code": "BYRW", "input": "colors", "len": 4,
@@ -116,19 +116,19 @@
           "gives": { "id": "trapsleutel", "name": "trapsleutel" }
         },
         {
-          "id": "koelcel", "wall": "west", "x": 0.55, "y": 0.15, "w": 0.35, "h": 0.68,
+          "id": "koelcel", "wall": "west", "x": 0.4, "y": 0.38, "w": 0.48, "h": 0.4,
           "label": "Koelcel",
           "text": "Op het enige dienblad staan twaalf gebakjes onder folie. Een briefje: 'Niet opeten, tot 16:00. F.'"
         },
         {
-          "id": "uvvoeten", "wall": "west", "x": 0.05, "y": 0.85, "w": 0.9, "h": 0.14,
+          "id": "uvvoeten", "wall": "west", "x": 0.42, "y": 0.8, "w": 0.55, "h": 0.19,
           "label": "Gloeiende voetafdrukken",
           "visible": { "selected": "uvlamp" },
           "text": "Onder UV zie je glimmende voetafdrukken, kris-kras, van minstens tien mensen. Allemaal gaan ze naar de trap en weer terug."
         }
       ],
       "exit": {
-        "wall": "south", "x": 0.25, "y": 0.15, "w": 0.5, "h": 0.7,
+        "wall": "south", "x": 0.36, "y": 0.45, "w": 0.55, "h": 0.4,
         "needs": "trapsleutel",
         "stuck": "De trapdeur zit op slot. Het slot is klein en oud, en past op een sleutel aan een lintje.",
         "text": "De trapsleutel past. Je loopt de krakende trap op naar de woning boven de bakkerij."
@@ -154,7 +154,7 @@
       },
       "things": [
         {
-          "id": "taart", "wall": "north", "x": 0.15, "y": 0.4, "w": 0.7, "h": 0.4,
+          "id": "taart", "wall": "north", "x": 0.38, "y": 0.47, "w": 0.26, "h": 0.17,
           "label": "Taartdoos",
           "needs": ["kaarsjes", "lucifers"],
           "consumes": true,
@@ -163,24 +163,24 @@
           "closeup": "taart-kaarsen"
         },
         {
-          "id": "servieskast", "wall": "east", "x": 0.05, "y": 0.15, "w": 0.4, "h": 0.6,
+          "id": "servieskast", "wall": "east", "x": 0.0, "y": 0.16, "w": 0.4, "h": 0.72,
           "label": "Servieskast",
           "text": "Achter de borden ligt een ongeopend doosje met een potloodstreep: 'zestig', in Fiens handschrift. Je pakt het.",
           "gives": { "id": "kaarsjes", "name": "doosje kaarsjes" }
         },
         {
-          "id": "fotolijst", "wall": "east", "x": 0.55, "y": 0.2, "w": 0.35, "h": 0.3,
+          "id": "fotolijst", "wall": "east", "x": 0.5, "y": 0.22, "w": 0.42, "h": 0.33,
           "label": "Foto in lijst",
           "text": "Op de foto fietst Teun als jongen. Achterop staat zijn route: eerst naar het noorden, dan oost, dan zuid, dan west."
         },
         {
-          "id": "bank", "wall": "west", "x": 0.5, "y": 0.35, "w": 0.45, "h": 0.5,
+          "id": "bank", "wall": "west", "x": 0.42, "y": 0.56, "w": 0.55, "h": 0.32,
           "label": "Bank",
           "text": "Tussen de kussens: een doosje lucifers van café 't Anker. Handig voor het geval dat. Je neemt ze mee.",
           "gives": { "id": "lucifers", "name": "lucifers" }
         },
         {
-          "id": "kistje", "wall": "west", "x": 0.1, "y": 0.5, "w": 0.35, "h": 0.3,
+          "id": "kistje", "wall": "west", "x": 0.13, "y": 0.38, "w": 0.27, "h": 0.2,
           "label": "Pijlenkistje",
           "text": "Het kistje klikt open. Een brief van Teun aan Fien: 'Het spelletje loopt. De buur zoekt zich suf. Twaalf gasten om vier uur, de taart moet aan.'",
           "code": "NESW", "input": "dirs", "len": 4,
@@ -188,7 +188,7 @@
         }
       ],
       "exit": {
-        "wall": "south", "x": 0.25, "y": 0.2, "w": 0.5, "h": 0.6,
+        "wall": "south", "x": 0.28, "y": 0.19, "w": 0.44, "h": 0.63,
         "code": "1260",
         "text": "Het slot springt open. Aantal gasten, dan zijn leeftijd: twaalf en zestig. Je duwt de deur open."
       }
