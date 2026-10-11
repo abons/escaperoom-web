@@ -324,10 +324,11 @@ function outcome(p, th, o) {
       refreshStatus();
     {
       const ask = () => askCode(o.thing.input || 'digits', o.thing.len || (o.thing.code || '').length, (code) => {
-        let r = p.tryCode(th, code);
-        if (r.kind === 'wrong') { buzz(40); r = { kind: 'blocked', text: t('code_wrong') }; }
+        const r = p.tryCode(th, code);
+        if (r.kind === 'wrong') { buzz(40); say(t('code_wrong')); return false; }
         outcome(p, th, r);
         saves.save(p);
+        return true;
       });
       if (th.closeup) showCloseup(p, th, th.label || '', ask); else ask();
       break;
@@ -345,8 +346,10 @@ function onExit() {
   switch (p.tapExit()) {
     case 'ENTER_CODE':
       askCode(e.input || 'digits', e.len || (e.code || '').length, (code) => {
-        if (p.checkCode(code)) leave(p); else { buzz(40); say(t('code_wrong')); }
+        const right = p.checkCode(code);
+        if (right) leave(p); else { buzz(40); say(t('code_wrong')); }
         saves.save(p);
+        return right;
       });
       break;
     case 'BLOCKED': say(e.stuck || ''); break;
@@ -360,7 +363,12 @@ function onExit() {
 
 function askCode(type, len, onCode) {
   let m = null;
-  const pad = codePad(type, len, (code) => { m.close(); onCode(code); });
+  // onCode returns true for a right code: only then the pad closes
+  const pad = codePad(type, len, (code) => {
+    const ok = onCode(code);
+    if (ok) m.close();
+    return ok;
+  });
   m = modal({
     title: t('code_title'), content: pad.el, className: 'code-modal',
     buttons: [{ label: t('cancel') }],
