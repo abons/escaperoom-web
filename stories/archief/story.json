@@ -70,12 +70,12 @@
     {
       "id": "kantoor",
       "title": "Het kantoor",
-      "difficulty": 2,
+      "difficulty": 3,
       "hints": [
         "De kaartlezer wil een doorgangskaart, maar zo'n kaart ligt hier niet zomaar ergens. En er hoort nog iets bij.",
         "Er zijn twee helften van een kaart. Een ervan zit achter slot, de ander hangt ergens waar je eerst niet op lette. De kluis heeft twee sloten.",
         "Pak de sleutel in het bureau voor de kluis. De kluis wil ook een code: kijk wat de stilstaande klok aanwijst. Combineer de twee kaartdelen.",
-        "Klok: 1, 4, 3, 5 voor de kluis. Linkerhelft uit de kluis, rechterhelft van het prikbord, samen een kaart. Het stempel achter de klok moet je ook meenemen voor de lezer."
+        "Klok: 1, 4, 3, 5 voor de kluis. Linkerhelft uit de kluis, rechterhelft van het prikbord, samen een kaart. Het stempel achter de klok moet je op de heel gemaakte kaart drukken voor je hem in de lezer houdt."
       ],
       "task": "Vind de twee helften van de doorgangskaart en een stempel, en open de voordeur.",
       "intro": "Maanlicht valt door de lamellen over een rommelig bureau. Aan de zuidkant zie je de voordeur, met een kaartlezer ernaast.",
@@ -123,13 +123,19 @@
           "gives": { "id": "pass", "name": "Doorgangskaart" },
           "text": "De twee helften sluiten precies op elkaar. Met een klik zit de doorgangskaart weer heel.",
           "consumes": true
+        },
+        {
+          "a": "pass", "b": "stamp",
+          "gives": { "id": "pass_stamped", "name": "Afgestempelde kaart" },
+          "text": "Je drukt het stempel op de kaart. 'GEZIEN', in rode inkt, nog nat.",
+          "consumes": true
         }
       ],
       "exit": {
         "wall": "south", "x": 0.25, "y": 0.15, "w": 0.5, "h": 0.7,
-        "needs": ["pass", "stamp"],
+        "needs": ["pass_stamped"],
         "stuck": "De kaartlezer knippert rood. Hij wil een hele doorgangskaart met een stempel erop; een halve kaart leest hij niet.",
-        "text": "Je drukt het stempel op de kaart en houdt hem voor de lezer. Het lampje springt op groen en de deur gaat open."
+        "text": "Je houdt de afgestempelde kaart voor de lezer. Het lampje springt op groen en de deur gaat open."
       }
     }
   ]
