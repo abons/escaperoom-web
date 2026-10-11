@@ -2,6 +2,7 @@
   "name": "Escape Room",
   "short_name": "Escape Room",
   "description": "Point-and-click escape rooms. Offline, no ads, no tracking.",
+  "id": "./escaperoom",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -23,6 +23,26 @@
     }
   } catch (e) { /* ignore */ }
 </script>
+<script>
+  // Own install button: shown when Chrome offers installation (beforeinstallprompt).
+  (function () {
+    var deferred = null, btn = null;
+    var nl = (navigator.language || '').slice(0, 2) === 'nl';
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault(); deferred = e;
+      btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn small';
+      btn.textContent = nl ? 'Installeer app' : 'Install app';
+      btn.style.cssText = 'position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50';
+      btn.onclick = function () {
+        var d = deferred; deferred = null; btn.remove();
+        d.prompt();
+      };
+      document.body.appendChild(btn);
+    });
+    window.addEventListener('appinstalled', function () { if (btn) btn.remove(); });
+  })();
+</script>
 <script type="module" src="./js/app.js"></script>
 </body>
 </html>
