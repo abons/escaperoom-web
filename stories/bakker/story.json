@@ -43,7 +43,7 @@
           "text": "Onderaan de dagaanbieding staat in Teuns krabbel: 'Oma's regel: brood gaat altijd in op 180 graden, nooit warmer.' Vandaag staat er geen brood op het bord, alleen: 'Grote taart in de maak.'"
         },
         {
-          "id": "oven", "wall": "east", "x": 0.4, "y": 0.45, "w": 0.42, "h": 0.25,
+          "id": "oven", "wall": "east", "x": 0.4, "y": 0.4, "w": 0.37, "h": 0.22,
           "label": "Bakoven",
           "text": "De ovendeur klikt open. Op de bakplaat ligt een broodje waar het oog van een sleutel uit steekt: hij is meegebakken. Je pakt het broodje met een doek.",
           "code": "180", "input": "digits", "len": 3,
@@ -128,7 +128,7 @@
         }
       ],
       "exit": {
-        "wall": "south", "x": 0.36, "y": 0.45, "w": 0.55, "h": 0.4,
+        "wall": "south", "x": 0.34, "y": 0.52, "w": 0.6, "h": 0.38,
         "needs": "trapsleutel",
         "stuck": "De trap ligt er open en bloot bij, maar het traphek zit dicht met een klein, oud slot. Er hoort een sleutel aan een lintje bij.",
         "text": "De trapsleutel past. Het hek zwaait open en je loopt de krakende trap op naar de woning boven de bakkerij."
