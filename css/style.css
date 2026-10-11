@@ -179,6 +179,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wall-img, .toast { transition: none; }
+  /* the close-up zoom is a Web Animation: ui.js checks the same media query and skips it */
 }
 .menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .menu-head .btn { min-width: 48px; }

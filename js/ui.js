@@ -33,20 +33,44 @@ export function modalOpen() { return stack.length > 0; }
 /** Close every open modal (browser back, leaving a screen). */
 export function closeAllModals() { while (stack.length) stack[stack.length - 1].close(); }
 
+const ZOOM_MS = 220;
+const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/** Start frame of the zoom: the box shrunk onto the rect `from` (client px), centres aligned. */
+function zoomFrom(box, from) {
+  const r = box.getBoundingClientRect();
+  const s = Math.min(1, Math.max(0.05, from.w / r.width, from.h / r.height));
+  const dx = from.x + from.w / 2 - (r.left + r.width / 2);
+  const dy = from.y + from.h / 2 - (r.top + r.height / 2);
+  return `translate(${dx}px, ${dy}px) scale(${s})`;
+}
+
 /**
- * modal({title, message, content, buttons:[{label, primary, onClick}], cancelable, className})
+ * modal({title, message, content, buttons:[{label, primary, onClick}], cancelable, className, animateFrom})
  * A button handler returning false keeps the modal open. Returns {close}.
+ * animateFrom {x,y,w,h} (client px): the box scales open from that rect and closes back into it (~220 ms),
+ * unless prefers-reduced-motion. The modal leaves the stack at once; only the element lingers while it shrinks.
  */
-export function modal({ title, message, content, buttons = [], cancelable = true, className = '', onKey } = {}) {
+export function modal({ title, message, content, buttons = [], cancelable = true, className = '', onKey, animateFrom } = {}) {
   const box = h('div', { class: 'modal-box ' + className, role: 'dialog', 'aria-modal': 'true' });
   if (title) box.append(h('h2', { class: 'modal-title' }, title));
   if (message) box.append(h('div', { class: 'modal-msg' }, message));
   if (content) box.append(content);
   const entry = { cancelable, onKey, el: null };
+  let zoom = null; // start frame while the zoom is on
+  let closing = false;
   const close = () => {
     const i = stack.indexOf(entry);
     if (i >= 0) stack.splice(i, 1);
-    entry.el.remove();
+    if (closing) return;
+    if (!zoom || !entry.el.isConnected || reducedMotion()) { entry.el.remove(); return; }
+    closing = true;
+    const el = entry.el;
+    el.style.pointerEvents = 'none';
+    const opts = { duration: ZOOM_MS, easing: 'ease-in', fill: 'forwards' };
+    el.animate({ opacity: [1, 0] }, opts);
+    box.animate([{ transform: 'none', opacity: 1 }, { transform: zoom, opacity: 0.2 }], opts).onfinish = () => el.remove();
+    setTimeout(() => el.remove(), ZOOM_MS + 100); // in case onfinish never fires (hidden tab)
   };
   if (buttons.length) {
     const row = h('div', { class: 'modal-buttons' });
@@ -64,6 +88,12 @@ export function modal({ title, message, content, buttons = [], cancelable = true
   entry.close = close;
   stack.push(entry);
   document.body.append(overlay);
+  if (animateFrom && !reducedMotion() && box.animate) {
+    zoom = zoomFrom(box, animateFrom);
+    const opts = { duration: ZOOM_MS, easing: 'cubic-bezier(.2, .8, .2, 1)' };
+    overlay.animate({ opacity: [0, 1] }, opts);
+    box.animate([{ transform: zoom, opacity: 0.2 }, { transform: 'none', opacity: 1 }], opts);
+  }
   return { close, box };
 }
 

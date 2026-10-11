@@ -384,8 +384,15 @@ function showCloseup(p, th, msg, enterCode) {
   const visual = src
     ? h('img', { class: 'closeup-img', src, alt: th.label || '' })
     : h('div', { class: 'closeup-label' }, th.label || '');
+  // scale open from the zone of the thing that was tapped (and close back into it)
+  const wr = ui.wall && ui.wall.el.getBoundingClientRect();
+  const z = th.zone;
+  const animateFrom = wr && wr.width > 0 && z
+    ? { x: wr.left + z.x * wr.width, y: wr.top + z.y * wr.height, w: z.w * wr.width, h: z.h * wr.height }
+    : undefined;
   modal({
     className: 'closeup',
+    animateFrom,
     content: h('div', { class: 'closeup-col' }, visual, h('div', { class: 'closeup-text' }, msg)),
     buttons: enterCode
       ? [{ label: t('code_title'), primary: true, onClick: enterCode }, { label: t('close') }]
