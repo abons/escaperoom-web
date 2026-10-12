@@ -44,6 +44,16 @@
     window.addEventListener('appinstalled', function () { if (btn) btn.remove(); });
   })();
 </script>
+<script>
+// Chrome Android keeps a stale 100dvh after pull-to-refresh: size #app from the real inner height.
+(function () {
+  function fit() { document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); }
+  fit();
+  ['resize', 'orientationchange', 'pageshow', 'focus'].forEach(function (e) { window.addEventListener(e, fit); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  setTimeout(fit, 300);
+})();
+</script>
 <script type="module" src="./js/app.js"></script>
 </body>
 </html>
