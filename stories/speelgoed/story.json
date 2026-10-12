@@ -54,10 +54,10 @@
         {
           "id": "kassa",
           "wall": "north",
-          "x": 0.5,
-          "y": 0.42,
-          "w": 0.31,
-          "h": 0.2,
+          "x": 0.49,
+          "y": 0.41,
+          "w": 0.33,
+          "h": 0.22,
           "label": "Kassa",
           "text": "Op een briefje staat: 'De sleutels zijn weer weg. Rob was druk.' Op de vloer lopen kleine wielsporen naar achteren."
         }
@@ -165,7 +165,7 @@
           "id": "rob",
           "wall": "north",
           "x": 0.13,
-          "y": 0.66,
+          "y": 0.67,
           "w": 0.25,
           "h": 0.21,
           "label": "Rob",
@@ -174,9 +174,9 @@
         {
           "id": "koekoeksklok",
           "wall": "east",
-          "x": 0.385,
-          "y": 0.26,
-          "w": 0.26,
+          "x": 0.38,
+          "y": 0.25,
+          "w": 0.28,
           "h": 0.23,
           "label": "Koekoeksklok",
           "text": "De koekoek zit stil in zijn huisje. Hij komt pas naar buiten als het negen uur is."
@@ -195,10 +195,10 @@
       "combos": [],
       "exit": {
         "wall": "north",
-        "x": 0.27,
+        "x": 0.23,
         "y": 0.31,
-        "w": 0.6,
-        "h": 0.33,
+        "w": 0.64,
+        "h": 0.36,
         "needs": "opwindsleutel",
         "stuck": "De grote klok staat stil. Hij moet worden opgewonden. Heb je een sleutel?",
         "text": "Je draait de sleutel. De klok slaat negen! Rob danst van blijdschap en de koekoek springt naar buiten."
