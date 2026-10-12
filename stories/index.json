@@ -57,6 +57,26 @@
     "bakker/woonkamer/taart-kaarsen.webp",
     "bakker/woonkamer/west.webp"
    ]
+  },
+  {
+   "id": "speelgoed",
+   "files": [
+    "speelgoed/items/opwindsleutel.webp",
+    "speelgoed/items/trapsleutel.webp",
+    "speelgoed/klokkenkamer/east.webp",
+    "speelgoed/klokkenkamer/north.webp",
+    "speelgoed/klokkenkamer/south.webp",
+    "speelgoed/klokkenkamer/west.webp",
+    "speelgoed/magazijn/east.webp",
+    "speelgoed/magazijn/north.webp",
+    "speelgoed/magazijn/south.webp",
+    "speelgoed/magazijn/west.webp",
+    "speelgoed/story.json",
+    "speelgoed/winkel/east.webp",
+    "speelgoed/winkel/north.webp",
+    "speelgoed/winkel/south.webp",
+    "speelgoed/winkel/west.webp"
+   ]
   }
  ]
 }

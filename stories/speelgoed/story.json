@@ -1,0 +1,208 @@
+{
+  "format": 1,
+  "difficulty": 1,
+  "lang": "nl",
+  "title": "De Speelgoedwinkel",
+  "blurb": "Alle sleutels van de speelgoedwinkel zijn weg! Wie heeft er gerommeld? Een speurtocht voor jonge speurders.",
+  "intro": "De winkel is stil. Jij viel in het leeshoekje in slaap. De voordeur zit dicht en het licht is aan.",
+  "outro": "Rob was niet stout bezig. Hij wilde de winkel om negen uur open hebben. Dankzij jou slaat de klok negen en komen de eerste kinderen binnen. Goed gespeurd!",
+  "rooms": [
+    {
+      "id": "winkel",
+      "title": "De winkel",
+      "difficulty": 1,
+      "hints": [
+        "Kijk eens naar de planken met knuffels. Daar zit iets bij een beer.",
+        "Er hoort iets op te winden bij het tafeltje met de muziek.",
+        "De muziekdoos speelt een ster, een maan en een hart. Druk ze op de deur in die volgorde."
+      ],
+      "task": "Kom door de deur met 'Alleen personeel' en zoek wie er in de winkel heeft gerommeld.",
+      "intro": "De winkel is stil. Jij viel in het leeshoekje in slaap. De voordeur zit dicht en het licht is aan.",
+      "walls": {
+        "north": "De noordmuur: de toonbank met de kassa en een bos ballonnen.",
+        "east": "De oostmuur: een plank vol knuffels.",
+        "south": "De zuidmuur: een rode deur met een paneeltje met drie knoppen.",
+        "west": "De westmuur: een tafeltje met een muziekdoos en een treinbaan."
+      },
+      "things": [
+        {
+          "id": "knuffelplank",
+          "wall": "east",
+          "x": 0.4,
+          "y": 0.4,
+          "w": 0.19,
+          "h": 0.17,
+          "label": "Beer met sleuteltje",
+          "text": "Een beer heeft een sleuteltje op zijn rug. Je pakt het.",
+          "gives": {
+            "id": "opwindsleutel",
+            "name": "opwindsleutel"
+          }
+        },
+        {
+          "id": "muziekdoos",
+          "wall": "west",
+          "x": 0.13,
+          "y": 0.56,
+          "w": 0.34,
+          "h": 0.28,
+          "label": "Muziekdoos",
+          "needs": "opwindsleutel",
+          "stuck": "De muziekdoos staat stil. Hij moet worden opgewonden.",
+          "text": "Hij speelt drie tonen: een ster, een maan, een hart."
+        },
+        {
+          "id": "kassa",
+          "wall": "north",
+          "x": 0.5,
+          "y": 0.42,
+          "w": 0.31,
+          "h": 0.2,
+          "label": "Kassa",
+          "text": "Op een briefje staat: 'De sleutels zijn weer weg. Rob was druk.' Op de vloer lopen kleine wielsporen naar achteren."
+        }
+      ],
+      "combos": [],
+      "exit": {
+        "wall": "south",
+        "x": 0.31,
+        "y": 0.21,
+        "w": 0.49,
+        "h": 0.57,
+        "code": "SMH",
+        "input": "sequence",
+        "len": 3,
+        "text": "De knoppen klikken. De deur gaat open. Daarachter ligt het magazijn."
+      }
+    },
+    {
+      "id": "magazijn",
+      "title": "Het magazijn",
+      "difficulty": 1,
+      "hints": [
+        "Kijk eens naar de stapel dozen bij de noordmuur.",
+        "De kist bij de oostmuur heeft een slot met kleuren.",
+        "De dozen staan rood, geel, blauw van boven naar beneden. Druk de kleuren in die volgorde."
+      ],
+      "task": "Kom de trap op. Zoek de sleutel van de trap.",
+      "intro": "Achter de deur is het magazijn. Overal staan dozen. Rechts begint een trap.",
+      "walls": {
+        "north": "De noordmuur: een stapel dozen.",
+        "east": "De oostmuur: een houten speelgoedkist met een slot.",
+        "south": "De zuidmuur: een trap achter een laag hekje.",
+        "west": "De westmuur: haakjes met sleuteltjes."
+      },
+      "things": [
+        {
+          "id": "dozen",
+          "wall": "north",
+          "x": 0.35,
+          "y": 0.36,
+          "w": 0.31,
+          "h": 0.51,
+          "label": "Dozen",
+          "text": "Drie dozen op elkaar. Van boven naar beneden: rood, geel, blauw."
+        },
+        {
+          "id": "speelgoedkist",
+          "wall": "east",
+          "x": 0.23,
+          "y": 0.59,
+          "w": 0.61,
+          "h": 0.27,
+          "label": "Speelgoedkist",
+          "code": "RYB",
+          "input": "colors",
+          "len": 3,
+          "text": "De kist springt open. Er ligt een sleutel in.",
+          "gives": {
+            "id": "trapsleutel",
+            "name": "trapsleutel"
+          }
+        },
+        {
+          "id": "haakjes",
+          "wall": "west",
+          "x": 0.16,
+          "y": 0.3,
+          "w": 0.75,
+          "h": 0.19,
+          "label": "Haakjes",
+          "text": "Aan de haakjes hangen sleuteltjes met groene lintjes. Eén haakje is leeg."
+        }
+      ],
+      "combos": [],
+      "exit": {
+        "wall": "south",
+        "x": 0.21,
+        "y": 0.14,
+        "w": 0.62,
+        "h": 0.73,
+        "needs": "trapsleutel",
+        "stuck": "Het hekje zit op slot. Waar ligt de sleutel?",
+        "text": "Het hekje gaat open. Je loopt de trap op."
+      }
+    },
+    {
+      "id": "klokkenkamer",
+      "title": "De klokkenkamer",
+      "difficulty": 1,
+      "hints": [
+        "Kijk eens naar de noordmuur. Daar staat iemand bij de grote klok.",
+        "Rob mist een sleutel. Welke sleutel heb jij nog in je tas?",
+        "Kies de opwindsleutel in je tas en tik daarmee op de grote klok."
+      ],
+      "task": "Zoek uit wat Rob wil en zet de grote klok aan de praat.",
+      "intro": "Boven is een kamer vol klokken. Bij de grote klok staat Rob, de opwind-robot. Hij heeft overal sleutels.",
+      "walls": {
+        "north": "De noordmuur: de grote klok, met Rob ervoor.",
+        "east": "De oostmuur: een koekoeksklok en wekkers.",
+        "south": "De zuidmuur: een raam met zonlicht.",
+        "west": "De westmuur: een zacht kussen en een deken."
+      },
+      "things": [
+        {
+          "id": "rob",
+          "wall": "north",
+          "x": 0.13,
+          "y": 0.66,
+          "w": 0.25,
+          "h": 0.21,
+          "label": "Rob",
+          "text": "Rob piept blij. Hij had alle sleutels, maar één mist nog: die van de beer. Hij wil de klok opwinden."
+        },
+        {
+          "id": "koekoeksklok",
+          "wall": "east",
+          "x": 0.385,
+          "y": 0.26,
+          "w": 0.26,
+          "h": 0.23,
+          "label": "Koekoeksklok",
+          "text": "De koekoek zit stil in zijn huisje. Hij komt pas naar buiten als het negen uur is."
+        },
+        {
+          "id": "raam",
+          "wall": "south",
+          "x": 0.3,
+          "y": 0.19,
+          "w": 0.5,
+          "h": 0.385,
+          "label": "Raam",
+          "text": "Buiten komt de zon op. Er staan al kinderen te wachten voor de winkel."
+        }
+      ],
+      "combos": [],
+      "exit": {
+        "wall": "north",
+        "x": 0.27,
+        "y": 0.31,
+        "w": 0.6,
+        "h": 0.33,
+        "needs": "opwindsleutel",
+        "stuck": "De grote klok staat stil. Hij moet worden opgewonden. Heb je een sleutel?",
+        "text": "Je draait de sleutel. De klok slaat negen! Rob danst van blijdschap en de koekoek springt naar buiten."
+      }
+    }
+  ]
+}
