@@ -29,9 +29,9 @@
           "id": "knuffelplank",
           "wall": "east",
           "x": 0.4,
-          "y": 0.4,
-          "w": 0.19,
-          "h": 0.17,
+          "y": 0.39,
+          "w": 0.24,
+          "h": 0.19,
           "label": "Beer met sleuteltje",
           "text": "Een beer heeft een sleuteltje op zijn rug. Je pakt het.",
           "gives": {
