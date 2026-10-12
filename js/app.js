@@ -343,6 +343,7 @@ function outcome(p, th, o) {
       if (th.closeup) showCloseup(p, th, msg);
       break;
     }
+    case 'search': showSearch(p, o.thing); break;
     case 'blocked': say(o.text); break;
     case 'wrong': buzz(40); say(t('wrong_use')); break;
     case 'applied': say(t('applied', itemName(p, o.item))); break;
@@ -420,6 +421,45 @@ function showCloseup(p, th, msg, enterCode) {
     buttons: enterCode
       ? [{ label: t('code_title'), primary: true, onClick: enterCode }, { label: t('close') }]
       : [{ label: t('close'), primary: true }],
+  });
+}
+
+/** The search plate of th: tap what is on the list; the last one found opens the thing. */
+function showSearch(p, th) {
+  const src = plate(p.story.id, `${p.room.id}/${th.closeup}`);
+  const img = src ? h('img', { class: 'search-img', src, alt: th.label || '', draggable: 'false' }) : h('div', { class: 'search-img search-blank' });
+  const wrap = h('div', { class: 'search-wrap' }, img);
+  const left = h('div', { class: 'search-left' });
+  const list = h('div', { class: 'search-list' });
+  let m = null;
+  const refresh = () => {
+    list.replaceChildren(...th.search.map((s) => h('span', { class: 'search-name' + (p.isHit(th, s) ? ' found' : '') }, s.name)));
+    left.textContent = t('search_left', p.searchLeft(th));
+    wrap.querySelectorAll('.search-mark').forEach((n) => n.remove());
+    for (const s of th.search) {
+      if (!p.isHit(th, s)) continue;
+      const z = s.zone;
+      const mk = h('div', { class: 'search-mark' });
+      mk.style.cssText = `left:${z.x * 100}%;top:${z.y * 100}%;width:${z.w * 100}%;height:${z.h * 100}%`;
+      wrap.append(mk);
+    }
+  };
+  wrap.addEventListener('click', (e) => {
+    const r = wrap.getBoundingClientRect();
+    const res = p.searchTap(th, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+    if (res.kind === 'hit') { buzz(15); refresh(); }
+    else if (res.kind === 'done') {
+      const o = res.said;
+      const msg = o.gained ? gainedMessage(o.text, o.gained) : o.text;
+      m.close(); say(msg); refreshStatus();
+    }
+    saves.save(p);
+  });
+  refresh();
+  m = modal({
+    className: 'closeup search',
+    content: h('div', { class: 'closeup-col' }, wrap, left, list),
+    buttons: [{ label: t('close'), primary: true }],
   });
 }
 

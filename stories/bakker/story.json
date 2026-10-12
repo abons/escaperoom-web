@@ -71,35 +71,27 @@
       "title": "Het magazijn",
       "difficulty": 3,
       "hints": [
-        "Het hek voor de trap zit op slot. Het geheime graan in de kist op de westmuur bewaart de sleutel, en de kist wil kleuren.",
-        "Je ziet niet alles met gewoon licht. Zoek een lamp in het gereedschap en kijk wat er gebeurt met de balk boven de meelzakken.",
-        "Pak de UV-lamp uit de kast, selecteer hem in je tas en kijk naar de noord- en westmuur. Tik op wat gaat gloeien.",
-        "De vegen laten blauw, geel, rood, wit zien, de volgorde van vorige week. Teun draaide die om, dus het slot wil wit, rood, geel, blauw. De kist heeft zes knoppen, maar je hebt er vier nodig. Toets W, R, Y, B en pak de trapsleutel."
+        "Het hek voor de trap zit op slot, en de trap erachter is donker. Je hebt een sleutel én iets dat licht geeft nodig.",
+        "De graankist op de westmuur ligt onder de rommel. Tik erop en zoek alles van de lijst: daaronder ligt de trapsleutel.",
+        "Zoek rustig per hoek van de plaat. Kleine dingen liggen achter grotere, op de planken en op de grond.",
+        "Vergeet de lamp uit de gereedschapskast op de oostmuur niet: je hebt hem boven nodig. Kies hem in je tas, tik op het hek, en doe dat ook met de sleutel."
       ],
-      "task": "Open de graankist met het geheime graan en haal de trapsleutel eruit.",
+      "task": "Zoek de trapsleutel onder de rommel bij de graankist en neem een lamp mee voor de donkere trap.",
       "intro": "Zakken meel tot aan het plafond, een lange houten balk en een koelcel. Het is koel en schemerig, en iemand is hier vanmorgen druk geweest.",
       "walls": {
         "north": "De noordmuur: stellingen vol meelzakken onder een houten balk.",
         "east": "De oostmuur: een gereedschapskast.",
         "south": "De zuidmuur: de trap naar de woning boven, met een afgesloten traphek ervoor.",
-        "west": "De westmuur: een graankist met gekleurde knoppen en een koelcel."
+        "west": "De westmuur: een graankist onder een hoop rommel en een koelcel."
       },
       "variants": [
-        { "wall": "north", "when": { "selected": "uvlamp" }, "image": "north-uv" },
         { "wall": "west", "when": { "selected": "uvlamp" }, "image": "west-uv" }
       ],
       "things": [
         {
           "id": "meelzakken", "wall": "north", "x": 0.06, "y": 0.43, "w": 0.84, "h": 0.47,
           "label": "Meelzakken",
-          "text": "Vier soorten meel, elk met een gekleurd touwtje: rood, geel, blauw en wit. Teun draaide de volgorde elke week om: wat vorige week van links naar rechts hing, hangt nu van rechts naar links."
-        },
-        {
-          "id": "uvvegen", "wall": "north", "x": 0.48, "y": 0.2, "w": 0.32, "h": 0.15,
-          "label": "Gloeiende vegen",
-          "visible": { "selected": "uvlamp" },
-          "text": "Onder het paarse licht gloeien vier vegen op de balk, van links naar rechts: blauw, geel, rood, wit. Dat is de volgorde van vorige week. Iemand veegde er zijn vingers af.",
-          "closeup": "uv-balk"
+          "text": "Vier soorten meel, elk met een gekleurd touwtje: rood, geel, blauw en wit. Teun hangt ze elke week in een andere volgorde."
         },
         {
           "id": "gereedschapskast", "wall": "east", "x": 0.3, "y": 0.43, "w": 0.4, "h": 0.43,
@@ -110,9 +102,30 @@
         {
           "id": "graankist", "wall": "west", "x": 0.03, "y": 0.58, "w": 0.36, "h": 0.33,
           "label": "Graankist",
-          "text": "Het deksel veert open en het geheime graan ruikt zoet. Onderin ligt een trapsleutel aan een lintje.",
-          "code": "WRYB", "input": "colors", "len": 4,
-          "closeup": "graankist-slot",
+          "text": "Terwijl je de laatste spullen opzij schuift, veert het deksel open en ruikt het geheime graan zoet. Onderin ligt een trapsleutel aan een lintje.",
+          "closeup": "kist-zoek",
+          "search": [
+            { "id": "garde", "name": "garde", "x": 0.251, "y": 0.498, "w": 0.145, "h": 0.048 },
+            { "id": "deegroller", "name": "deegroller", "x": 0.368, "y": 0.833, "w": 0.201, "h": 0.108 },
+            { "id": "bakblik", "name": "bakblik", "x": 0.285, "y": 0.315, "w": 0.123, "h": 0.083 },
+            { "id": "klomp", "name": "klomp", "x": 0.112, "y": 0.867, "w": 0.234, "h": 0.096 },
+            { "id": "theepot", "name": "theepot", "x": 0.132, "y": 0.398, "w": 0.199, "h": 0.092 },
+            { "id": "zakhorloge", "name": "zakhorloge", "x": 0.292, "y": 0.557, "w": 0.084, "h": 0.067 },
+            { "id": "bril", "name": "bril", "x": 0.393, "y": 0.557, "w": 0.106, "h": 0.048 },
+            { "id": "brood", "name": "brood", "x": 0.552, "y": 0.473, "w": 0.206, "h": 0.096 },
+            { "id": "emmer", "name": "emmer", "x": 0.750, "y": 0.723, "w": 0.206, "h": 0.175 },
+            { "id": "kaars", "name": "kaars", "x": 0.234, "y": 0.190, "w": 0.106, "h": 0.110 },
+            { "id": "melkkan", "name": "melkkan", "x": 0.411, "y": 0.412, "w": 0.108, "h": 0.075 },
+            { "id": "pet", "name": "pet", "x": 0.586, "y": 0.762, "w": 0.162, "h": 0.100 },
+            { "id": "lantaarn", "name": "lantaarn", "x": 0.527, "y": 0.304, "w": 0.112, "h": 0.165 },
+            { "id": "koekenpan", "name": "koekenpan", "x": 0.033, "y": 0.613, "w": 0.167, "h": 0.250 },
+            { "id": "kat", "name": "kat", "x": 0.720, "y": 0.408, "w": 0.237, "h": 0.062 },
+            { "id": "appel", "name": "appel", "x": 0.471, "y": 0.510, "w": 0.078, "h": 0.046 },
+            { "id": "eieren", "name": "eieren", "x": 0.571, "y": 0.865, "w": 0.179, "h": 0.077 },
+            { "id": "schort", "name": "gestreepte schort", "x": 0.504, "y": 0.608, "w": 0.160, "h": 0.152 },
+            { "id": "ovenhandschoen", "name": "ovenhandschoen", "x": 0.675, "y": 0.575, "w": 0.128, "h": 0.125 },
+            { "id": "weegschaal", "name": "weegschaal", "x": 0.556, "y": 0.100, "w": 0.175, "h": 0.154 }
+          ],
           "gives": { "id": "trapsleutel", "name": "trapsleutel" }
         },
         {
@@ -129,9 +142,9 @@
       ],
       "exit": {
         "wall": "south", "x": 0.34, "y": 0.52, "w": 0.6, "h": 0.38,
-        "needs": "trapsleutel",
-        "stuck": "De trap ligt er open en bloot bij, maar het traphek zit dicht met een klein, oud slot. Er hoort een sleutel aan een lintje bij.",
-        "text": "De trapsleutel past. Het hek zwaait open en je loopt de krakende trap op naar de woning boven de bakkerij."
+        "needs": ["trapsleutel", "uvlamp"],
+        "stuck": "Het traphek zit dicht met een klein, oud slot, en de trap erachter is pikdonker. Je hebt een sleutel aan een lintje nodig én iets dat licht geeft.",
+        "text": "De trapsleutel past. Het hek zwaait open en met de lamp in de hand loop je de krakende trap op naar de woning boven de bakkerij."
       }
     },
     {

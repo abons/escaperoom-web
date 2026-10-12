@@ -222,9 +222,9 @@ test('saveShapeEqualsKotlin', () => {
   const p = new Progress(story);
   p.tap(giver); p.select('c'); p.revealHint();
   const o = JSON.parse(p.toJson());
-  assert.deepEqual(Object.keys(o), ['room', 'finished', 'items', 'found', 'applied', 'side', 'hints', 'playMs', 'mistakes']);
+  assert.deepEqual(Object.keys(o), ['room', 'finished', 'items', 'found', 'hits', 'applied', 'side', 'hints', 'playMs', 'mistakes']);
   assert.deepEqual(o, {
-    room: 0, finished: false, items: [{ id: 'k', name: 'sleutel' }], found: ['g'], applied: {}, side: 'north', hints: { a: 1 },
+    room: 0, finished: false, items: [{ id: 'k', name: 'sleutel' }], found: ['g'], hits: [], applied: {}, side: 'north', hints: { a: 1 },
     playMs: {}, mistakes: {},
   });
 });
@@ -463,4 +463,36 @@ test('hiddenExitIsRefused', () => {
   assert.equal(p.tapExit(), ExitAsk.WRONG);
   p.tap(giver);
   assert.equal(p.tapExit(), ExitAsk.OPEN);
+});
+
+const rummage = thing('r', Side.NORTH, z, 'r', 'onder de rommel', [], null, item('rk', 'kistsleutel'), {
+  closeup: 'r-zoek',
+  search: [{ id: 'a', name: 'klomp', zone: { x: 0.1, y: 0.1, w: 0.1, h: 0.1 } }, { id: 'b', name: 'theepot', zone: { x: 0.5, y: 0.5, w: 0.1, h: 0.1 } }],
+});
+const searchStory = () => new Progress(mkStory('s', 'nl', 'S', '', '', '', [
+  room('a', 'A', 't', '', {}, [rummage], exit(Side.SOUTH, z, '1', [], null, 'uit')),
+]));
+
+test('searchPlateOpensOnlyWhenEverythingIsFound', () => {
+  const p = searchStory();
+  assert.deepEqual(p.tap(rummage), Outcome.search(rummage));
+  assert.equal(p.searchTap(rummage, 0.9, 0.9).kind, 'miss');
+  assert.equal(p.mistakes.size, 0); // a miss is no fault
+  assert.equal(p.searchTap(rummage, 0.15, 0.15).kind, 'hit');
+  assert.equal(p.searchTap(rummage, 0.15, 0.15).kind, 'again');
+  assert.equal(p.searchLeft(rummage), 1);
+  assert.ok(!p.found.has('r'));
+  const done = p.searchTap(rummage, 0.55, 0.55);
+  assert.equal(done.kind, 'done');
+  assert.equal(done.said.text, 'onder de rommel');
+  assert.ok(p.found.has('r') && p.items.has('rk'));
+});
+
+test('searchHitsSurviveASave', () => {
+  const p = searchStory();
+  p.searchTap(rummage, 0.15, 0.15);
+  const back = Progress.fromJson(p.story, p.toJson());
+  assert.ok(back.isHit(rummage, rummage.search[0]));
+  assert.equal(back.searchLeft(rummage), 1);
+  assert.deepEqual(back.tap(rummage), Outcome.search(rummage));
 });

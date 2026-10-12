@@ -43,6 +43,7 @@ const nl = {
   stars_min: '{0}  ~{1} min',
   applied: 'Je gebruikt {0}. Er ontbreekt nog iets.',
   close: 'Sluiten',
+  search_left: 'Nog {0} te vinden',
   // web only
   to_menu_short: 'Menu',
   zones: 'Toon zones',
@@ -98,6 +99,7 @@ const en = {
   stars_min: '{0}  ~{1} min',
   applied: 'You use {0}. Something is still missing.',
   close: 'Close',
+  search_left: '{0} left to find',
   to_menu_short: 'Menu',
   zones: 'Show zones',
   turn_left: 'Turn left',

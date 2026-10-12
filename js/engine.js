@@ -155,6 +155,7 @@ function parseThing(o) {
     consumes: optBool(o, 'consumes', false),
     code, input: optStr(o, 'input', 'digits'), len: optInt(o, 'len', code === null ? 0 : code.length),
     closeup: strOrNull(o, 'closeup'), visibleWhen: condOf(o, 'visible'),
+    search: Array.isArray(o.search) ? o.search.map((s) => ({ id: reqStr(s, 'id'), name: reqStr(s, 'name'), zone: zone(s) })) : [],
   });
 }
 
@@ -223,6 +224,8 @@ export const Outcome = Object.freeze({
   wrong() { return { kind: 'wrong' }; },
   applied(item, remaining) { return { kind: 'applied', item, remaining }; },
   needsCode(thing) { return { kind: 'needsCode', thing }; },
+  /** The thing is a search plate with targets left: open it, then Progress.searchTap. */
+  search(thing) { return { kind: 'search', thing }; },
 });
 
 export const ExitAsk = Object.freeze({
@@ -241,6 +244,8 @@ export class Progress {
     this.items = new Map();
     /** @type {Set<string>} */
     this.found = new Set();
+    /** Search targets found, as `<thingId>/<targetId>`. Saved. */
+    this.hits = new Set();
     /** Needed items already applied, per key: a thing id or `exit:<roomId>`. Saved. */
     this.applied = new Map();
     /** The item chosen in the inventory, or null. Not saved. */
@@ -342,8 +347,31 @@ export class Progress {
       if (!r) return Outcome.wrong();
       if (r.left > 0) return Outcome.applied(r.item, r.left);
     }
+    if (thing.search && thing.search.length > 0 && this.searchLeft(thing) > 0) return Outcome.search(thing);
     if (thing.code !== null) return Outcome.needsCode(thing);
     return this.#open(thing);
+  }
+
+  isHit(thing, t) { return this.hits.has(`${thing.id}/${t.id}`); }
+
+  searchLeft(thing) { return (thing.search || []).filter((t) => !this.isHit(thing, t)).length; }
+
+  /**
+   * A tap at (x, y), fractions of the plate, on the search plate of thing. A miss is no fault (on a busy plate
+   * misses are the game). Kinds: miss | again | hit {target,left} | done {target,said}.
+   */
+  searchTap(thingOrId, x, y) {
+    this.#touch();
+    const thing = this.#thing(thingOrId);
+    if (!thing || !this.visible(thing) || this.found.has(thing.id)) return { kind: 'miss' };
+    const t = (thing.search || []).find((s) => x >= s.zone.x && x <= s.zone.x + s.zone.w && y >= s.zone.y && y <= s.zone.y + s.zone.h);
+    if (!t) return { kind: 'miss' };
+    if (this.isHit(thing, t)) return { kind: 'again', target: t };
+    this.hits.add(`${thing.id}/${t.id}`);
+    const left = this.searchLeft(thing);
+    if (left > 0) return { kind: 'hit', target: t, left };
+    const open = thing.code !== null || this.#remaining(thing.id, thing.needs).length > 0;
+    return { kind: 'done', target: t, said: open ? Outcome.said(thing.text) : this.#open(thing) };
   }
 
   /** Try the own lock of thing: right opens it, wrong is Outcome.wrong. */
@@ -512,6 +540,7 @@ export class Progress {
       finished: this.finished,
       items: [...this.items.values()].map((i) => ({ id: i.id, name: i.name })),
       found: [...this.found],
+      hits: [...this.hits],
       applied,
       side: this.side,
       hints,
@@ -529,6 +558,7 @@ export class Progress {
     p.finished = optBool(o, 'finished', false);
     if (Array.isArray(o.items)) for (const i of o.items) p.items.set(String(req(i, 'id')), { id: String(i.id), name: String(req(i, 'name')) });
     if (Array.isArray(o.found)) for (const f2 of o.found) p.found.add(String(f2));
+    if (Array.isArray(o.hits)) for (const h2 of o.hits) p.hits.add(String(h2));
     if (isObj(o.applied)) {
       for (const [k, arr] of Object.entries(o.applied)) {
         if (Array.isArray(arr)) p.applied.set(k, new Set(arr.map((x) => String(x))));
@@ -674,7 +704,7 @@ export const Difficulty = Object.freeze({
         r.things.length * 0.6 + chain * 1.0 + (r.exit.code !== null ? 1.5 : 0.5) + 1 + r.combos.length * 0.8
         + r.things.filter((t) => t.code !== null).length * 1.0
         + r.things.filter((t) => t.visibleWhen).length * 0.5
-        + r.variants.length * 0.3,
+        + r.variants.length * 0.3 + r.things.reduce((s, t) => s + (t.search ? t.search.length : 0), 0) * 0.15,
       );
       return { roomId: r.id, things: r.things.length, chain, locks, estMinutes: est };
     });

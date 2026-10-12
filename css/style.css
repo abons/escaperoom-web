@@ -141,6 +141,14 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   flex: 1; width: 100%; display: flex; align-items: center; justify-content: center;
   background: var(--card); border-radius: 12px; font-size: 24px; font-weight: 700; color: var(--accent); text-align: center; padding: 12px;
 }
+.search-wrap { position: relative; align-self: center; width: fit-content; max-width: 100%; line-height: 0; cursor: pointer; }
+.search-img { display: block; max-width: 100%; max-height: calc(100dvh - 250px); width: auto; height: auto; user-select: none; -webkit-user-drag: none; }
+.search-blank { background: #211c18; width: min(100%, 60dvh); aspect-ratio: 3 / 4; }
+.search-mark { position: absolute; border: 3px solid #d9a441; background: rgba(217, 164, 65, .2); border-radius: 50%; pointer-events: none; }
+.search-left { color: #d9a441; font-weight: 700; padding: 8px 0 2px; align-self: stretch; }
+.search-list { align-self: stretch; max-height: 96px; overflow-y: auto; font-size: 15px; line-height: 1.5; }
+.search-name:not(:last-child)::after { content: ' \00b7 '; opacity: .5; }
+.search-name.found { text-decoration: line-through; opacity: .55; }
 .closeup-text { padding: 12px 0; white-space: pre-wrap; font-size: 16px; line-height: 1.4; align-self: stretch; }
 .closeup .modal-buttons { justify-content: stretch; margin-top: 0; }
 .closeup .modal-buttons .btn { width: 100%; }

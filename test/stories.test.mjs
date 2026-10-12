@@ -210,6 +210,15 @@ function work(p, t) {
         assert.equal(p.tryCode(t, code).kind, 'said', `${t.id}: code rejected`);
         break;
       }
+      case 'search': {
+        for (const a of o.thing.search) {
+          const zz = a.zone;
+          assert.equal(p.searchTap(t, zz.x - 0.001, zz.y - 0.001).kind, 'miss', `${t.id}: ${a.id} is a miss in its own zone`);
+          assert.ok(['hit', 'done'].includes(p.searchTap(t, zz.x + zz.w / 2, zz.y + zz.h / 2).kind), `${t.id}: ${a.id} not found`);
+        }
+        assert.ok(p.found.has(t.id), `${t.id}: search did not open it`);
+        break;
+      }
       case 'said': break;
       default: throw new assert.AssertionError({ message: `${t.id}: solver got ${JSON.stringify(o)}` });
     }
