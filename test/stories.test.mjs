@@ -82,6 +82,20 @@ test('rulesHoldForEveryStory', () => {
       const band = Difficulty.band(r.difficulty);
       assert.ok(band.contains(st.estMinutes),
         `${n}/${r.id}: est ${st.estMinutes} min outside band ${band.min}..${band.max} of difficulty ${r.difficulty}`);
+      for (const t of r.things.filter((x) => x.search.length > 0)) {
+        assert.ok(t.closeup, `${n}/${t.id}: search needs a closeup`);
+        assert.ok(t.search.length >= 2, `${n}/${t.id}: search needs at least 2 targets`);
+        assert.equal(new Set(t.search.map((a) => a.id)).size, t.search.length, `${n}/${t.id}: search ids not unique`);
+        t.search.forEach((a, i) => {
+          const z = a.zone;
+          assert.ok(!blank(a.name), `${n}/${t.id}/${a.id}: name blank`);
+          assert.ok(z.x >= 0 && z.y >= 0 && z.w > 0 && z.h > 0 && z.x + z.w <= 1 && z.y + z.h <= 1, `${n}/${t.id}/${a.id}: zone outside the plate`);
+          for (const b of t.search.slice(i + 1)) {
+            const y = b.zone;
+            assert.ok(z.x + z.w <= y.x || y.x + y.w <= z.x || z.y + z.h <= y.y || y.y + y.h <= z.y, `${n}/${t.id}: ${a.id} overlaps ${b.id}`);
+          }
+        });
+      }
       for (const c of r.combos) {
         assert.ok(!blank(c.text), `${n}/${r.id}: combo ${c.a}+${c.b} text`);
         assert.ok(!blank(c.gives.name), `${n}/${r.id}: combo item name`);

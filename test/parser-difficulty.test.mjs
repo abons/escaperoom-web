@@ -126,3 +126,12 @@ test('analyseCountsCodesHiddenAndVariants', () => {
   // 1.8 + 3 + 0.5 + 1 + 0.8 + 1.0 + 0.5 + 0.3 = 8.9 -> 9
   assert.equal(Difficulty.analyse({ id: 's', rooms: [r] })[0].estMinutes, 9);
 });
+
+test('analyseCountsSearchTargets', () => {
+  const base = story().rooms[0];
+  const search = Array.from({ length: 10 }, (_, i) => ({ id: `t${i}`, name: `n${i}`, zone: { x: 0.05 * i, y: 0, w: 0.04, h: 0.04 } }));
+  const t = { ...base.things[0], closeup: 'c', search };
+  const r = { ...base, things: [t, ...base.things.slice(1)] };
+  // 7.1 (see analyseChain) + 10 * 0.15 = 8.6 -> 9
+  assert.equal(Difficulty.analyse({ id: 's', rooms: [r] })[0].estMinutes, 9);
+});

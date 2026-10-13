@@ -488,6 +488,21 @@ test('searchPlateOpensOnlyWhenEverythingIsFound', () => {
   assert.ok(p.found.has('r') && p.items.has('rk'));
 });
 
+test('lastHitOnALockedSearchPlateDoesNotOpenIt', () => {
+  const locked = { ...rummage, code: '42', text: 'deksel' };
+  const p = new Progress(mkStory('s', 'nl', 'S', '', '', '', [
+    room('a', 'A', 't', '', {}, [locked], exit(Side.SOUTH, z, '1', [], null, 'uit')),
+  ]));
+  p.searchTap(locked, 0.15, 0.15);
+  const done = p.searchTap(locked, 0.55, 0.55);
+  assert.equal(done.kind, 'done');
+  assert.equal(done.said.text, 'deksel');
+  assert.ok(!p.found.has('r') && !p.items.has('rk'));
+  assert.equal(p.tap(locked).kind, 'needsCode');
+  assert.equal(p.tryCode(locked, '42').kind, 'said');
+  assert.ok(p.items.has('rk'));
+});
+
 test('searchHitsSurviveASave', () => {
   const p = searchStory();
   p.searchTap(rummage, 0.15, 0.15);
