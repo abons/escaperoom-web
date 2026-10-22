@@ -14,6 +14,12 @@ const KEYS = {
   sequence: [...'SMHDTC'],
 };
 const DARK_TEXT = { W: true, Y: true };
+// the pad looks like the lock on the plate: arrows as a cross (spaces are empty cells), digits as a safe
+const LAYOUT = { dirs: [' N ', 'W E', ' S '], digits: ['123', '456', '789'] };
+// Android's KEYBOARD_TAP and CONFIRM; a wrong code buzzes in app.js. Silent where unsupported (Safari).
+const vibrate = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* ignore */ } };
+const TAP = 8;
+const RIGHT = [20, 30, 20];
 const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3, sequence: 3 };
 
 /**
@@ -56,6 +62,7 @@ export function codePad(type, len, onSubmit, opts = {}) {
     if (verdict || !typed) return;
     const r = onSubmit(typed);
     const next = typeof r === 'function' ? r : () => {};
+    if (r !== false) vibrate(RIGHT);
     if (reducedMotion()) {
       if (r === false) { typed = ''; refresh(); } else next();
       return;
@@ -79,15 +86,18 @@ export function codePad(type, len, onSubmit, opts = {}) {
   const el = h('div', { class: 'codepad cp-' + type }, slotRow);
   const keys = KEYS[type];
   const per = PER_ROW[type];
-  for (let i = 0; showKeys && i < keys.length; i += per) {
+  const mkKey = (c) => {
+    const k = h('button', { type: 'button', class: 'cp-key', 'aria-label': type === 'colors' ? t('color_' + c) : glyph(c), onclick: () => { vibrate(TAP); press(c); } });
+    if (type === 'colors') {
+      k.style.background = COLORS[c]; k.style.color = DARK_TEXT[c] ? '#111' : '#fff'; k.textContent = t('color_' + c);
+    } else k.textContent = glyph(c);
+    return k;
+  };
+  const lines = LAYOUT[type] || [];
+  for (let i = 0; showKeys && !LAYOUT[type] && i < keys.length; i += per) lines.push(keys.slice(i, i + per).join(''));
+  for (const line of showKeys ? lines : []) {
     const row = h('div', { class: 'cp-row' });
-    for (const c of keys.slice(i, i + per)) {
-      const k = h('button', { type: 'button', class: 'cp-key', 'aria-label': type === 'colors' ? t('color_' + c) : glyph(c), onclick: () => press(c) });
-      if (type === 'colors') {
-        k.style.background = COLORS[c]; k.style.color = DARK_TEXT[c] ? '#111' : '#fff'; k.textContent = t('color_' + c);
-      } else k.textContent = glyph(c);
-      row.append(k);
-    }
+    for (const c of line) row.append(c === ' ' ? h('div', { class: 'cp-gap' }) : mkKey(c));
     el.append(row);
   }
   // long press on backspace clears everything
@@ -106,8 +116,13 @@ export function codePad(type, len, onSubmit, opts = {}) {
     clearTimeout(pressTimer);
     if (cleared) setTimeout(() => { cleared = false; }, 400);
   });
-  const ok = button(t('ok'), submit);
-  el.append(h('div', { class: 'cp-actions' }, back, ok));
+  back.addEventListener('click', () => vibrate(TAP));
+  const ok = button(t('ok'), () => { vibrate(TAP); submit(); });
+  // digits: ⌫ and OK left and right of the 0, the safe's bottom row; the other types keep them under the keys
+  if (showKeys && type === 'digits') {
+    back.classList.add('cp-key'); ok.classList.add('cp-key');
+    el.append(h('div', { class: 'cp-row' }, back, mkKey('0'), ok));
+  } else el.append(h('div', { class: 'cp-actions' }, back, ok));
   const refreshOk = () => { ok.disabled = !typed; };
   const baseRefresh = refresh;
   refresh = () => { baseRefresh(); refreshOk(); };

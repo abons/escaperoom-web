@@ -119,8 +119,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // A short buzz for a wrong try or a tap beside every zone (no animation); silent where unsupported.
+// A wrong try (40) plays a double "nope" like Android's REJECT; the key and right-code patterns live in codepad.js.
 function buzz(ms) {
-  try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* ignore */ }
+  const p = ms === 40 ? [30, 50, 60] : ms;
+  try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* ignore */ }
 }
 
 // ---- history: the browser back button returns to the menu

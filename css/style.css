@@ -257,6 +257,16 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .cp-actions { display: flex; gap: 6px; align-self: stretch; margin-top: 8px; }
 .cp-actions .btn { flex: 1; }
 .code-modal .modal-box, .modal-box.code-modal { max-width: 380px; }
+/* the pad per input, like the lock on the plate: arrow cross, big colour dots, square panel buttons, safe digits */
+.cp-gap { width: 60px; height: 60px; }
+.cp-dirs .cp-key { width: 60px; height: 60px; border-radius: 50%; border-width: 2px; font-size: 26px; }
+.cp-colors .cp-key { width: 64px; height: 64px; }
+.cp-sequence .cp-key {
+  width: 60px; height: 60px; font-size: 26px; color: var(--accent);
+  border: 3px solid var(--accent); border-radius: 2px; background: linear-gradient(var(--card), var(--bg));
+}
+.cp-row .btn.cp-key { min-height: 0; padding: 0; background: var(--accent); color: var(--bg); font-size: 18px; }
+.cp-row .btn.cp-key:disabled { opacity: .4; }
 
 /* toast */
 .toast {
