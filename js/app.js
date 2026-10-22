@@ -1,5 +1,6 @@
 // Escape Room (web): menu, panels and the room screen. The engine decides; this file mirrors it.
 import { parseStory, Progress, Coins, Wallet, Difficulty, Saves, PALETTE_DEFAULT } from './engine.js';
+import { doorLocked } from './engine.js';
 import { lang, t } from './i18n.js';
 import { h, button, modal, modalOpen, closeAllModals, toast, shake, reducedMotion } from './ui.js';
 import { Wall, FLASH_MS } from './wall.js';
@@ -243,12 +244,12 @@ function startTour(story, index) {
   enterRoom(true);
 }
 
-/** Through a door on a tour: the next room, or after the last one its exit text and back to the menu. No coins. */
-function leaveTour(p) {
-  const last = p.roomIndex === p.story.rooms.length - 1;
-  const text = p.leave();
+/** Through a door on a tour: where it leads, or after the last one its exit text and back to the menu. No coins. */
+function leaveTour(p, e = p.room.exit) {
+  const last = p.doorTo(e) < 0;
+  const text = p.leave(e);
   if (last) showPanel(t('tour_end'), text, t('to_menu'), goMenu);
-  else { side = 'north'; enterRoom(true); }
+  else { side = p.side; enterRoom(true); }
 }
 
 // ---- text panel
@@ -362,7 +363,8 @@ function showRoom() {
   const wall = new Wall();
   wall.onTurn = turn;
   wall.onThing = onThing;
-  wall.onExit = onExit;
+  wall.onExit = () => onExit();
+  wall.onDoor = (d) => onExit(d);
   wall.onMiss = onMiss;
 
   const top = h('div', { class: 'room-top' },
@@ -430,6 +432,23 @@ function refreshWall() {
     wallName: t('wall_' + side),
     caption: captionOf(room, side),
   });
+  ui.wall.doors(p.moreDoors(), doorTags(p));
+}
+
+/**
+ * A tag per door of the room that says where it leads: a door with a `to`, or one already opened. The room it leads
+ * to says "done" once solved (../escaperoom/docs/besluiten/deuren.md). The end (no room) gets none.
+ */
+function doorTags(p) {
+  const out = [];
+  for (const d of p.room.exits || [p.room.exit]) {
+    if (!p.exitVisible(d) || !(d.to || p.isOpened(d))) continue;
+    const to = p.doorTo(d);
+    if (to < 0) continue;
+    const title = p.story.rooms[to].title;
+    out.push({ door: d, text: t(p.roomLeft(to) ? 'door_to_done' : 'door_to', title) });
+  }
+  return out;
 }
 
 function refreshStatus() {
@@ -735,25 +754,26 @@ function outcome(p, th, o) {
   }
 }
 
-function onExit() {
+/** Tap door `door` (the main exit when none). */
+function onExit(door = null) {
   const p = progress;
   if (!p || modalOpen()) return;
-  const e = p.room.exit;
+  const e = door || p.room.exit;
   rememberNames(p);
   const appliedItem = p.selected;
   if (appliedItem && e.needs && e.needs.length > 0) useLine(itemName(p, appliedItem), t('the_exit'));
-  switch (p.tapExit()) {
+  switch (p.tapExit(e)) {
     case 'ENTER_CODE':
       askCode(e.input || 'digits', e.len || (e.code || '').length, (code) => {
-        const right = p.checkCode(code);
+        const right = p.checkCode(code, e);
         saves.save(p);
         if (!right) { buzz(40); say(t('code_wrong')); return false; }
-        return () => leave(p);
+        return () => leave(p, e);
       });
       break;
     case 'BLOCKED': say(e.stuck || ''); break;
     case 'WRONG': buzz(40); say(wrongItem(e.stuck)); shakeTile(appliedItem); break;
-    case 'OPEN': leave(p); break;
+    case 'OPEN': leave(p, e); break;
     case 'PARTIAL': say(t('applied', appliedItem ? itemName(p, appliedItem) : '')); break;
     default: break;
   }
@@ -928,13 +948,27 @@ function showSearch(p, th) {
   });
 }
 
-function leave(p) {
-  if (p.touring) { leaveTour(p); return; }
+/**
+ * Through an open passage or a door opened before: no panel, no coins, straight into the room it leads to, with the
+ * door's text in the message strip (../escaperoom/docs/besluiten/deuren.md).
+ */
+function walkThrough(p, e) {
+  const text = p.leave(e);
+  saves.save(p);
+  side = p.side;
+  enterRoom(true);
+  message = text;
+  refreshStatus();
+}
+
+function leave(p, e = p.room.exit) {
+  if (p.touring) { leaveTour(p, e); return; }
+  if (p.isOpened(e) || !doorLocked(e)) { walkThrough(p, e); return; }
   const story = p.story;
   const done = p.room, doneIndex = p.roomIndex;
   const stats = t('found_progress', p.foundInRoom(), p.thingsInRoom()) + '  ·  ' + t('room_done_hints', p.hintsShown().length);
   const paid = wallet.claimRoomReward(story.id, p.room.id, p.room.difficulty);
-  const returned = p.leave() + (paid > 0 ? '\n\n' + t('coins_reward', paid) : '');
+  const returned = p.leave(e) + (paid > 0 ? '\n\n' + t('coins_reward', paid) : '');
   saves.save(p);
   showRoomDone(p, done, doneIndex, returned, stats);
 }
@@ -945,7 +979,7 @@ function showRoomDone(p, done, index, exitText, stats) {
   const where = p.finished ? t('room_done_last') : t('room_done_of', index + 1, story.rooms.length);
   const next = p.finished ? '' : '\n\n' + t('room_done_next', p.room.title);
   showPanel(done.title, where + '\n\n' + exitText + '\n\n' + stats + next, t('room_done_continue'),
-    () => { if (p.finished) showOutro(story); else { side = 'north'; enterRoom(true); } });
+    () => { if (p.finished) showOutro(story); else { side = p.side; enterRoom(true); } });
 }
 
 function showHints() {
