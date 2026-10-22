@@ -1,7 +1,7 @@
 // Mirror of ParserDifficultyTest.kt
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseStory, parseCond, Difficulty, Input, Side, CondKind } from '../js/engine.js';
+import { parseStory, parseCond, Difficulty, Input, Side, CondKind, PALETTE_DEFAULT } from '../js/engine.js';
 
 const room = `{"id":"a","title":"A","task":"t","walls":{"north":"n","east":"e","south":"s","west":"w"},
   "difficulty":3,"hints":["h1","h2"],
@@ -153,4 +153,13 @@ test('analyseCountsSearchTargets', () => {
   const r = { ...base, things: [t, ...base.things.slice(1)] };
   // 7.1 (see analyseChain) + 10 * 0.15 = 8.6 -> 9
   assert.equal(Difficulty.analyse({ id: 's', rooms: [r] })[0].estMinutes, 9);
+});
+
+test('paletteIsOptionalAndLenient', () => {
+  assert.equal(story().palette, null);
+  const p = story('"palette":{"bg":"#F1E4C7","card":"E6D5AE","ink":"nope","accent":"#b4552a"},').palette;
+  assert.equal(p.bg, '#F1E4C7');
+  assert.equal(p.card, '#E6D5AE');
+  assert.equal(p.ink, PALETTE_DEFAULT.ink); // a bad value keeps the default role
+  assert.equal(p.accent, '#B4552A');
 });

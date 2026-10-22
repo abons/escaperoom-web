@@ -14,6 +14,7 @@ const SHELL = [
   './js/wall.js',
   './js/codepad.js',
   './js/i18n.js',
+  './fonts/alegreya-latin.woff2',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',

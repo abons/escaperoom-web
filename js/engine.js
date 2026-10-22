@@ -217,6 +217,23 @@ function parseRoom(o) {
   };
 }
 
+/** The archive's warm dark shell: the menu and a story without a palette (Palette.DEFAULT in Story.kt). */
+export const PALETTE_DEFAULT = Object.freeze({ bg: '#14110F', card: '#211C18', ink: '#EDE3D0', accent: '#D9A441' });
+
+/** `#RRGGBB` (the # optional) to upper-case `#RRGGBB`; null when it is not one. */
+export function paletteHex(s) {
+  const h = typeof s === 'string' ? s.trim().replace(/^#/, '') : '';
+  return /^[0-9a-fA-F]{6}$/.test(h) ? '#' + h.toUpperCase() : null;
+}
+
+/** Optional `"palette": {"bg","card","ink","accent"}`; a missing or bad value keeps that role's default. */
+function parsePalette(o) {
+  if (!isObj(o)) return null;
+  const out = {};
+  for (const k of ['bg', 'card', 'ink', 'accent']) out[k] = paletteHex(o[k]) || PALETTE_DEFAULT[k];
+  return out;
+}
+
 /** Parse a story.json (text or already-parsed object). Throws on a newer format or a broken file. */
 export function parseStory(id, json) {
   const o = typeof json === 'string' ? JSON.parse(json) : json;
@@ -229,6 +246,7 @@ export function parseStory(id, json) {
     id, lang: optStr(o, 'lang', 'en'), title: reqStr(o, 'title'),
     blurb: optStr(o, 'blurb'), intro: optStr(o, 'intro'), outro: optStr(o, 'outro'),
     rooms: rooms.map(parseRoom), format, difficulty: optInt(o, 'difficulty', 1),
+    palette: parsePalette(o.palette),
   };
 }
 
