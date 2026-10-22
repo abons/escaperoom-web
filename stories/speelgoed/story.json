@@ -14,7 +14,7 @@
       "hints": [
         "Kijk eens naar de planken met knuffels. Daar zit iets bij een beer.",
         "Er hoort iets op te winden bij het tafeltje met de muziek.",
-        "De muziekdoos speelt een ster, een maan en een hart. Druk ze op de deur in die volgorde."
+        "Tik met de opwindsleutel op het paneeltje bij de deur. Druk dan ster, maan, hart: de tonen van de muziekdoos."
       ],
       "task": "Kom door de deur met 'Alleen personeel' en zoek wie er in de winkel heeft gerommeld.",
       "intro": "De winkel is stil. Jij viel in het leeshoekje in slaap. De voordeur zit dicht en het licht is aan.",
@@ -69,6 +69,8 @@
         "y": 0.21,
         "w": 0.49,
         "h": 0.57,
+        "needs": "opwindsleutel",
+        "stuck": "De knoppen doen niets. Het paneeltje is van speelgoed: het moet eerst worden opgewonden.",
         "code": "SMH",
         "input": "sequence",
         "len": 3,
