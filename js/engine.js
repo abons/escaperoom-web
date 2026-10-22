@@ -151,6 +151,26 @@ function parseKey(o) {
   return { token: tok.toUpperCase(), zone: zone(o) };
 }
 
+/** The gap marker in an ask text. */
+export const ASK_GAP = '___';
+
+/**
+ * A fill-in conclusion: {text, words, answer, gaps}; text holds one ___ per gap, answer is the right word per gap.
+ * Null when absent. The story test holds gaps against the answer. Mirrors Ask in Story.kt.
+ */
+function parseAsk(o) {
+  if (!isObj(o)) return null;
+  const strings = (k) => (Array.isArray(o[k]) ? o[k].map(String) : []);
+  const text = reqStr(o, 'text');
+  return { text, words: strings('words'), answer: strings('answer'), gaps: text.split(ASK_GAP).length - 1 };
+}
+
+/** True when filled is the ask's answer, gap for gap (trimmed, case kept). Ask.right in Kotlin. */
+export function askRight(ask, filled) {
+  return Array.isArray(filled) && filled.length === ask.answer.length
+    && filled.every((w, i) => String(w).trim() === ask.answer[i].trim());
+}
+
 function parseThing(o) {
   const code = strOrNull(o, 'code');
   const side = Side.of(reqStr(o, 'wall'));
@@ -173,6 +193,8 @@ function parseThing(o) {
     again: (strOrNull(o, 'again') || '').trim() ? strOrNull(o, 'again') : null,
     // a hidden coin (Layton): tapping gives one coin, once; no gives/needs/code. Not part of the puzzle.
     coin: optBool(o, 'coin', false),
+    // a fill-in conclusion asked after the needs and before the code (../escaperoom/docs/besluiten/invul-conclusie.md)
+    ask: parseAsk(o.ask),
   });
 }
 
@@ -185,6 +207,7 @@ function parseExit(o) {
     consumes: optBool(o, 'consumes', false),
     input: optStr(o, 'input', 'digits'), len: optInt(o, 'len', code === null ? 0 : code.length),
     visibleWhen: condOf(o, 'visible'),
+    ask: parseAsk(o.ask),
   });
 }
 
@@ -263,10 +286,14 @@ export const Outcome = Object.freeze({
   needsCode(thing) { return { kind: 'needsCode', thing }; },
   /** The thing is a search plate with targets left: open it, then Progress.searchTap. */
   search(thing) { return { kind: 'search', thing }; },
+  /** The needs are met and the thing has a fill-in conclusion still to answer: ask it, then Progress.tryAsk. */
+  needsAsk(thing) { return { kind: 'needsAsk', thing }; },
 });
 
 export const ExitAsk = Object.freeze({
   ENTER_CODE: 'ENTER_CODE', BLOCKED: 'BLOCKED', OPEN: 'OPEN', WRONG: 'WRONG', PARTIAL: 'PARTIAL',
+  /** Its fill-in conclusion first (checkAsk), then the code. */
+  ASK: 'ASK',
 });
 
 // ---------------------------------------------------------------- Progress
@@ -290,6 +317,8 @@ export class Progress {
     this.hits = new Set();
     /** Close-up details read, as `<thingId>/<lookId>`. Optional in the save. */
     this.seen = new Set();
+    /** Fill-in conclusions answered, per key: a thing id or `exit:<roomId>`. Optional in the save. */
+    this.asked = new Set();
     /** Needed items already applied, per key: a thing id or `exit:<roomId>`. Saved. */
     this.applied = new Map();
     /** The item chosen in the inventory, or null. Not saved. */
@@ -432,8 +461,46 @@ export class Progress {
       if (r.left > 0) return Outcome.applied(r.item, r.left);
     }
     if (thing.search && thing.search.length > 0 && this.searchLeft(thing) > 0) return Outcome.search(thing);
+    if (thing.ask && !this.asked.has(thing.id)) return Outcome.needsAsk(thing);
     if (thing.code !== null) return Outcome.needsCode(thing);
     return this.#open(thing);
+  }
+
+  /**
+   * Answer the fill-in conclusion of thing with filled (one word per gap): wrong is one mistake and Outcome.wrong
+   * (all or nothing, no "almost"); right is remembered, then its code is asked or it opens.
+   */
+  tryAsk(thingOrId, filled) {
+    this.#touch();
+    const thing = this.#thing(thingOrId);
+    if (!thing || !this.visible(thing)) return Outcome.wrong();
+    if (this.found.has(thing.id)) return Outcome.said(thing.text);
+    if (!thing.ask) return Outcome.wrong();
+    if (this.#remaining(thing.id, thing.needs).length > 0) return Outcome.blocked(thing.stuck ?? '');
+    if (!this.asked.has(thing.id)) {
+      if (!askRight(thing.ask, filled)) { this.#mistake(); return Outcome.wrong(); }
+      this.asked.add(thing.id);
+      this.#stepped();
+    }
+    return thing.code !== null ? Outcome.needsCode(thing) : this.#open(thing);
+  }
+
+  /** Answer the exit's fill-in conclusion: right is remembered (then tapExit goes on), wrong is one mistake. */
+  checkAsk(filled) {
+    this.#touch();
+    const a = this.room.exit.ask;
+    if (!a) return false;
+    if (this.asked.has(this.#exitKey())) return true;
+    if (!askRight(a, filled)) { this.#mistake(); return false; }
+    this.asked.add(this.#exitKey());
+    this.#stepped();
+    return true;
+  }
+
+  /** What the exit asks once its needs are met: its conclusion if not answered yet, then its code, else open. */
+  #exitNext(e) {
+    if (e.ask && !this.asked.has(this.#exitKey())) return ExitAsk.ASK;
+    return e.code !== null ? ExitAsk.ENTER_CODE : ExitAsk.OPEN;
   }
 
   isHit(thing, t) { return this.hits.has(`${thing.id}/${t.id}`); }
@@ -455,7 +522,7 @@ export class Progress {
     this.#stepped();
     const left = this.searchLeft(thing);
     if (left > 0) return { kind: 'hit', target: t, left };
-    const open = thing.code !== null || this.#remaining(thing.id, thing.needs).length > 0;
+    const open = thing.code !== null || !!thing.ask || this.#remaining(thing.id, thing.needs).length > 0;
     return { kind: 'done', target: t, said: open ? Outcome.said(thing.text) : this.#open(thing) };
   }
 
@@ -541,11 +608,11 @@ export class Progress {
     const rest = this.#remaining(this.#exitKey(), e.needs);
     const sel = this.selected;
     if (!this.exitVisible()) return ExitAsk.WRONG;
-    if (rest.length === 0) return e.code !== null ? ExitAsk.ENTER_CODE : ExitAsk.OPEN;
+    if (rest.length === 0) return this.#exitNext(e);
     if (sel === null) return ExitAsk.BLOCKED;
     if (!rest.includes(sel) || !this.items.has(sel)) return ExitAsk.WRONG;
     if (rest.length > 1) return ExitAsk.PARTIAL;
-    return e.code !== null ? ExitAsk.ENTER_CODE : ExitAsk.OPEN;
+    return this.#exitNext(e);
   }
 
   /** Tap the exit: applies the selected needed item and says what is next. */
@@ -561,7 +628,7 @@ export class Progress {
       if (!r) return ExitAsk.WRONG;
       if (r.left > 0) return ExitAsk.PARTIAL;
     }
-    return e.code !== null ? ExitAsk.ENTER_CODE : ExitAsk.OPEN;
+    return this.#exitNext(e);
   }
 
   checkCode(code) {
@@ -718,6 +785,7 @@ export class Progress {
       found: [...this.found],
       hits: [...this.hits],
       seen: [...this.seen],
+      asked: [...this.asked],
       applied,
       side: this.side,
       hints,
@@ -742,8 +810,10 @@ export class Progress {
         p.found.add(t.id);
         for (const s of t.search || []) p.hits.add(`${t.id}/${s.id}`);
         if (t.needs.length) p.applied.set(t.id, new Set(t.needs));
+        if (t.ask) p.asked.add(t.id);
         if (t.gives) p.items.set(t.gives.id, t.gives);
       }
+      if (r.exit.ask) p.asked.add(`exit:${r.id}`);
       if (r.exit.needs.length) p.applied.set(`exit:${r.id}`, new Set(r.exit.needs));
       for (const c of r.combos || []) p.items.set(c.gives.id, c.gives);
     }
@@ -761,6 +831,7 @@ export class Progress {
     if (Array.isArray(o.found)) for (const f2 of o.found) p.found.add(String(f2));
     if (Array.isArray(o.hits)) for (const h2 of o.hits) p.hits.add(String(h2));
     if (Array.isArray(o.seen)) for (const s2 of o.seen) p.seen.add(String(s2));
+    if (Array.isArray(o.asked)) for (const a2 of o.asked) p.asked.add(String(a2));
     if (isObj(o.applied)) {
       for (const [k, arr] of Object.entries(o.applied)) {
         if (Array.isArray(arr)) p.applied.set(k, new Set(arr.map((x) => String(x))));
@@ -936,7 +1007,9 @@ export const Difficulty = Object.freeze({
         r.things.length * 0.6 + chain * 1.0 + (r.exit.code !== null ? 1.5 : 0.5) + 1 + r.combos.length * 0.8
         + r.things.filter((t) => t.code !== null).length * 1.0
         + r.things.filter((t) => t.visibleWhen).length * 0.5
-        + r.variants.length * 0.3 + r.things.reduce((s, t) => s + (t.search ? t.search.length : 0), 0) * 0.15,
+        + r.variants.length * 0.3 + r.things.reduce((s, t) => s + (t.search ? t.search.length : 0), 0) * 0.15
+        // a fill-in conclusion counts like a code (thing or exit)
+        + (r.things.filter((t) => t.ask).length + (r.exit.ask ? 1 : 0)) * 1.0,
       );
       return { roomId: r.id, things: r.things.length, chain, locks, estMinutes: est };
     });
