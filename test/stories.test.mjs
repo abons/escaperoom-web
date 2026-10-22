@@ -86,6 +86,30 @@ test('keyCheckRejectsBadKeys', () => {
   bad.forEach((t, i) => assert.throws(() => checkKeys(`bad${i}`, t), undefined, `bad keys ${i} should fail`));
 });
 
+/**
+ * The pad's look (pad): only 'wheels' is known (no field = keys); wheels need a code and a closeup (the pad opens
+ * under the plate), not letters (26 stops), and not keys (then the plate is the panel).
+ */
+function checkPad(who, t) {
+  if (t.pad === null || t.pad === undefined) return;
+  assert.equal(t.pad, 'wheels', `${who}: pad '${t.pad}' unknown`);
+  assert.ok(t.code !== null && t.code !== undefined, `${who}: wheels need a code`);
+  assert.ok(t.closeup, `${who}: wheels need a closeup`);
+  assert.notEqual(t.input, 'letters', `${who}: no wheels for letters`);
+  assert.equal((t.keys || []).length, 0, `${who}: wheels and keys both`);
+}
+
+test('padCheckRejectsBadWheels', () => {
+  const base = { id: 'o', code: '180', input: 'digits', closeup: 'c', keys: [], pad: 'wheels' };
+  checkPad('ok', base);
+  const bad = [
+    { ...base, pad: 'dials' }, { ...base, code: null }, { ...base, closeup: null },
+    { ...base, code: 'ABC', input: 'letters' },
+    { ...base, keys: [{ token: '1', zone: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 } }] },
+  ];
+  bad.forEach((t, i) => assert.throws(() => checkPad(`bad${i}`, t), undefined, `bad pad ${i} should fail`));
+});
+
 test('sequenceLockIsCheckedLikeTheRest', () => {
   checkLock('fixture', 'SMHT', 'sequence', 4);
   assert.throws(() => checkLock('fixture', 'SMX', 'sequence', 3));
@@ -160,6 +184,7 @@ test('rulesHoldForEveryStory', () => {
         }
         checkLock(`${n}/${t.id}`, t.code, t.input, t.len);
         checkKeys(`${n}/${t.id}`, t);
+        checkPad(`${n}/${t.id}`, t);
         if (t.code === null) assert.equal(t.input, 'digits', `${n}/${t.id}: input/len without code`);
         if (t.closeup !== null && !plateExists(path.join(dir, n, r.id, t.closeup))) {
           console.log(`WARNING ${n}/${t.id}: closeup file ${n}/${r.id}/${t.closeup}.png missing`);

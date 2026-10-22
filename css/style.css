@@ -283,6 +283,29 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 .cp-row .btn.cp-key { min-height: 0; padding: 0; background: var(--accent); color: var(--bg); font-size: 18px; }
 .cp-row .btn.cp-key:disabled { opacity: .4; }
+/* wheels ("pad": "wheels", docs/besluiten/draaiwielen.md in the app repo): one disc per slot, ▲/▼ or a swipe turns it */
+.cp-wheel-row { gap: 10px; flex-wrap: nowrap; }
+.cp-wheel { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cp-wheels .cp-disc {
+  width: 60px; height: 60px; border-radius: 50%; font-size: 28px; cursor: ns-resize; touch-action: none; user-select: none;
+  background: radial-gradient(circle at 50% 35%, var(--modal), var(--card) 70%); box-shadow: inset 0 -6px 10px rgba(0, 0, 0, .45);
+}
+.cp-wheel-row.wrong .cp-disc, .cp-wheel-row.right .cp-disc { background-image: none; }
+.cp-wheels .cp-disc.cursor { outline: 2px dashed var(--accent-zone); outline-offset: 3px; }
+.cp-turn {
+  width: 60px; height: 42px; font: inherit; font-size: 20px; color: var(--accent); cursor: pointer; padding: 0;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+}
+.cp-turn:active { filter: brightness(1.4); }
+.cp-wheels.cp-colors .cp-disc { font-size: 10px; }
+.cp-disc.roll-up { animation: roll-up 140ms ease-out; }
+.cp-disc.roll-down { animation: roll-down 140ms ease-out; }
+@keyframes roll-up { from { transform: translateY(14px); opacity: .35; } to { transform: none; opacity: 1; } }
+@keyframes roll-down { from { transform: translateY(-14px); opacity: .35; } to { transform: none; opacity: 1; } }
+html.big .cp-wheels .cp-disc { width: 76px; height: 76px; font-size: 36px; }
+html.big .cp-wheels.cp-colors .cp-disc { font-size: 13px; }
+html.big .cp-turn { width: 76px; height: 52px; font-size: 26px; }
+@media (prefers-reduced-motion: reduce) { .cp-disc.roll-up, .cp-disc.roll-down { animation: none; } }
 
 /* toast */
 .toast {

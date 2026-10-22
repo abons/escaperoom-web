@@ -50,6 +50,15 @@ test('keysOnACloseupParse', () => {
   assert.deepEqual(r.things[1].keys, []);
 });
 
+test('wheelsPadParses', () => {
+  const r = parseStory('s', `{"title":"T","rooms":[{"id":"a","title":"A","task":"t","walls":{},
+    "things":[{"id":"o","wall":"north","x":0.1,"y":0.1,"w":0.1,"h":0.1,"text":"t","code":"180","closeup":"knobs","pad":"wheels"},
+      {"id":"d","wall":"north","x":0.5,"y":0.1,"w":0.1,"h":0.1,"text":"t","code":"1"}],
+    "exit":{"wall":"south","x":0.1,"y":0.1,"w":0.1,"h":0.1,"code":"1","text":"o"}}]}`).rooms[0];
+  assert.equal(r.things[0].pad, 'wheels');
+  assert.equal(r.things[1].pad, null);
+});
+
 test('needsStringOrArrayAndOwnLocks', () => {
   const r = parseStory('s', `{"title":"T","rooms":[{"id":"a","title":"A","task":"t","walls":{},
     "things":[

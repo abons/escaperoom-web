@@ -32,6 +32,7 @@ const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3, sequence: 3 };
 export function codePad(type, len, onSubmit, opts = {}) {
   const showKeys = opts.showKeys !== false;
   if (!KEYS[type]) type = 'digits';
+  if (opts.wheels) return wheelPad(type, len, onSubmit);
   // what a token looks like on a key or in a slot
   const glyph = (c) => (type === 'dirs' ? ARROWS[c] : type === 'sequence' ? SYMBOLS[c] : c);
   let typed = '';
@@ -137,6 +138,93 @@ export function codePad(type, len, onSubmit, opts = {}) {
     if (type === 'dirs' && dirKeys[e.key]) c = dirKeys[e.key];
     if (c && keys.includes(c)) { press(c); e.preventDefault(); return true; }
     return type === 'dirs' && !!dirKeys[e.key];
+  };
+  return { el, handleKey, press };
+}
+
+/**
+ * The second look ("pad": "wheels", docs/besluiten/draaiwielen.md in the app repo): a row of combination wheels,
+ * one per slot. A tap or ▲ turns one stop on, ▼ one back, a swipe up/down or the mouse wheel the same; OK checks.
+ * Same contract as codePad (onSubmit, red/green flash, shake, vibrate); a wrong code keeps the wheels where they are.
+ * Keyboard: ←/→ pick a wheel, ↑/↓ turn it, a token sets it and moves on, Enter checks.
+ */
+function wheelPad(type, len, onSubmit) {
+  const stops = type === 'digits' ? [...'0123456789'] : KEYS[type];
+  const glyph = (c) => (type === 'dirs' ? ARROWS[c] : type === 'sequence' ? SYMBOLS[c] : c);
+  const pos = new Array(len).fill(0); // every wheel starts on its first stop
+  let at = 0; // the wheel the keyboard turns
+  let verdict = null;
+  const discs = [];
+  const row = h('div', { class: 'cp-slots cp-wheel-row' });
+  const draw = (i) => {
+    const d = discs[i]; const c = stops[pos[i]];
+    d.style.background = ''; d.style.color = '';
+    if (type === 'colors') { d.style.background = COLORS[c]; d.style.color = DARK_TEXT[c] ? '#111' : '#fff'; d.textContent = t('color_' + c); } else d.textContent = glyph(c);
+    d.setAttribute('aria-valuetext', type === 'colors' ? t('color_' + c) : glyph(c));
+    d.classList.toggle('cursor', i === at);
+  };
+  const drawAll = () => discs.forEach((_, i) => draw(i));
+  const turn = (i, step) => {
+    if (verdict) return;
+    pos[i] = (pos[i] + step + stops.length) % stops.length;
+    at = i;
+    vibrate(TAP);
+    drawAll();
+    const d = discs[i];
+    if (!reducedMotion()) { d.classList.remove('roll-up', 'roll-down'); void d.offsetWidth; d.classList.add(step > 0 ? 'roll-up' : 'roll-down'); }
+  };
+  for (let i = 0; i < len; i++) {
+    const disc = h('div', { class: 'cp-slot cp-disc', role: 'spinbutton', tabindex: '0', 'aria-label': t('wheel_up') });
+    let downY = null; let swiped = false;
+    disc.addEventListener('pointerdown', (e) => { downY = e.clientY; swiped = false; disc.setPointerCapture?.(e.pointerId); });
+    disc.addEventListener('pointermove', (e) => {
+      if (downY === null) return;
+      const dy = e.clientY - downY;
+      if (Math.abs(dy) > 18) { turn(i, dy < 0 ? 1 : -1); downY = e.clientY; swiped = true; }
+    });
+    for (const ev of ['pointerup', 'pointercancel']) disc.addEventListener(ev, () => { downY = null; });
+    disc.addEventListener('click', () => { if (swiped) { swiped = false; return; } turn(i, 1); }); // a tap turns one on (Rusty Lake)
+    disc.addEventListener('wheel', (e) => { e.preventDefault(); turn(i, e.deltaY < 0 ? 1 : -1); }, { passive: false });
+    // stopped here: the row's shake listens for its own animationend
+    disc.addEventListener('animationend', (e) => { e.stopPropagation(); disc.classList.remove('roll-up', 'roll-down'); });
+    discs.push(disc);
+    row.append(h('div', { class: 'cp-wheel' },
+      h('button', { type: 'button', class: 'cp-turn', 'aria-label': t('wheel_up'), onclick: () => turn(i, 1) }, '▲'),
+      disc,
+      h('button', { type: 'button', class: 'cp-turn', 'aria-label': t('wheel_down'), onclick: () => turn(i, -1) }, '▼')));
+  }
+  const code = () => pos.map((p) => stops[p]).join('');
+  const submit = () => {
+    if (verdict) return;
+    const r = onSubmit(code());
+    const next = typeof r === 'function' ? r : () => {};
+    if (r !== false) vibrate(RIGHT);
+    if (reducedMotion()) { if (r !== false) next(); return; }
+    verdict = r === false ? 'wrong' : 'right';
+    row.classList.add(verdict);
+    if (r === false) {
+      shake(row);
+      setTimeout(() => { verdict = null; row.classList.remove('wrong'); }, 360);
+    } else setTimeout(next, 280);
+  };
+  const ok = button(t('ok'), () => { vibrate(TAP); submit(); }, false, 'cp-wheel-ok');
+  const el = h('div', { class: 'codepad cp-wheels cp-' + type }, row, h('div', { class: 'cp-actions' }, ok));
+  drawAll();
+  /** A token from outside (the keyboard): set the current wheel to it and move on. */
+  const press = (c) => {
+    const p = stops.indexOf(c);
+    if (verdict || p < 0) return;
+    pos[at] = p; at = Math.min(at + 1, len - 1); vibrate(TAP); drawAll();
+  };
+  const dirKeys = { ArrowUp: 1, ArrowDown: -1 };
+  const handleKey = (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return false;
+    if (e.key === 'Enter') { submit(); return true; }
+    if (dirKeys[e.key]) { turn(at, dirKeys[e.key]); e.preventDefault(); return true; }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { at = Math.max(0, Math.min(len - 1, at + (e.key === 'ArrowLeft' ? -1 : 1))); drawAll(); e.preventDefault(); return true; }
+    const c = e.key.length === 1 ? e.key.toUpperCase() : null;
+    if (c && stops.includes(c)) { press(c); return true; }
+    return false;
   };
   return { el, handleKey, press };
 }
