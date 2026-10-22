@@ -288,3 +288,30 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .menu-head .btn { min-width: 48px; }
 .stats-box { width: 100%; box-sizing: border-box; background: var(--bg); color: var(--ink, inherit); border: 1px solid var(--accent); border-radius: 8px; font: 12px monospace; }
+
+/* what you read stays: intros and exit texts in Notes (docs/besluiten/wat-je-las-blijft.md in the app repo) */
+.notes p.read { font-style: italic; color: var(--ink-dim); }
+
+/* "Groot" (docs/besluiten/groot.md in the app repo): html.big, text x1.35, message strip 160px, pad keys 52 -> 64 */
+.menu-head .title { flex: 1; }
+html.big body { font-size: 21.6px; }
+html.big .msgbox { height: 160px; }
+html.big .msg { font-size: 20px; }
+html.big .task { font-size: 19px; }
+html.big .room-title { font-size: 24px; }
+html.big .sel { font-size: 17.5px; }
+html.big .panel-body { font-size: 23px; }
+html.big .card h2 { font-size: 27px; }
+html.big .card .blurb, html.big .card .meta { font-size: 19px; }
+html.big .notes h3 { font-size: 21.6px; }
+html.big .notes p, html.big .search-list { font-size: 20px; }
+html.big .closeup-text { font-size: 21.6px; }
+html.big .modal-title { font-size: 27px; }
+html.big .code-modal .modal-box, html.big .modal-box.code-modal { max-width: 440px; }
+html.big .cp-slot { width: 52px; height: 60px; font-size: 32px; }
+html.big .cp-colors .cp-slot { font-size: 12px; }
+html.big .cp-key { width: 64px; height: 64px; font-size: 30px; }
+html.big .cp-letters .cp-key { width: 46px; height: 46px; font-size: 21px; }
+html.big .cp-colors .cp-key { width: 76px; height: 76px; font-size: 14px; }
+html.big .cp-dirs .cp-key, html.big .cp-sequence .cp-key, html.big .cp-gap { width: 72px; height: 72px; font-size: 34px; }
+html.big .cp-row .btn.cp-key { font-size: 24px; }
