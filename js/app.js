@@ -375,6 +375,7 @@ function refreshStatus() {
       type: 'button', class: 'chip' + (on ? ' on' : ''), title: item.name, 'aria-label': item.name,
       'aria-pressed': on ? 'true' : 'false', onclick: () => onItem(item.id),
     }, img ? h('img', { src: img, alt: item.name, draggable: 'false' }) : h('span', {}, item.name));
+    longPress(chip, () => showItem(p, item));
     if (!chipIds.has(item.id)) {
       // css pops it in (0 -> 1.15 -> 1) and rings it, unless prefers-reduced-motion; first it flies in from the thing
       if (img && flyFrom && !reducedMotion()) { chip.style.setProperty('--pop-delay', (FLY_MS - 80) + 'ms'); fly(img, flyFrom, chip); }
@@ -406,6 +407,31 @@ function fly(src, from, chip) {
     a.onfinish = () => el.remove();
     setTimeout(() => el.remove(), FLY_MS + 200); // in case onfinish never fires (hidden tab)
   });
+}
+
+/** A wrong item: "That does not fit." plus what the thing wants (its stuck text), else the plain line. */
+function wrongItem(stuck) {
+  return stuck ? t('wrong_item', stuck) : t('wrong_use');
+}
+
+/** Long-press (or right-click) on a tile: the item's plate large, with its name. Looking only; the selection stays. */
+function showItem(p, item) {
+  const img = itemPlate(p, item.id);
+  modal({
+    title: item.name,
+    content: img ? h('img', { class: 'item-view', src: img, alt: item.name, draggable: 'false' }) : null,
+    buttons: [{ label: t('close'), primary: true }],
+  });
+}
+
+/** Calls onLong after a 500 ms hold on `chip` (the click that ends the hold is swallowed), or on right-click. */
+function longPress(chip, onLong) {
+  let timer = null; let fired = false;
+  const cancel = () => { clearTimeout(timer); timer = null; };
+  chip.addEventListener('pointerdown', () => { fired = false; cancel(); timer = setTimeout(() => { fired = true; timer = null; onLong(); }, 500); });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) chip.addEventListener(ev, cancel);
+  chip.addEventListener('click', (e) => { if (fired) { fired = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  chip.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!fired) { cancel(); onLong(); } });
 }
 
 /** Shake the tiles of these item ids, after the refreshes of this tap have settled. */
@@ -521,7 +547,7 @@ function outcome(p, th, o) {
     }
     case 'search': showSearch(p, o.thing); break;
     case 'blocked': say(o.text); break;
-    case 'wrong': buzz(40); say(t('wrong_use')); shakeTile(held); break;
+    case 'wrong': buzz(40); say(wrongItem(th.stuck)); shakeTile(held); break;
     case 'applied': say(t('applied', itemName(p, o.item))); break;
     case 'needsCode':
       refreshStatus();
@@ -559,7 +585,7 @@ function onExit() {
       });
       break;
     case 'BLOCKED': say(e.stuck || ''); break;
-    case 'WRONG': buzz(40); say(t('wrong_use')); shakeTile(appliedItem); break;
+    case 'WRONG': buzz(40); say(wrongItem(e.stuck)); shakeTile(appliedItem); break;
     case 'OPEN': leave(p); break;
     case 'PARTIAL': say(t('applied', appliedItem ? itemName(p, appliedItem) : '')); break;
     default: break;

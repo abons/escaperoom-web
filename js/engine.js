@@ -352,7 +352,8 @@ export class Progress {
     if (!this.applied.has(key)) this.applied.set(key, new Set());
     this.applied.get(key).add(sel);
     this.#stepped();
-    if (consumes) { this.items.delete(sel); this.selected = null; }
+    if (consumes) this.items.delete(sel);
+    this.selected = null; // hand empty after use: a hanging selection made false mistakes
     return { item: sel, left: rest.length - 1 };
   }
 
