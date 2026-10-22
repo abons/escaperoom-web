@@ -129,6 +129,14 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 .wall-look.on { opacity: 1; transition: opacity .25s; }
 .wall-look.now { transition: none; }
+/* ●○○○: which of the four walls (docs/besluiten/muur-benoemen.md in the app repo); only over a plate */
+.wall-dots {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); pointer-events: none;
+  display: flex; gap: 8px; align-items: center; padding: 5px 8px; border-radius: 99px; background: rgba(18, 14, 10, .6);
+}
+.wall-dots span { width: 8px; height: 8px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid rgba(245, 238, 223, .8); }
+.wall-dots span.on { width: 10px; height: 10px; border: none; background: var(--accent); }
+.wall:not(.has-plate) .wall-dots { display: none; }
 .tap-glow {
   position: absolute; border-radius: 10px; background: var(--fb-glow); border: 2.5px solid var(--fb-light);
   box-shadow: 0 0 0 1.5px var(--fb-dark), inset 0 0 0 1.5px var(--fb-dark);
@@ -166,6 +174,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .msg { padding: 8px 16px; font-size: 15px; white-space: pre-wrap; display: flex; align-items: flex-start; gap: 10px; }
 .msg-item { width: 48px; height: 48px; object-fit: contain; flex: none; }
 .sel { font-size: 13px; color: var(--accent); padding: 4px 16px 0; min-height: 1px; flex: none; }
+.sel b { color: var(--ink); }
 .bottom { display: flex; align-items: center; gap: 8px; padding: 4px 8px 6px 16px; flex: none; }
 .chips { display: flex; gap: 4px; overflow-x: auto; flex: 1; min-height: 62px; align-items: center; scrollbar-width: none; }
 /* fading edge where more tiles are out of view (set by chipEdges in app.js) */

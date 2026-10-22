@@ -282,6 +282,7 @@ function enterRoom(announce) {
   const p = progress;
   if (!p) return;
   message = announce ? p.room.intro || '' : '';
+  if (announce && p.items.size > 0) message += '\n\n' + carryingLine(p);
   msgItem = null;
   showRoom();
   if (announce) fadeInRoom();
@@ -388,6 +389,7 @@ function refreshStatus() {
   ui.coins.textContent = '● ' + wallet.balance();
   const sel = p.selected ? p.items.get(p.selected) : null;
   ui.sel.textContent = sel ? t('selected_item', sel.name) : (p.items.size === 0 ? t('items_none') : '');
+  sentenceLine(p, sel);
   const key = [...p.items.keys()].join(',') + '|' + p.selected;
   if (key === chipKey) return;
   chipKey = key;
@@ -509,6 +511,7 @@ function onItem(id) {
   if (!p) return;
   const sel = p.selected;
   if (sel && sel !== id) {
+    useLine(itemName(p, sel), itemName(p, id), 'use_with');
     const o = p.combine(sel, id);
     if (o.kind === 'said') say(o.gained ? gainedMessage(o.text, o.gained) : o.text);
     else if (o.kind === 'wrong') { buzz(40); say(t('wrong_combine')); shakeTile(sel, id); }
@@ -516,10 +519,54 @@ function onItem(id) {
     refreshStatus();
     saves.save(p);
   } else {
+    if (p.items.size >= 2) { try { localStorage.setItem(TIP_COMBINE, '1'); } catch (e) { /* ignore */ } } // the tip did its job
     p.select(id);
     refreshStatus();
   }
 }
+
+// ---- the sentence line (SCUMM): "Use key on …", for a second "Use key on Cupboard" (docs/besluiten/zinregel.md in the app repo)
+
+const SENTENCE_MS = 1000;
+const TIP_COMBINE = 'escaperoom.tip_combine';
+/** The full sentence of the last use, [text, bold parts]; null = the normal line. */
+let sentence = null;
+let sentenceTimer = 0;
+
+/** "Use item on target" (or `verb`) in the line for a second, before the outcome's refresh shows it. */
+function useLine(item, target, verb = 'use_on') {
+  sentence = [t(verb, item, target), item, target];
+  clearTimeout(sentenceTimer);
+  sentenceTimer = setTimeout(() => { sentence = null; refreshStatus(); }, SENTENCE_MS);
+}
+
+/** Over the plain line: the held item in bold, the running sentence, or once the combine tip (two items, none held). */
+function sentenceLine(p, sel) {
+  const el = ui.sel;
+  if (!el) return;
+  let tipSeen = true;
+  try { tipSeen = localStorage.getItem(TIP_COMBINE) === '1'; } catch (e) { /* ignore */ }
+  if (sentence) boldIn(el, ...sentence);
+  else if (sel) boldIn(el, t('selected_item', sel.name), sel.name);
+  else if (p.items.size >= 2 && !tipSeen) el.textContent = t('combine_tip');
+}
+
+/** `s` into `el` with each of `parts` (in order) in <b>. */
+function boldIn(el, s, ...parts) {
+  el.textContent = '';
+  let from = 0;
+  for (const part of parts) {
+    const i = part ? s.indexOf(part, from) : -1;
+    if (i < 0) continue;
+    if (i > from) el.append(s.slice(from, i));
+    el.append(h('b', {}, part));
+    from = i + part.length;
+  }
+  el.append(s.slice(from));
+}
+
+/** "You still have with you: UV lamp, stair key." under a new room's intro. */
+const carryingLine = (p) => t('carrying', [...p.items.values()].map((it) => it.name).join(', '));
 
 const itemName = (p, id) => (p.items.get(id) && p.items.get(id).name) || names[id] || id;
 const rememberNames = (p) => { names = {}; for (const it of p.items.values()) names[it.id] = it.name; };
@@ -560,6 +607,7 @@ function onThing(th) {
   if (!p || modalOpen()) return;
   rememberNames(p);
   held = p.selected;
+  if (held && th.needs && th.needs.length > 0 && !p.found.has(th.id)) useLine(itemName(p, held), th.label || '');
   const wr = ui.wall && ui.wall.el.getBoundingClientRect();
   const z = th.zone;
   flyFrom = wr && wr.width > 0 && z ? { x: wr.left + z.x * wr.width, y: wr.top + z.y * wr.height, w: z.w * wr.width, h: z.h * wr.height } : null;
@@ -605,6 +653,7 @@ function onExit() {
   const e = p.room.exit;
   rememberNames(p);
   const appliedItem = p.selected;
+  if (appliedItem && e.needs && e.needs.length > 0) useLine(itemName(p, appliedItem), t('the_exit'));
   switch (p.tapExit()) {
     case 'ENTER_CODE':
       askCode(e.input || 'digits', e.len || (e.code || '').length, (code) => {

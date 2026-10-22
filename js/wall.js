@@ -80,7 +80,15 @@ export class Wall {
     this.el.classList.toggle('has-plate', !!src);
     this.src = src;
     this.drawPlaceholder();
+    this.drawDots();
     this.drawZones();
+  }
+
+  /** Which of the four walls this is, as ●○○○ at the top of the plate (north first, clockwise); docs/besluiten/muur-benoemen.md in the app repo. */
+  drawDots() {
+    if (!this.dotsEl) { this.dotsEl = h('div', { class: 'wall-dots', 'aria-hidden': 'true' }); this.el.append(this.dotsEl); }
+    this.dotsEl.textContent = '';
+    for (const s of SIDES) this.dotsEl.append(h('span', { class: s === this.side ? 'on' : '' }));
   }
 
   setImage(src, fade, dir = 0) {
