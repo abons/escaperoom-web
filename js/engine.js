@@ -696,8 +696,35 @@ export class Progress {
     };
   }
 
-  /** One export string for all progresses: a JSON array of statsJson. */
-  static exportJson(progresses) { return JSON.stringify(progresses.map((p) => p.statsJson())); }
+  /**
+   * One export string for all progresses: a JSON array of statsJson. With history (story id -> the
+   * 'escaperoom.stats.<id>' array string): per story first its archived runs (run 1..n), then the current run as run n + 1.
+   */
+  static exportJson(progresses, history = null) {
+    if (!history) return JSON.stringify(progresses.map((p) => p.statsJson()));
+    const current = new Map(progresses.map((p) => [p.story.id, p]));
+    const out = [];
+    for (const id of new Set([...Object.keys(history), ...current.keys()])) {
+      const past = Progress.runs(history[id]);
+      out.push(...past);
+      const p = current.get(id);
+      if (p) out.push({ ...p.statsJson(), run: past.length + 1 });
+    }
+    return JSON.stringify(out);
+  }
+
+  /** The archived runs of one story (a JSON array string); unreadable or absent is none. */
+  static runs(history) {
+    if (!history) return [];
+    try { const a = JSON.parse(history); return Array.isArray(a) ? a : []; } catch { return []; }
+  }
+
+  /** What Restart keeps: history with this run's statsJson appended as run n, when the run was started (06-beloning voorstel 5). */
+  archive(history) {
+    const a = Progress.runs(history);
+    if (this.started) a.push({ ...this.statsJson(), run: a.length + 1 });
+    return JSON.stringify(a);
+  }
 
   /** Same shape as the Kotlin save: {room, finished, items, found, applied, side, hints, playMs, mistakes} as a string. */
   toJson() {
@@ -956,6 +983,7 @@ export const Difficulty = Object.freeze({
 // ---------------------------------------------------------------- Saves
 
 const saveKey = (story) => `escaperoom.progress.${story.id}`;
+const statsKey = (story) => `escaperoom.stats.${story.id}`;
 
 /** Progress per story in localStorage 'escaperoom.progress.<id>'. */
 export const Saves = Object.freeze({
@@ -972,7 +1000,13 @@ export const Saves = Object.freeze({
     if (progress.touring) return; // looking round after the end: the save stays the real run
     try { storage.setItem(saveKey(progress.story), progress.toJson()); } catch { /* full or blocked */ }
   },
+  /** Restart: the save goes, its measurement stays in 'escaperoom.stats.<id>'. */
   clear(story, storage = defaultStorage()) {
+    try { storage.setItem(statsKey(story), Saves.load(story, storage).archive(Saves.history(story, storage))); } catch { /* full or blocked */ }
     try { storage.removeItem(saveKey(story)); } catch { /* blocked */ }
+  },
+  /** The runs a Restart archived, as a JSON array string; null when none. */
+  history(story, storage = defaultStorage()) {
+    try { return storage.getItem(statsKey(story)); } catch { return null; }
   },
 });

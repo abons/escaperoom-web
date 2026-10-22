@@ -116,6 +116,20 @@ test('savesRoundTripAndClear', () => {
   assert.equal(Saves.load(tiny, st).started, false);
 });
 
+test('restartKeepsTheMeasurementInStats', () => {
+  const st = mem();
+  const p = new Progress(tiny);
+  p.tap('g'); p.playMs.set('a', 5000);
+  Saves.save(p, st);
+  Saves.clear(tiny, st);
+  assert.equal(Saves.load(tiny, st).started, false);
+  const runs = JSON.parse(Saves.history(tiny, st));
+  assert.equal(runs.length, 1);
+  assert.equal(runs[0].rooms[0].playMs, 5000);
+  Saves.clear(tiny, st); // a second Restart of an unstarted story adds no run
+  assert.equal(JSON.parse(Saves.history(tiny, st)).length, 1);
+});
+
 test('savesUnreadableGivesFreshProgress', () => {
   const st = mem();
   st.setItem('escaperoom.progress.tiny', 'garbage{');

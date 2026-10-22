@@ -113,3 +113,20 @@ test('statsExportListsEveryRoom', () => {
   assert.equal(o.rooms[0].playMs, 9000);
   assert.equal(o.rooms[1].done, false);
 });
+
+test('restartKeepsTheMeasurementAsRuns', () => {
+  const [p, c] = timed();
+  p.resume(); c.t = 9000; p.leave(); p.pause();
+  const one = Progress.runs(p.archive(null));
+  assert.equal(one.length, 1);
+  assert.equal(one[0].run, 1);
+  assert.equal(one[0].rooms[0].playMs, 9000);
+  assert.equal(Progress.runs(new Progress(story).archive(p.archive(null))).length, 1); // an unstarted run adds nothing
+  const history = p.archive(p.archive(null)); // restarted twice
+  assert.equal(Progress.runs(history)[1].run, 2);
+  const fresh = new Progress(story); fresh.tap(giver);
+  const all = JSON.parse(Progress.exportJson([fresh], { t: history, x: null }));
+  assert.deepEqual(all.map((o) => o.run), [1, 2, 3]);
+  assert.equal(all[2].rooms[0].playMs, 0);
+  assert.deepEqual(Progress.runs('garbage{'), []);
+});

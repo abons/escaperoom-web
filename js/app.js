@@ -97,7 +97,8 @@ function showHelp() {
 
 // Play time and wrong tries per room of every started story, as JSON on the clipboard (scripts/calibratie.py in the Android repo).
 async function copyStats() {
-  const json = Progress.exportJson(stories.map((s) => saves.load(s)).filter((p) => p.started));
+  const history = saves.history ? Object.fromEntries(stories.map((s) => [s.id, saves.history(s)])) : null; // restarted runs too
+  const json = Progress.exportJson(stories.map((s) => saves.load(s)).filter((p) => p.started), history);
   try {
     await navigator.clipboard.writeText(json);
     toast(t('stats_copied'));
