@@ -229,7 +229,7 @@ function showRoom() {
   wall.onTurn = turn;
   wall.onThing = onThing;
   wall.onExit = onExit;
-  wall.onMiss = () => buzz(10);
+  wall.onMiss = onMiss;
 
   const top = h('div', { class: 'room-top' },
     h('div', { class: 'room-head' },
@@ -352,6 +352,15 @@ function onItem(id) {
 
 const itemName = (p, id) => (p.items.get(id) && p.items.get(id).name) || names[id] || id;
 const rememberNames = (p) => { names = {}; for (const it of p.items.values()) names[it.id] = it.name; };
+
+/** A tap beside every zone is not silent: the wall's caption speaks (none written: the ring alone). */
+function onMiss() {
+  buzz(10);
+  const room = progress && progress.room;
+  if (!room) return;
+  const cap = (room.captions instanceof Map ? room.captions.get(side) : room.captions && room.captions[side]) || '';
+  if (cap && cap !== message) say(cap);
+}
 
 function onThing(th) {
   const p = progress;
