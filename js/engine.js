@@ -173,7 +173,17 @@ function parseThing(o) {
     again: (strOrNull(o, 'again') || '').trim() ? strOrNull(o, 'again') : null,
     // a hidden coin (Layton): tapping gives one coin, once; no gives/needs/code. Not part of the puzzle.
     coin: optBool(o, 'coin', false),
+    // the story's secret: no gives/needs/code, not part of the puzzle; found = the outro's extra paragraph
+    secret: optBool(o, 'secret', false),
   });
+}
+
+/** Outside the puzzle (a hidden coin or the secret): not counted, not estimated, never needed (Thing.aside). */
+export const aside = (t) => !!(t.coin || t.secret);
+
+/** A keepsake for leaving a room ({id, name, plate}); plate = an item plate id, null = text only (Memento in Story.kt). */
+function parseMemento(o) {
+  return isObj(o) ? { id: reqStr(o, 'id'), name: reqStr(o, 'name'), plate: strOrNull(o, 'plate') } : null;
 }
 
 function parseExit(o) {
@@ -214,6 +224,7 @@ function parseRoom(o) {
     hints: arr('hints', (h) => String(h)),
     combos: arr('combos', parseCombo),
     variants: arr('variants', parseVariant),
+    memento: parseMemento(o.memento),
   };
 }
 
@@ -247,6 +258,8 @@ export function parseStory(id, json) {
     blurb: optStr(o, 'blurb'), intro: optStr(o, 'intro'), outro: optStr(o, 'outro'),
     rooms: rooms.map(parseRoom), format, difficulty: optInt(o, 'difficulty', 1),
     palette: parsePalette(o.palette),
+    // one more paragraph for the outro once the secret was found; '' = none
+    outroSecret: optStr(o, 'outroSecret'),
   };
 }
 
@@ -257,6 +270,8 @@ export const Outcome = Object.freeze({
   said(text, gained = null) { return gained ? { kind: 'said', text, gained } : { kind: 'said', text }; },
   /** A hidden coin found just now (Outcome.Said with coin = true in Kotlin); the view pays it via the wallet. */
   coin(text) { return { kind: 'said', text, coin: true }; },
+  /** The story's secret found just now (Outcome.Said with secret = true in Kotlin). */
+  secret(text) { return { kind: 'said', text, secret: true }; },
   blocked(text) { return { kind: 'blocked', text }; },
   wrong() { return { kind: 'wrong' }; },
   applied(item, remaining) { return { kind: 'applied', item, remaining }; },
@@ -423,6 +438,8 @@ export class Progress {
     if (this.found.has(thing.id)) return Outcome.said(thing.again ?? thing.text);
     // A hidden coin: found once, no step forward (the free-hint clock runs on).
     if (thing.coin) { this.found.add(thing.id); return Outcome.coin(thing.text); }
+    // The secret: found once, no step forward either; it only adds a paragraph to the outro.
+    if (thing.secret) { this.found.add(thing.id); return this.touring ? Outcome.said(thing.text) : Outcome.secret(thing.text); }
     const rest = this.#remaining(thing.id, thing.needs);
     if (rest.length > 0) {
       // No stuck text: the label speaks, so no tap is silent.
@@ -627,10 +644,24 @@ export class Progress {
     return out;
   }
 
-  foundInRoom() { return this.room.things.filter((t) => this.found.has(t.id) && !t.coin).length; }
-  thingsInRoom() { return this.room.things.filter((t) => !t.coin).length; }
+  foundInRoom() { return this.room.things.filter((t) => this.found.has(t.id) && !aside(t)).length; }
+  thingsInRoom() { return this.room.things.filter((t) => !aside(t)).length; }
   /** Every thing on wall `s` is opened, hidden ones included (an empty wall: true); mirrors Progress.foundOnSide. */
-  foundOnSide(s) { return this.room.things.filter((t) => t.side === s && !t.coin).every((t) => this.found.has(t.id)); }
+  foundOnSide(s) { return this.room.things.filter((t) => t.side === s && !aside(t)).every((t) => this.found.has(t.id)); }
+
+  /** True when the story has a secret thing. */
+  hasSecret() { return this.story.rooms.some((r) => r.things.some((t) => t.secret)); }
+  /** The secret was found in this run; never on a tour (a tour opens everything, it awards nothing). */
+  secretFound() { return !this.touring && this.story.rooms.some((r) => r.things.some((t) => t.secret && this.found.has(t.id))); }
+  /** The outro's extra paragraph (story.outroSecret) once the secret was found; null otherwise. */
+  secretParagraph() { return this.secretFound() && (this.story.outroSecret || '').trim() ? this.story.outroSecret : null; }
+  /** Keepsakes of the rooms left so far, in room order. Derived, never saved; none on a tour. */
+  mementos() {
+    if (this.touring) return [];
+    return this.story.rooms.filter((r, i) => (this.finished || i < this.roomIndex) && r.memento).map((r) => r.memento);
+  }
+  /** How many keepsakes the story has: the card's "1/3". */
+  mementosTotal() { return this.story.rooms.filter((r) => r.memento).length; }
 
   /**
    * Every item this run has held, used-up ones too, in story order (per room: what things give, then combos).
@@ -916,8 +947,8 @@ export class Wallet {
 export const Difficulty = Object.freeze({
   /** [{roomId, things, chain, locks, estMinutes}] per room. */
   analyse(story) {
-    // Hidden coins are no part of the puzzle, so they are left out of the estimate.
-    return story.rooms.map((r0) => ({ ...r0, things: r0.things.filter((t) => !t.coin) })).map((r) => {
+    // Hidden coins and the secret are no part of the puzzle, so they are left out of the estimate.
+    return story.rooms.map((r0) => ({ ...r0, things: r0.things.filter((t) => !aside(t)) })).map((r) => {
       // Depth of getting an item: 0 for one from an earlier room, else 1 + what its source needs.
       const itemDepth = (id, seen) => {
         if (seen.has(id)) return 0;

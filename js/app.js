@@ -189,6 +189,10 @@ function storyCard(story) {
     h('p', { class: 'meta' }, t('stars_min', stars(story.difficulty), Difficulty.storyMinutes(story))),
     h('p', { class: 'meta small' }, p.finished ? finishedTag(p.hintsUsed()) : t('room_of', p.roomIndex + 1, story.rooms.length)),
     showcase(story, p),
+    mementoRow(story, p),
+    p.finished && p.hasSecret()
+      ? h('p', { class: 'meta small secret-tag' + (p.secretFound() ? ' on' : '') }, t(p.secretFound() ? 'secret_card_found' : 'secret_card_open'))
+      : null,
     p.finished ? tourRow(story) : null,
   );
   const row = h('div', { class: 'row' }, button(p.started ? t('start_continue') : t('start_new'), () => play(story)));
@@ -225,6 +229,30 @@ function showcase(story, p) {
   return tiles.length ? h('div', { class: 'showcase' }, ...tiles) : null;
 }
 
+// ---- keepsakes (../escaperoom/docs/besluiten/aandenken.md)
+
+/** A keepsake tile: its item plate, or a ✦ when it is text only. */
+function mementoTile(story, m, cls) {
+  const src = m.plate ? plate(story.id, `items/${m.plate}`) : null;
+  return h('div', { class: 'memento-tile ' + cls, title: m.name }, src ? h('img', { src, alt: m.name, loading: 'lazy' }) : '\u2726');
+}
+
+/** "Keepsakes 1/3" and a tile per keepsake earned, its name under it; null when the story has none or is not started. */
+function mementoRow(story, p) {
+  if (!p.started || p.mementosTotal() === 0) return null;
+  const got = p.mementos();
+  return h('div', { class: 'mementos' },
+    h('p', { class: 'meta small mementos-title' }, t('mementos_count', got.length, p.mementosTotal())),
+    got.length ? h('div', { class: 'memento-row' }, ...got.map((m) => h('div', { class: 'memento-cell' },
+      mementoTile(story, m, 'small'), h('span', {}, m.name)))) : null);
+}
+
+/** The keepsake on the room-done panel: a 72 px tile that pops in, "Keepsake" and its name. */
+function mementoBadge(story, m) {
+  return h('div', { class: 'memento-badge' }, mementoTile(story, m, 'big'),
+    h('div', {}, h('p', { class: 'meta small' }, t('memento_label')), h('p', { class: 'memento-name' }, m.name)));
+}
+
 // ---- looking round after the end (../escaperoom/docs/besluiten/rondkijken-na-afloop.md)
 
 /** "Look round again" with one button per room, on the card of a finished story. */
@@ -254,10 +282,10 @@ function leaveTour(p) {
 // ---- text panel
 const finishedTag = (n) => (n === 1 ? t('finished_hints_tag_one') : t('finished_hints_tag', n));
 
-function showPanel(title, body, buttonText, onDone, extra, image) {
+function showPanel(title, body, buttonText, onDone, extra, image, below) {
   const col = h('div', { class: 'panel' }, h('h1', { class: 'panel-title' }, title),
     image ? h('img', { class: 'panel-img', src: image, alt: '' }) : null,
-    h('div', { class: 'panel-body' }, body));
+    h('div', { class: 'panel-body' }, body), below || null);
   setScreen(h('div', { class: 'panel-wrap' },
     h('div', { class: 'scroll grow' }, col),
     h('div', { class: 'panel-btn' }, ...(extra ? [button(extra.label, extra.onClick, true)] : []), button(buttonText, onDone)),
@@ -268,7 +296,13 @@ function showPanel(title, body, buttonText, onDone, extra, image) {
 function showOutro(story) {
   const next = nextUnfinished(story);
   showPanel(t('finished_title'), story.outro, t(next ? 'next_story' : 'to_menu'),
-    next ? () => play(next) : goMenu, { label: t('copy_stats'), onClick: copyStats }, plate(story.id, 'outro')); // the player hands the phone back here
+    next ? () => play(next) : goMenu, { label: t('copy_stats'), onClick: copyStats }, plate(story.id, 'outro'), secretParagraph(saves.load(story))); // the player hands the phone back here
+}
+
+/** The secret's outro paragraph in accent italics with a ✦, once it was found (../escaperoom/docs/besluiten/geheim.md); else null. */
+function secretParagraph(p) {
+  const para = p.secretParagraph();
+  return para ? h('p', { class: 'panel-body secret-para' }, '\u2726 ' + para) : null;
 }
 
 /** The first story after `story` (wrapping round) that is not finished yet; null when all are. */
@@ -523,6 +557,14 @@ function foundCoin(p, th, text) {
   });
 }
 
+/** The story's secret was found (thing.secret): the line says so, the message card pops, a short buzz (geheim.md). */
+function foundSecret(text) {
+  say(text + '\n' + t('secret_found'));
+  buzz(20);
+  const box = ui.msg && ui.msg.parentElement;
+  if (box) { box.classList.remove('secret-pop'); void box.offsetWidth; box.classList.add('secret-pop'); }
+}
+
 /** A wrong item: "That does not fit." plus what the thing wants (its stuck text), else the plain line. */
 function wrongItem(stuck) {
   return stuck ? t('wrong_item', stuck) : t('wrong_use');
@@ -706,6 +748,7 @@ function outcome(p, th, o) {
   switch (o.kind) {
     case 'said': {
       if (o.coin) { foundCoin(p, th, o.text); break; }
+      if (o.secret) { foundSecret(o.text); break; }
       const msg = o.gained ? gainedMessage(o.text, o.gained) : o.text;
       say(msg);
       if (th.closeup) showCloseup(p, th, msg);
@@ -945,7 +988,8 @@ function showRoomDone(p, done, index, exitText, stats) {
   const where = p.finished ? t('room_done_last') : t('room_done_of', index + 1, story.rooms.length);
   const next = p.finished ? '' : '\n\n' + t('room_done_next', p.room.title);
   showPanel(done.title, where + '\n\n' + exitText + '\n\n' + stats + next, t('room_done_continue'),
-    () => { if (p.finished) showOutro(story); else { side = 'north'; enterRoom(true); } });
+    () => { if (p.finished) showOutro(story); else { side = 'north'; enterRoom(true); } },
+    undefined, undefined, done.memento ? mementoBadge(story, done.memento) : null);
 }
 
 function showHints() {

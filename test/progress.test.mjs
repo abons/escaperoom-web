@@ -646,3 +646,69 @@ test('parserReadsCoin', () => {
   assert.equal(r.things[0].coin, true);
   assert.equal(r.things[1].coin, false);
 });
+
+// ---- the secret (thing.secret) and mementos (room.memento)
+
+const secretThing = { ...thing('geheim', Side.SOUTH, { x: 0.6, y: 0.6, w: 0.1, h: 0.1 }, 'Kaartje', 'jouw naam', [], null, null), secret: true };
+const secretStory = { ...story, outro: 'Uit.', outroSecret: 'En nog iets.',
+  rooms: story.rooms.map((r, i) => (i === 0
+    ? { ...r, things: [...r.things, secretThing], memento: { id: 'm1', name: 'Rooster', plate: 'k' } }
+    : { ...r, memento: { id: 'm2', name: 'Touwtje', plate: null } })) };
+
+test('secretGivesNothingCountsNothingAndAddsTheOutroParagraph', () => {
+  let now = 0;
+  const p = new Progress(secretStory);
+  p.clock = () => now;
+  p.resume();
+  assert.equal(p.hasSecret(), true);
+  assert.equal(p.thingsInRoom(), story.rooms[0].things.length); // not counted
+  assert.equal(p.secretParagraph(), null);
+  now += 30_000;
+  assert.deepEqual(p.tap(secretThing), { kind: 'said', text: 'jouw naam', secret: true });
+  assert.deepEqual(p.tap(secretThing), { kind: 'said', text: 'jouw naam' }); // once
+  assert.equal(p.items.size, 0); // gives nothing
+  assert.equal(p.foundInRoom(), 0);
+  assert.equal(p.waitedMs(), 30_000); // no step forward
+  assert.ok(p.foundOnSide(Side.SOUTH));
+  assert.deepEqual(p.notes(), ['jouw naam']); // story text: it stays readable
+  assert.equal(p.secretFound(), true);
+  assert.equal(p.secretParagraph(), 'En nog iets.');
+  assert.equal(Progress.fromJson(secretStory, p.toJson()).secretFound(), true); // `found`, nothing new in the save
+  assert.equal(Difficulty.analyse(secretStory)[0].estMinutes, Difficulty.analyse(story)[0].estMinutes);
+  assert.equal(new Progress(story).hasSecret(), false);
+});
+
+test('mementosComeWithLeavingARoomAndNeverOnATour', () => {
+  const p = new Progress(secretStory);
+  assert.equal(p.mementosTotal(), 2);
+  assert.deepEqual(p.mementos(), []);
+  p.tap(giver); p.checkCode('1234'); p.leave();
+  assert.deepEqual(p.mementos(), [{ id: 'm1', name: 'Rooster', plate: 'k' }]);
+  assert.deepEqual(Progress.fromJson(secretStory, p.toJson()).mementos().map((m) => m.id), ['m1']);
+  p.select('k'); p.tapExit(); p.leave();
+  assert.equal(p.finished, true);
+  assert.deepEqual(p.mementos().map((m) => m.id), ['m1', 'm2']);
+  const tour = Progress.tour(secretStory, 0);
+  assert.deepEqual(tour.mementos(), []); // a tour awards nothing
+  assert.equal(tour.secretFound(), false);
+  assert.equal(tour.secretParagraph(), null);
+  assert.deepEqual(tour.tap(secretThing), { kind: 'said', text: 'jouw naam' }); // readable, not a find
+});
+
+test('parserReadsSecretAndMemento', () => {
+  const o = { title: 'T', outroSecret: 'meer', rooms: [
+    { id: 'a', title: 'A', task: 't', walls: {}, memento: { id: 'm', name: 'Veer' },
+      exit: { wall: 'south', x: 0, y: 0, w: 0.1, h: 0.1, code: '1', text: 'x' },
+      things: [{ id: 'g', wall: 'north', x: 0.1, y: 0.1, w: 0.1, h: 0.1, text: 'geheim', secret: true }] },
+    { id: 'b', title: 'B', task: 't', walls: {}, memento: { id: 'n', name: 'Sleutel', plate: 'k' },
+      exit: { wall: 'south', x: 0, y: 0, w: 0.1, h: 0.1, code: '1', text: 'x' } },
+    { id: 'c', title: 'C', task: 't', walls: {}, exit: { wall: 'south', x: 0, y: 0, w: 0.1, h: 0.1, code: '1', text: 'x' } }] };
+  const s = parseStory('t', JSON.stringify(o));
+  assert.equal(s.outroSecret, 'meer');
+  assert.equal(s.rooms[0].things[0].secret, true);
+  assert.deepEqual(s.rooms[0].memento, { id: 'm', name: 'Veer', plate: null });
+  assert.deepEqual(s.rooms[1].memento, { id: 'n', name: 'Sleutel', plate: 'k' });
+  assert.equal(s.rooms[2].memento, null);
+  delete o.outroSecret;
+  assert.equal(parseStory('t', JSON.stringify(o)).outroSecret, '');
+});
