@@ -112,6 +112,13 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   color: var(--accent); font-size: 11px; overflow: hidden; padding: 3px 4px;
 }
 .wall-zones.flash .zone { background: rgba(217, 164, 65, .33); }
+/* the ◎ (wall.js flashSpots): unopened things bold and pulsing twice, opened ones a thin dashed line */
+.wall-zones.pulse .zone {
+  background: rgba(217, 164, 65, .4); border: 2.5px solid var(--accent); border-radius: 6px;
+  box-shadow: 0 0 0 2.5px rgba(0, 0, 0, .7); animation: zone-pulse .8s ease-in-out 2;
+}
+.wall-zones.pulse .zone.done { background: none; border: 1.5px dashed rgba(255, 255, 255, .8); box-shadow: none; }
+@keyframes zone-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 .wall-fb { position: absolute; inset: 0; pointer-events: none; }
 /* the look line: the wall's caption over the foot of the plate for a few seconds (wall.js look) */
 .wall-look {
@@ -281,7 +288,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wall-img, .toast, .wall-look { transition: none; }
-  .chip.new, .shake, .tap-ring, .tap-glow, .key-lit, .key-wrong, .key-wrong::after { animation: none; }
+  .wall-zones.pulse .zone, .chip.new, .shake, .tap-ring, .tap-glow, .key-lit, .key-wrong, .key-wrong::after { animation: none; }
   .btn.hint.free { animation: none; }
   /* the close-up zoom is a Web Animation: ui.js checks the same media query and skips it */
 }

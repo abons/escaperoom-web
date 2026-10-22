@@ -2,7 +2,7 @@
 import { parseStory, Progress, Coins, Wallet, Difficulty, Saves } from './engine.js';
 import { lang, t } from './i18n.js';
 import { h, button, modal, modalOpen, closeAllModals, toast, shake, reducedMotion } from './ui.js';
-import { Wall } from './wall.js';
+import { Wall, FLASH_MS } from './wall.js';
 import { codePad } from './codepad.js';
 
 document.documentElement.lang = lang;
@@ -274,7 +274,7 @@ function showRoom() {
     ),
     h('div', { class: 'task' }, room.task),
     h('div', { class: 'bar' }, found, coins,
-      smallBtn('◎', () => wall.flashZones(), t('zones')),
+      smallBtn(t('spots_button'), spots, t('zones')),
       hint,
       smallBtn(t('notes'), showNotes),
     ),
@@ -451,8 +451,32 @@ const rememberNames = (p) => { names = {}; for (const it of p.items.values()) na
 /** A tap beside every zone is not silent: the wall's caption comes back as the look line (none written: the ring alone). */
 function onMiss() {
   buzz(10);
+  if (dryMiss()) return;
   const room = progress && progress.room;
   if (room && ui.wall) ui.wall.look(captionOf(room, side));
+}
+
+/** Which dry line the next third miss says; rotates, so the joke does not repeat at once. */
+let dryIndex = 0;
+
+/** The third miss on one wall in one visit says a dry line instead of the caption, once. Not a fault. */
+function dryMiss() {
+  const w = ui.wall;
+  if (!w || w.missesHere !== 3) return false;
+  const s = t('miss_dry_' + (1 + (dryIndex++ % 3)));
+  if (w.src) w.look(s); else say(s);
+  return true;
+}
+
+/** The ◎: opened things thin, the rest bold; when this wall holds nothing more, say so after the flash. */
+function spots() {
+  const p = progress;
+  const w = ui.wall;
+  if (!p || !w) return;
+  w.flashSpots(p.found);
+  if (!p.foundOnSide(side)) return;
+  const here = side;
+  setTimeout(() => { if (ui.wall === w && side === here) say(t('spots_all_seen')); }, FLASH_MS);
 }
 
 function onThing(th) {

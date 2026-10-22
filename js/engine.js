@@ -546,6 +546,8 @@ export class Progress {
 
   foundInRoom() { return this.room.things.filter((t) => this.found.has(t.id)).length; }
   thingsInRoom() { return this.room.things.length; }
+  /** Every thing on wall `s` is opened, hidden ones included (an empty wall: true); mirrors Progress.foundOnSide. */
+  foundOnSide(s) { return this.room.things.filter((t) => t.side === s).every((t) => this.found.has(t.id)); }
 
   hintsShown() { return this.room.hints.slice(0, this.hintCounts.get(this.room.id) ?? 0); }
   hintAvailable() { return (this.hintCounts.get(this.room.id) ?? 0) < this.room.hints.length; }

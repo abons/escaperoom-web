@@ -9,6 +9,10 @@ const SIDES = ['north', 'east', 'south', 'west'];
 const reduced = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 /** How long the look line stays before it fades (decision: docs/besluiten/kijkregel.md in the app repo). */
 const LOOK_MS = 3500;
+/** The ◎ flash: two pulses in this time (Android `WallView.FLASH_MS`). */
+export const FLASH_MS = 1600;
+/** A tap this far (px) outside a zone still hits the nearest one (Android `WallView.TAP_SLOP_DP`). */
+const TAP_SLOP = 12;
 
 /**
  * Wall: .el is the 3:4 box (CSS sizes it to fit its container).
@@ -27,6 +31,10 @@ export class Wall {
     this.exitOn = true;
     this.flashing = false;
     this.flashTimer = 0;
+    /** Thing ids the ◎ draws as opened (thin dashed line); null = the plain flash. */
+    this.flashDone = null;
+    /** Misses beside every zone since this wall was shown; a turn or another room starts again at 0. */
+    this.missesHere = 0;
     this.fadeTimer = 0;
     this.imgLayer = h('div', { class: 'wall-imgs' });
     this.placeholder = h('div', { class: 'wall-ph' });
@@ -60,6 +68,7 @@ export class Wall {
     const oldSide = this.side;
     // a refresh of the same wall (say() after every tap) keeps the tap feedback and the look line running
     if (!same || side !== this.side) { this.endLook(true); this.fbEl.textContent = ''; }
+    if (!same || side !== this.side) { this.missesHere = 0; clearTimeout(this.flashTimer); this.flashing = false; this.flashDone = null; }
     this.room = room; this.side = side; this.things = things; this.exitOn = exitVisible;
     this.wallName = wallName; this.caption = caption;
     if (src !== old || !same || !this.imgLayer.firstChild) {
@@ -156,7 +165,7 @@ export class Wall {
 
   zoneList() {
     const out = [];
-    for (const th of this.things) if (th.side === this.side) out.push({ z: th.zone, label: th.label || '' });
+    for (const th of this.things) if (th.side === this.side) out.push({ z: th.zone, label: th.label || '', id: th.id });
     const ex = this.room && this.room.exit;
     if (this.exitOn && ex && ex.side === this.side) out.push({ z: ex.zone, label: '' });
     return out;
@@ -166,10 +175,11 @@ export class Wall {
     this.zonesEl.textContent = '';
     const show = !this.src || this.flashing;
     this.zonesEl.classList.toggle('flash', this.flashing);
+    this.zonesEl.classList.toggle('pulse', this.flashing && !!this.flashDone);
     if (!show) return;
-    for (const { z, label } of this.zoneList()) {
+    for (const { z, label, id } of this.zoneList()) {
       const d = h('div', {
-        class: 'zone',
+        class: this.flashing && this.flashDone && id && this.flashDone.has(id) ? 'zone done' : 'zone',
         style: { left: z.x * 100 + '%', top: z.y * 100 + '%', width: z.w * 100 + '%', height: z.h * 100 + '%' },
       }, !this.src ? label : '');
       this.zonesEl.append(d);
@@ -184,6 +194,31 @@ export class Wall {
     this.flashTimer = setTimeout(() => { this.flashing = false; this.drawZones(); }, 1500);
   }
 
+  /** The ◎: things in `done` (a Set of ids) get a thin dashed line, the rest fill + bold edge, pulsing twice (CSS). */
+  flashSpots(done) {
+    this.flashing = true;
+    this.flashDone = new Set(done);
+    this.drawZones();
+    clearTimeout(this.flashTimer);
+    this.flashTimer = setTimeout(() => { this.flashing = false; this.flashDone = null; this.drawZones(); }, FLASH_MS);
+  }
+
+  /** The zone nearest to (fx, fy) within TAP_SLOP px of the box `r`, as { th, z } (th null for the exit). */
+  near(fx, fy, r) {
+    const cands = this.things.filter((x) => x.side === this.side).map((th) => ({ th, z: th.zone }));
+    const ex = this.room.exit;
+    if (this.exitOn && ex.side === this.side) cands.push({ th: null, z: ex.zone });
+    let best = null; let bestD = Infinity;
+    for (const c of cands) {
+      const z = c.z;
+      const dx = Math.max(z.x - fx, 0, fx - (z.x + z.w)) * r.width;
+      const dy = Math.max(z.y - fy, 0, fy - (z.y + z.h)) * r.height;
+      const d = Math.hypot(dx, dy);
+      if (d <= TAP_SLOP && d < bestD) { bestD = d; best = c; }
+    }
+    return best;
+  }
+
   tap(cx, cy) {
     if (!this.room) return;
     const r = this.el.getBoundingClientRect();
@@ -196,6 +231,9 @@ export class Wall {
     if (th) { this.feedback(th.zone); this.onThing(th); return; }
     const ex = this.room.exit;
     if (this.exitOn && ex.side === this.side && inZone(ex.zone)) { this.feedback(ex.zone); this.onExit(); return; }
+    const nb = this.near(fx, fy, r);
+    if (nb) { this.feedback(nb.z); if (nb.th) this.onThing(nb.th); else this.onExit(); return; }
+    this.missesHere++;
     this.feedback(null, fx, fy);
     this.onMiss(fx, fy);
   }
