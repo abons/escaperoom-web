@@ -147,7 +147,7 @@ function storyCard(story) {
     h('h2', {}, story.title),
     story.blurb ? h('p', { class: 'blurb' }, story.blurb) : null,
     h('p', { class: 'meta' }, t('stars_min', stars(story.difficulty), Difficulty.storyMinutes(story))),
-    h('p', { class: 'meta small' }, p.finished ? t('finished_tag') : t('room_of', p.roomIndex + 1, story.rooms.length)),
+    h('p', { class: 'meta small' }, p.finished ? finishedTag(p.hintsUsed()) : t('room_of', p.roomIndex + 1, story.rooms.length)),
   );
   const row = h('div', { class: 'row' }, button(p.started ? t('start_continue') : t('start_new'), () => play(story)));
   if (p.started) {
@@ -166,19 +166,33 @@ function storyCard(story) {
 }
 
 // ---- text panel
-function showPanel(title, body, buttonText, onDone, extra) {
-  const col = h('div', { class: 'panel' }, h('h1', { class: 'panel-title' }, title), h('div', { class: 'panel-body' }, body));
+const finishedTag = (n) => (n === 1 ? t('finished_hints_tag_one') : t('finished_hints_tag', n));
+
+function showPanel(title, body, buttonText, onDone, extra, image) {
+  const col = h('div', { class: 'panel' }, h('h1', { class: 'panel-title' }, title),
+    image ? h('img', { class: 'panel-img', src: image, alt: '' }) : null,
+    h('div', { class: 'panel-body' }, body));
   setScreen(h('div', { class: 'panel-wrap' },
     h('div', { class: 'scroll grow' }, col),
     h('div', { class: 'panel-btn' }, ...(extra ? [button(extra.label, extra.onClick, true)] : []), button(buttonText, onDone)),
   ), 'panel');
 }
 
+/** The end of a story: its optional plate (stories/<id>/outro.webp), its last words, then the next unfinished story or the menu. */
 function showOutro(story) {
-  const p = progress;
-  const used = p ? p.hintsUsed() : 0;
-  const summary = used === 0 ? t('finished_hints_none') : t('finished_hints', used, p.hintCoinsSpent());
-  showPanel(t('finished_title'), story.outro + '\n\n' + summary, t('to_menu'), goMenu);
+  const next = nextUnfinished(story);
+  showPanel(t('finished_title'), story.outro, t(next ? 'next_story' : 'to_menu'),
+    next ? () => play(next) : goMenu, null, plate(story.id, 'outro'));
+}
+
+/** The first story after `story` (wrapping round) that is not finished yet; null when all are. */
+function nextUnfinished(story) {
+  const i = stories.indexOf(story);
+  for (let k = 1; k < stories.length; k++) {
+    const s = stories[(i + k) % stories.length];
+    if (!saves.load(s).finished) return s;
+  }
+  return null;
 }
 
 // ---- play
