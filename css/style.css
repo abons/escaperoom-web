@@ -336,3 +336,10 @@ html.big .cp-row .btn.cp-key { font-size: 24px; }
 .card-cover h2 { position: absolute; left: 16px; right: 16px; bottom: 2px; z-index: 1; font: 700 28px/1.15 Georgia, "Times New Roman", serif; text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
 .showcase { display: flex; gap: 6px; overflow-x: auto; padding-top: 8px; scrollbar-width: none; }
 .showcase img { flex: none; width: 32px; height: 32px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
+/* Looking round after the end (rondkijken-na-afloop.md): a row of rooms on the card, a line on the room screen. */
+.tour { padding-top: 10px; }
+.card .tour-title { font-weight: 700; margin: 0 0 4px; }
+.tour-rooms { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.tour-rooms .btn { flex: none; }
+.tour-tag { color: var(--accent); font-weight: 700; font-size: 13px; padding-top: 4px; }
+html.big .tour-tag { font-size: 17px; }

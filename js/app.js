@@ -191,6 +191,7 @@ function storyCard(story) {
     h('p', { class: 'meta' }, t('stars_min', stars(story.difficulty), Difficulty.storyMinutes(story))),
     h('p', { class: 'meta small' }, p.finished ? finishedTag(p.hintsUsed()) : t('room_of', p.roomIndex + 1, story.rooms.length)),
     showcase(story, p),
+    p.finished ? tourRow(story) : null,
   );
   const row = h('div', { class: 'row' }, button(p.started ? t('start_continue') : t('start_new'), () => play(story)));
   if (p.started) {
@@ -225,6 +226,32 @@ function showcase(story, p) {
   return tiles.length ? h('div', { class: 'showcase' }, ...tiles) : null;
 }
 
+// ---- looking round after the end (../escaperoom/docs/besluiten/rondkijken-na-afloop.md)
+
+/** "Look round again" with one button per room, on the card of a finished story. */
+function tourRow(story) {
+  if (!story.rooms.length) return null;
+  return h('div', { class: 'tour' },
+    h('p', { class: 'meta small tour-title' }, t('tour_title')),
+    h('div', { class: 'tour-rooms' }, ...story.rooms.map((r, i) => button(r.title, () => startTour(story, i), true, 'small'))));
+}
+
+/** Walk round room `index` with everything open: a fresh Progress.tour, never saved (Saves.save skips it), nothing measured. */
+function startTour(story, index) {
+  progress = Progress.tour(story, index);
+  side = 'north';
+  pushScreen();
+  enterRoom(true);
+}
+
+/** Through a door on a tour: the next room, or after the last one its exit text and back to the menu. No coins. */
+function leaveTour(p) {
+  const last = p.roomIndex === p.story.rooms.length - 1;
+  const text = p.leave();
+  if (last) showPanel(t('tour_end'), text, t('to_menu'), goMenu);
+  else { side = 'north'; enterRoom(true); }
+}
+
 // ---- text panel
 const finishedTag = (n) => (n === 1 ? t('finished_hints_tag_one') : t('finished_hints_tag', n));
 
@@ -242,7 +269,7 @@ function showPanel(title, body, buttonText, onDone, extra, image) {
 function showOutro(story) {
   const next = nextUnfinished(story);
   showPanel(t('finished_title'), story.outro, t(next ? 'next_story' : 'to_menu'),
-    next ? () => play(next) : goMenu, null, plate(story.id, 'outro'));
+    next ? () => play(next) : goMenu, { label: t('copy_stats'), onClick: copyStats }, plate(story.id, 'outro')); // the player hands the phone back here
 }
 
 /** The first story after `story` (wrapping round) that is not finished yet; null when all are. */
@@ -337,6 +364,10 @@ function showRoom() {
   const chips = h('div', { class: 'chips', onscroll: () => chipEdges(chips) });
   const bottom = h('div', { class: 'bottom' }, chips);
 
+  if (p.touring) { // looking round: no hints, no coins, and a line that says so
+    hint.style.display = 'none'; coins.style.display = 'none';
+    top.append(h('div', { class: 'tour-tag' }, t('tour_tag')));
+  }
   ui = { wall, found, coins, msg, sel, chips, hint };
   hintWasFree = p.hintFreeByWaiting(); // only a change seen live is announced
   setScreen(h('div', { class: 'room' }, top, stage, msgBox, sel, bottom), 'room');
@@ -766,6 +797,7 @@ function showSearch(p, th) {
 }
 
 function leave(p) {
+  if (p.touring) { leaveTour(p); return; }
   const story = p.story;
   const done = p.room, doneIndex = p.roomIndex;
   const stats = t('found_progress', p.foundInRoom(), p.thingsInRoom()) + '  ·  ' + t('room_done_hints', p.hintsShown().length);

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseStory, Progress, Side, Input, Zone, Difficulty, CondKind, ExitAsk } from '../js/engine.js';
+import { parseStory, Progress, Side, Input, Zone, Difficulty, CondKind, ExitAsk, Saves } from '../js/engine.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -394,5 +394,44 @@ test('every story survives a save/load at each room', () => {
     const q = Progress.fromJson(s, p.toJson());
     assert.equal(q.roomIndex, 0);
     assert.equal(q.room.id, s.rooms[0].id);
+  }
+});
+
+// Mirror of StoriesTest.touringOpensEverythingAndMeasuresNothing: looking round after the end.
+test('touringOpensEverythingAndMeasuresNothing', () => {
+  const mem = new Map();
+  const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v), removeItem: (k) => mem.delete(k) };
+  for (const s of stories) {
+    const real = Progress.fromJson(s, { room: s.rooms.length - 1, finished: true, playMs: { [s.rooms[0].id]: 60000 } });
+    Saves.save(real, storage);
+    const before = [...mem.entries()].join('|');
+    for (let i = 0; i < s.rooms.length; i++) {
+      let now = 0;
+      const p = Progress.tour(s, i);
+      p.clock = () => now;
+      assert.ok(p.touring && p.finished);
+      assert.equal(p.roomIndex, i);
+      p.resume();
+      for (const t of p.room.things) {
+        p.select(null);
+        if (!p.visible(t)) [...p.items.keys()].find((id) => { p.select(id); return p.visible(t); });
+        now += 30000;
+        const o = p.tap(t);
+        assert.ok(o.kind === 'said' && o.text === t.text, `${s.id}/${p.room.id}/${t.id}: tour got ${o.kind}`);
+      }
+      p.select(null);
+      assert.equal(p.exitAsk(), ExitAsk.OPEN, `${s.id}/${p.room.id}: exit not open`);
+      assert.equal(p.tapExit(), ExitAsk.OPEN);
+      const ids = [...p.items.keys()];
+      if (ids.length >= 2) p.combine(ids[0], ids[1]);
+      p.pause();
+      assert.ok([...p.playMs.values()].every((v) => v === 0), `${s.id}: tour measured play time`);
+      assert.equal(p.mistakes.size, 0, `${s.id}: tour counted mistakes`);
+      Saves.save(p, storage); // skipped: a tour is never saved
+      p.leave();
+      assert.ok(p.finished);
+      assert.equal(p.roomIndex, i === s.rooms.length - 1 ? i : i + 1);
+    }
+    assert.equal([...mem.entries()].join('|'), before, `${s.id}: touring changed the real save`);
   }
 });
