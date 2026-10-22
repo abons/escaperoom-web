@@ -156,6 +156,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .search-name:not(:last-child)::after { content: ' \00b7 '; opacity: .5; }
 .search-name.found { text-decoration: line-through; opacity: .55; }
 .closeup-text { padding: 12px 0; white-space: pre-wrap; font-size: 16px; line-height: 1.4; align-self: stretch; }
+.closeup-col .codepad { flex: none; padding: 12px 0 4px; } /* the pad under the plate; the plate gives way */
 .closeup .modal-buttons { justify-content: stretch; margin-top: 0; }
 .closeup .modal-buttons .btn { width: 100%; }
 

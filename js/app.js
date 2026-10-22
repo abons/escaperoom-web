@@ -362,14 +362,16 @@ function outcome(p, th, o) {
     case 'needsCode':
       refreshStatus();
     {
-      const ask = () => askCode(o.thing.input || 'digits', o.thing.len || (o.thing.code || '').length, (code) => {
+      const type = o.thing.input || 'digits';
+      const len = o.thing.len || (o.thing.code || '').length;
+      const onCode = (code) => {
         const r = p.tryCode(th, code);
         if (r.kind === 'wrong') { buzz(40); say(t('code_wrong')); return false; }
         outcome(p, th, r);
         saves.save(p);
         return true;
-      });
-      if (th.closeup) showCloseup(p, th, th.label || '', ask); else ask();
+      };
+      if (th.closeup) showCloseup(p, th, th.label || '', { type, len, onCode }); else askCode(type, len, onCode);
       break;
     }
     default: break;
@@ -415,7 +417,8 @@ function askCode(type, len, onCode) {
   });
 }
 
-function showCloseup(p, th, msg, enterCode) {
+/** code {type, len, onCode}: a button swaps the text for the code pad, under the plate (which shrinks). */
+function showCloseup(p, th, msg, code) {
   const src = plate(p.story.id, `${p.room.id}/${th.closeup}`);
   const visual = src
     ? h('img', { class: 'closeup-img', src, alt: th.label || '' })
@@ -426,11 +429,26 @@ function showCloseup(p, th, msg, enterCode) {
   const animateFrom = wr && wr.width > 0 && z
     ? { x: wr.left + z.x * wr.width, y: wr.top + z.y * wr.height, w: z.w * wr.width, h: z.h * wr.height }
     : undefined;
-  modal({
+  const said = h('div', { class: 'closeup-text' }, msg);
+  let pad = null;
+  let m = null;
+  const enterCode = () => {
+    pad = codePad(code.type, code.len, (typed) => {
+      const ok = code.onCode(typed);
+      // a right code removes the close-up at once: the outcome may open the next one itself
+      if (ok) { m.close(); m.box.parentElement?.remove(); }
+      return ok;
+    });
+    said.replaceWith(pad.el);
+    m.box.querySelector('.modal-buttons .btn')?.remove(); // the enter button itself
+    return false;
+  };
+  m = modal({
     className: 'closeup',
     animateFrom,
-    content: h('div', { class: 'closeup-col' }, visual, h('div', { class: 'closeup-text' }, msg)),
-    buttons: enterCode
+    content: h('div', { class: 'closeup-col' }, visual, said),
+    onKey: (e) => (pad ? pad.handleKey(e) : false),
+    buttons: code
       ? [{ label: t('code_title'), primary: true, onClick: enterCode }, { label: t('close') }]
       : [{ label: t('close'), primary: true }],
   });
