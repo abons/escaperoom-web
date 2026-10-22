@@ -279,7 +279,11 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (min-width: 700px) {
   #app { border-left: 1px solid rgba(217, 164, 65, .15); border-right: 1px solid rgba(217, 164, 65, .15); }
 }
+/* a new room fades up out of the dark; the door itself stays a cut */
+.stage.room-in { animation: room-in 300ms ease-out both; }
+@keyframes room-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
+  .stage.room-in { animation: none; }
   .wall-img, .toast, .wall-look { transition: none; }
   .chip.new, .shake, .tap-ring, .tap-glow, .key-lit, .key-wrong, .key-wrong::after { animation: none; }
   .btn.hint.free { animation: none; }
