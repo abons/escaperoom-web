@@ -3,6 +3,8 @@ import { h } from './ui.js';
 
 const SWIPE = 80;
 const SLOP = 16;
+/** How long the look line stays before it fades (decision: docs/besluiten/kijkregel.md in the app repo). */
+const LOOK_MS = 3500;
 
 /**
  * Wall: .el is the 3:4 box (CSS sizes it to fit its container).
@@ -26,7 +28,9 @@ export class Wall {
     this.placeholder = h('div', { class: 'wall-ph' });
     this.zonesEl = h('div', { class: 'wall-zones' });
     this.fbEl = h('div', { class: 'wall-fb' });
-    this.el = h('div', { class: 'wall' }, this.placeholder, this.imgLayer, this.zonesEl, this.fbEl);
+    this.lookEl = h('div', { class: 'wall-look', 'aria-live': 'polite' });
+    this.lookTimer = 0;
+    this.el = h('div', { class: 'wall' }, this.placeholder, this.imgLayer, this.zonesEl, this.lookEl, this.fbEl);
 
     let down = null;
     this.el.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
@@ -45,6 +49,7 @@ export class Wall {
   show({ room, side, src, things, exitVisible, wallName, caption }) {
     const same = this.room === room; // a turn to another wall of the same room fades too (no slide)
     const old = this.src;
+    if (!same || side !== this.side) this.endLook(true); // another wall's line goes at once
     this.room = room; this.side = side; this.things = things; this.exitOn = exitVisible;
     this.wallName = wallName; this.caption = caption;
     this.fbEl.textContent = '';
@@ -78,6 +83,23 @@ export class Wall {
     if (this.src) return;
     this.placeholder.append(h('div', { class: 'wall-ph-title' }, this.wallName || ''));
     if (this.caption) this.placeholder.append(h('div', { class: 'wall-ph-cap' }, this.caption));
+  }
+
+  /** The look line: `text` as a band over the foot of the plate for LOOK_MS, then it fades; a tap ends it sooner. */
+  look(text) {
+    if (!text || !this.src) return; // the placeholder already prints the caption
+    clearTimeout(this.lookTimer);
+    this.lookEl.textContent = text;
+    this.lookEl.classList.remove('now');
+    this.lookEl.classList.add('on');
+    this.lookTimer = setTimeout(() => this.endLook(), LOOK_MS);
+  }
+
+  /** Fade the look line out; `now` drops it without the fade (a turn to another wall). */
+  endLook(now = false) {
+    clearTimeout(this.lookTimer);
+    this.lookEl.classList.toggle('now', now);
+    this.lookEl.classList.remove('on');
   }
 
   zoneList() {
@@ -116,6 +138,7 @@ export class Wall {
     const fx = (cx - r.left) / r.width;
     const fy = (cy - r.top) / r.height;
     if (fx < 0 || fx > 1 || fy < 0 || fy > 1) return;
+    this.endLook(); // any tap on the plate ends the look line; a miss brings it back
     const inZone = (z) => fx >= z.x && fx <= z.x + z.w && fy >= z.y && fy <= z.y + z.h;
     const th = this.things.find((x) => x.side === this.side && inZone(x.zone));
     if (th) { this.feedback(th.zone); this.onThing(th); return; }
