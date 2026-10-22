@@ -40,6 +40,11 @@ const nl = {
   finished_hints_tag: 'Uitgespeeld, {0} hints',
   hint_none: 'Geen hints meer voor deze kamer.',
   hints_empty: 'Nog geen hints onthuld.',
+  hint_button_wait: 'Hint · {0}',
+  hint_button_free: 'Hint · gratis',
+  hint_wait: 'Zoek je zonder verder te komen? Over {0} is de volgende hint gratis.',
+  hint_waited: 'Je hebt lang genoeg gezocht: de volgende hint is gratis.',
+  hint_now_free: 'Zit je even vast? De volgende hint is nu gratis: tik op Hint.',
   hint_poor: 'Te weinig munten.',
   found_progress: 'Gevonden {0}/{1}',
   stars_min: '{0}  ~{1} min',
@@ -54,7 +59,7 @@ const nl = {
   load_failed: 'De verhalen konden niet geladen worden.',
   color_R: 'Rood', color_G: 'Groen', color_B: 'Blauw', color_Y: 'Geel', color_W: 'Wit', color_K: 'Zwart',
   help_title: 'Zo speel je',
-  help_body: 'Veeg naar links of rechts, of gebruik de pijlen, om de vier muren van de kamer te bekijken.\n\nTik op dingen op een muur om ze te onderzoeken. De knop \u25ce laat alle plekken oplichten waarop je kunt tikken.\n\nTik onderaan op een voorwerp om het te kiezen en tik dan op het ding waarop je het wilt gebruiken. Met een voorwerp gekozen tik je op een tweede voorwerp om ze te combineren.\n\nVast? De knop Hint geeft hints in lagen: de eerste van een kamer is gratis, de volgende kosten een munt per stuk en de laatste kost twee. Je krijgt elke dag een munt en meer voor elke kamer die je uitspeelt.\n\nMet de ? in het menu zie je dit opnieuw.',
+  help_body: 'Veeg naar links of rechts, of gebruik de pijlen, om de vier muren van de kamer te bekijken.\n\nTik op dingen op een muur om ze te onderzoeken. De knop \u25ce laat alle plekken oplichten waarop je kunt tikken.\n\nTik onderaan op een voorwerp om het te kiezen en tik dan op het ding waarop je het wilt gebruiken. Met een voorwerp gekozen tik je op een tweede voorwerp om ze te combineren.\n\nVast? De knop Hint geeft hints in lagen: de eerste van een kamer is gratis, de volgende kosten een munt per stuk en de laatste kost twee. Zoek je een tijd zonder verder te komen, dan wordt de volgende gratis: de knop Hint telt af. Je krijgt elke dag een munt en meer voor elke kamer die je uitspeelt.\n\nMet de ? in het menu zie je dit opnieuw.',
 };
 
 const en = {
@@ -98,6 +103,11 @@ const en = {
   finished_hints_tag: 'Finished, {0} hints',
   hint_none: 'No more hints for this room.',
   hints_empty: 'No hints revealed yet.',
+  hint_button_wait: 'Hint · {0}',
+  hint_button_free: 'Hint · free',
+  hint_wait: 'Searching without getting further? The next hint is free in {0}.',
+  hint_waited: 'You searched long enough: the next hint is free.',
+  hint_now_free: 'Stuck for a while? The next hint is free now: tap Hint.',
   hint_poor: 'Not enough coins.',
   found_progress: 'Found {0}/{1}',
   stars_min: '{0}  ~{1} min',
@@ -111,7 +121,7 @@ const en = {
   load_failed: 'The stories could not be loaded.',
   color_R: 'Red', color_G: 'Green', color_B: 'Blue', color_Y: 'Yellow', color_W: 'White', color_K: 'Black',
   help_title: 'How to play',
-  help_body: 'Swipe left or right, or use the arrows, to look at the four walls of the room.\n\nTap things on a wall to examine them. The \u25ce button lights up every spot you can tap.\n\nTap an item at the bottom to select it, then tap the thing you want to use it on. With one item selected, tap a second item to combine them.\n\nStuck? The Hint button gives layered hints: the first of a room is free, the ones after cost a coin each, and the last one costs two. You earn a coin every day and more for every room you finish.\n\nThe ? on the menu shows this again.',
+  help_body: 'Swipe left or right, or use the arrows, to look at the four walls of the room.\n\nTap things on a wall to examine them. The \u25ce button lights up every spot you can tap.\n\nTap an item at the bottom to select it, then tap the thing you want to use it on. With one item selected, tap a second item to combine them.\n\nStuck? The Hint button gives layered hints: the first of a room is free, the ones after cost a coin each, and the last one costs two. Search a while without getting further and the next one becomes free: the Hint button counts down. You earn a coin every day and more for every room you finish.\n\nThe ? on the menu shows this again.',
 };
 
 export const lang = (navigator.language || 'en').toLowerCase().startsWith('nl') ? 'nl' : 'en';

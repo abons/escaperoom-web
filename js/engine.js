@@ -269,6 +269,11 @@ export class Progress {
     /** ms clock; tests replace it. */
     this.clock = () => Date.now();
     this.lastActive = null;
+    /**
+     * Per room id: playMs at the last step forward (a thing opened, an item applied or combined, a search
+     * target found, a hint revealed). Optional in the save; a missing one is 0, i.e. the room's start.
+     */
+    this.stepMs = new Map();
   }
 
   /** A gap between two actions counts at most this long (2 min): reading counts, walking away does not. */
@@ -287,6 +292,36 @@ export class Progress {
     const gap = Math.min(Math.max(now - this.lastActive, 0), Progress.IDLE_MS);
     this.playMs.set(this.room.id, (this.playMs.get(this.room.id) ?? 0) + gap);
     this.lastActive = now;
+  }
+
+  /** A step forward in the current room: the free-hint clock starts over. Call after #touch. */
+  #stepped() { this.stepMs.set(this.room.id, this.playMs.get(this.room.id) ?? 0); }
+
+  /** Active play time in the current room including the running gap (capped like #touch); changes nothing. */
+  activeMs() {
+    const run = this.lastActive === null ? 0 : Math.min(Math.max(this.clock() - this.lastActive, 0), Progress.IDLE_MS);
+    return (this.playMs.get(this.room.id) ?? 0) + run;
+  }
+
+  /** Active play time since the last step forward in this room. */
+  waitedMs() { return Math.max(0, this.activeMs() - (this.stepMs.get(this.room.id) ?? 0)); }
+
+  /** What the next hint layer costs now, waiting included; 0 when none is left. */
+  nextHintCost() {
+    if (!this.hintAvailable()) return 0;
+    return Coins.hintCost(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length, this.waitedMs(), this.room.difficulty);
+  }
+
+  /** Ms of waiting left before the next layer is free; 0 when it is free already or no layer is left. The view's countdown. */
+  hintFreeInMs() {
+    if (!this.hintAvailable() || Coins.hintCost(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length) === 0) return 0;
+    return Math.max(0, Coins.hintWaitMs(this.room.difficulty) - this.waitedMs());
+  }
+
+  /** True when the next layer would cost coins but waiting has made it free (the view pulses). */
+  hintFreeByWaiting() {
+    return this.hintAvailable() && Coins.hintCost(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length) > 0
+      && this.nextHintCost() === 0;
   }
 
   #mistake() { this.mistakes.set(this.room.id, (this.mistakes.get(this.room.id) ?? 0) + 1); }
@@ -316,6 +351,7 @@ export class Progress {
     if (!rest.includes(sel) || !this.items.has(sel)) { this.#mistake(); return null; } // wrong item used
     if (!this.applied.has(key)) this.applied.set(key, new Set());
     this.applied.get(key).add(sel);
+    this.#stepped();
     if (consumes) { this.items.delete(sel); this.selected = null; }
     return { item: sel, left: rest.length - 1 };
   }
@@ -378,6 +414,7 @@ export class Progress {
     if (!t) return { kind: 'miss' };
     if (this.isHit(thing, t)) return { kind: 'again', target: t };
     this.hits.add(`${thing.id}/${t.id}`);
+    this.#stepped();
     const left = this.searchLeft(thing);
     if (left > 0) return { kind: 'hit', target: t, left };
     const open = thing.code !== null || this.#remaining(thing.id, thing.needs).length > 0;
@@ -411,6 +448,7 @@ export class Progress {
 
   #open(thing) {
     this.found.add(thing.id);
+    this.#stepped();
     let gained = null;
     if (thing.gives && !this.items.has(thing.gives.id)) {
       gained = thing.gives;
@@ -427,6 +465,7 @@ export class Progress {
     if (!c) { this.#mistake(); return Outcome.wrong(); }
     if (c.consumes) { this.items.delete(a); this.items.delete(b); }
     this.items.set(c.gives.id, c.gives);
+    this.#stepped();
     this.selected = null;
     return Outcome.said(c.text, c.gives);
   }
@@ -517,12 +556,13 @@ export class Progress {
     const n = this.hintCounts.get(this.room.id) ?? 0;
     if (n >= this.room.hints.length) return null;
     this.hintCounts.set(this.room.id, n + 1);
+    this.#stepped();
     return this.room.hints[n];
   }
 
   hintsUsed() { let s = 0; for (const v of this.hintCounts.values()) s += v; return s; }
 
-  /** Coins the revealed hints cost, derived from the counts (nothing extra is saved). */
+  /** Coins the revealed hints cost at list price, derived from the counts; layers made free by waiting are not known, so an upper bound. */
   hintCoinsSpent() {
     let s = 0;
     for (const r of this.story.rooms) s += Coins.hintsCost(this.hintCounts.get(r.id) ?? 0, r.hints.length);
@@ -556,6 +596,8 @@ export class Progress {
     for (const [k, v] of this.playMs) playMs[k] = v;
     const mistakes = {};
     for (const [k, v] of this.mistakes) mistakes[k] = v;
+    const stepMs = {};
+    for (const [k, v] of this.stepMs) stepMs[k] = v;
     return JSON.stringify({
       room: this.roomIndex,
       finished: this.finished,
@@ -567,6 +609,7 @@ export class Progress {
       hints,
       playMs,
       mistakes,
+      stepMs,
     });
   }
 
@@ -589,6 +632,7 @@ export class Progress {
     if (isObj(o.hints)) for (const [k, v] of Object.entries(o.hints)) p.hintCounts.set(k, optInt(o.hints, k, 0));
     if (isObj(o.playMs)) for (const k of Object.keys(o.playMs)) p.playMs.set(k, Math.max(0, optInt(o.playMs, k, 0)));
     if (isObj(o.mistakes)) for (const k of Object.keys(o.mistakes)) p.mistakes.set(k, Math.max(0, optInt(o.mistakes, k, 0)));
+    if (isObj(o.stepMs)) for (const k of Object.keys(o.stepMs)) p.stepMs.set(k, Math.max(0, optInt(o.stepMs, k, 0)));
     return p;
   }
 }
@@ -601,8 +645,18 @@ export const Coins = Object.freeze({
   DAILY: 1,
   /** Price of the last hint layer of a room (user decides after playing; the middle layers cost 1). */
   LAST_LAYER_COST: 2,
-  /** Cost of hint layer `index` (0-based) of `total`: first free, last LAST_LAYER_COST, between 1. First rule wins. */
-  hintCost(index, total) {
+  /**
+   * Waiting makes the next hint layer free (The Room Three): after this much active play time in a room without
+   * progress (Progress.waitedMs) the next layer costs 0. Half the top of Difficulty.band, because the clock restarts
+   * at every step and the band is for the whole room: 3, 4, 6, 8, 12 min for 1..5. Mirror of Coins.hintWaitMs.
+   */
+  hintWaitMs(difficulty) { return Math.trunc(Difficulty.band(difficulty).max / 2) * 60000; },
+  /**
+   * Cost of hint layer `index` (0-based) of `total`: first free, last LAST_LAYER_COST, between 1. First rule wins.
+   * With `waitedMs` and `difficulty` (the Kotlin 4-argument overload): 0 once waitedMs reaches hintWaitMs(difficulty).
+   */
+  hintCost(index, total, waitedMs, difficulty) {
+    if (waitedMs !== undefined && waitedMs >= Coins.hintWaitMs(difficulty)) return 0;
     if (index <= 0) return 0;
     if (index >= total - 1) return Coins.LAST_LAYER_COST;
     return 1;
