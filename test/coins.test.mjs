@@ -35,7 +35,7 @@ test('spendClampsAtZero', () => {
 });
 
 test('constants', () => {
-  assert.equal(Coins.START, 5);
+  assert.equal(Coins.START, 8); // 5 until 2026-10-22: munten-dag-1.md
   assert.equal(Coins.DAILY, 1);
   assert.equal(Coins.LAST_LAYER_COST, 2);
 });
@@ -55,24 +55,26 @@ test('hintCostPerLayer', () => {
 test('walletFreshPurseGetsOnlyStart', () => {
   let day = '20261011';
   const w = new Wallet(mem(), () => day);
-  assert.equal(w.balance(), 5);
-  assert.equal(w.claimDaily(), 5);
-  assert.equal(w.claimDaily(), 5); // same day: nothing more
+  const S = Coins.START;
+  assert.equal(w.balance(), S);
+  assert.equal(w.claimDaily(), S);
+  assert.equal(w.claimDaily(), S); // same day: nothing more
   day = '20261012';
-  assert.equal(w.claimDaily(), 6);
-  assert.equal(w.claimDaily(), 6);
+  assert.equal(w.claimDaily(), S + 1);
+  assert.equal(w.claimDaily(), S + 1);
   day = '20261001'; // clock set back
-  assert.equal(w.claimDaily(), 6);
+  assert.equal(w.claimDaily(), S + 1);
 });
 
 test('walletSpend', () => {
   const w = new Wallet(mem(), () => '20261011');
+  const S = Coins.START;
   assert.equal(w.spend(2), true);
-  assert.equal(w.balance(), 3);
-  assert.equal(w.spend(4), false); // too low: nothing deducted
-  assert.equal(w.balance(), 3);
+  assert.equal(w.balance(), S - 2);
+  assert.equal(w.spend(S - 1), false); // too low: nothing deducted
+  assert.equal(w.balance(), S - 2);
   assert.equal(w.spend(-1), false);
-  assert.equal(w.spend(3), true);
+  assert.equal(w.spend(S - 2), true);
   assert.equal(w.balance(), 0);
 });
 
@@ -80,18 +82,18 @@ test('walletRoomRewardOnlyOnce', () => {
   const st = mem();
   const w = new Wallet(st, () => '20261011');
   assert.equal(w.claimRoomReward('archief', 'kelder', 3), 3);
-  assert.equal(w.balance(), 8);
+  assert.equal(w.balance(), Coins.START + 3);
   assert.equal(w.claimRoomReward('archief', 'kelder', 3), 0);
   assert.equal(w.claimRoomReward('archief', 'kantoor', 9), 5);
-  assert.equal(w.balance(), 13);
-  assert.equal(new Wallet(st, () => '20261011').balance(), 13); // persisted
+  assert.equal(w.balance(), Coins.START + 8);
+  assert.equal(new Wallet(st, () => '20261011').balance(), Coins.START + 8); // persisted
   assert.ok(st.map.has('escaperoom.coins'));
 });
 
 test('walletSurvivesGarbage', () => {
   const st = mem();
   st.setItem('escaperoom.coins', '{not json');
-  assert.equal(new Wallet(st).balance(), 5);
+  assert.equal(new Wallet(st).balance(), Coins.START);
 });
 
 const tiny = parseStory('tiny', JSON.stringify({
@@ -120,4 +122,15 @@ test('savesUnreadableGivesFreshProgress', () => {
   const origWarn = console.warn;
   console.warn = () => {};
   try { assert.equal(Saves.load(tiny, st).started, false); } finally { console.warn = origWarn; }
+});
+
+test('walletHiddenCoinOnlyOnce', () => {
+  const st = mem();
+  const w = new Wallet(st, () => '20261011');
+  assert.equal(w.claimCoin('bakker', 'munt_hout'), 1);
+  assert.equal(w.balance(), Coins.START + 1);
+  assert.equal(w.claimCoin('bakker', 'munt_hout'), 0); // replaying the story cannot farm it
+  assert.equal(w.claimCoin('archief', 'munt_briefje'), 1);
+  assert.equal(new Wallet(st, () => '20261011').balance(), Coins.START + 2);
+  assert.equal(w.claimRoomReward('bakker', 'munt_hout', 2), 2); // separate from the room rewards
 });

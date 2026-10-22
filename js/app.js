@@ -86,13 +86,10 @@ async function boot() {
   } catch (e) {
     console.warn(e);
   }
-  if (helpSeen()) showMenu(true); else showHelp();
+  showMenu(true); // no help panel first: the first room teaches by doing (eerste-twee-minuten.md); help stays behind ?
 }
 
-// ---- first-time help (own key, so clearing a save never brings it back)
-function helpSeen() {
-  try { return localStorage.getItem('escaperoom.help_seen') === '1'; } catch (e) { return true; }
-}
+// ---- help, behind the ? on the menu (no longer shown first: eerste-twee-minuten.md)
 function showHelp() {
   try { localStorage.setItem('escaperoom.help_seen', '1'); } catch (e) { /* ignore */ }
   showPanel(t('help_title'), t('help_body'), t('ok'), () => showMenu(), { label: t('copy_stats'), onClick: copyStats });
@@ -313,6 +310,31 @@ function enterRoom(announce) {
   msgItem = null;
   showRoom();
   if (announce) fadeInRoom();
+  if (announce) nudgeFirstRoom();
+}
+
+/** True while the very first room ever shows its "swipe, tap what lights up" line, until the first turn. */
+let nudging = false;
+
+/** The very first room ever (key escaperoom.nudged): one line under the intro until the first turn, and the ◎ flash by itself after 1,5 s. */
+function nudgeFirstRoom() {
+  try { if (localStorage.getItem('escaperoom.nudged') === '1') return; } catch (e) { return; }
+  const p = progress;
+  if (!p) return;
+  nudging = true;
+  message = [message, t('nudge_look')].filter((s) => s).join('\n\n');
+  refreshStatus();
+  const w = ui.wall;
+  setTimeout(() => { if (w && ui.wall === w && screen === 'room') w.flashSpots(p.found); }, 1500);
+}
+
+/** The first turn ends the nudge for good: the line leaves the message strip. */
+function endNudge() {
+  if (!nudging) return;
+  nudging = false;
+  try { localStorage.setItem('escaperoom.nudged', '1'); } catch (e) { /* ignore */ }
+  const line = t('nudge_look');
+  if (message.endsWith(line)) { message = message.slice(0, -line.length).trimEnd(); refreshStatus(); }
 }
 
 /** A new room (after the intro or a door) comes up out of the dark in 300 ms; resuming mid-room stays a cut. Reduced motion: CSS drops it. */
@@ -388,6 +410,7 @@ function turn(step) {
   saves.save(p);
   refreshWall();
   lookFirst();
+  endNudge();
 }
 
 function refreshWall() {
@@ -464,6 +487,34 @@ function fly(src, from, chip) {
       { duration: FLY_MS, easing: 'ease-in-out' });
     a.onfinish = () => el.remove();
     setTimeout(() => el.remove(), FLY_MS + 200); // in case onfinish never fires (hidden tab)
+  });
+}
+
+/**
+ * A hidden coin was found (thing.coin): pay it once ever via the wallet, a gold coin flies from the spot to the counter,
+ * which pops; a coin paid in an earlier run says so and pays nothing (munten-verstopt.md).
+ */
+function foundCoin(p, th, text) {
+  const paid = wallet.claimCoin(p.story.id, th.id);
+  const from = flyFrom;
+  say(text + '\n' + t(paid > 0 ? 'coin_found' : 'coin_found_before'));
+  const to = ui.coins;
+  if (!to || paid === 0) return;
+  buzz(20);
+  const pop = () => { to.classList.remove('coin-pop'); void to.offsetWidth; to.classList.add('coin-pop'); };
+  if (!from || reducedMotion() || !document.body.animate) { pop(); return; }
+  requestAnimationFrame(() => {
+    const r = to.getBoundingClientRect();
+    const s0 = 56; const s1 = 20;
+    const x0 = from.x + from.w / 2 - s0 / 2; const y0 = from.y + from.h / 2 - s0 / 2;
+    const x1 = r.left + r.width / 2 - s0 / 2; const y1 = r.top + r.height / 2 - s0 / 2;
+    const el = h('div', { class: 'coin-fly', style: { width: s0 + 'px', height: s0 + 'px' } });
+    document.body.append(el);
+    const at = (f) => ({ transform: `translate(${x0 + (x1 - x0) * f}px, ${y0 + (y1 - y0) * f - 64 * Math.sin(Math.PI * f)}px) scale(${(s0 + (s1 - s0) * f) / s0})` });
+    const a = el.animate([at(0), at(0.25), at(0.5), at(0.75), at(1)], { duration: FLY_MS + 150, easing: 'ease-in-out' });
+    const done = () => { if (el.isConnected) { el.remove(); pop(); } };
+    a.onfinish = done;
+    setTimeout(done, FLY_MS + 350); // in case onfinish never fires (hidden tab)
   });
 }
 
@@ -649,6 +700,7 @@ function onThing(th) {
 function outcome(p, th, o) {
   switch (o.kind) {
     case 'said': {
+      if (o.coin) { foundCoin(p, th, o.text); break; }
       const msg = o.gained ? gainedMessage(o.text, o.gained) : o.text;
       say(msg);
       if (th.closeup) showCloseup(p, th, msg);
