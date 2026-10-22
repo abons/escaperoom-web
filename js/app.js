@@ -222,6 +222,18 @@ function play(story) {
   else enterRoom(false);
 }
 
+/** Walls whose look line showed by itself this visit to the room screen; a miss shows it again any time. */
+const looked = new Set();
+const captionOf = (room, s) => (room.captions instanceof Map ? room.captions.get(s) : room.captions && room.captions[s]) || '';
+
+/** Arriving at a wall: its caption as a look line, once per wall per visit. */
+function lookFirst() {
+  const p = progress;
+  if (!p || !ui.wall || looked.has(side)) return;
+  looked.add(side);
+  ui.wall.look(captionOf(p.room, side));
+}
+
 function enterRoom(announce) {
   const p = progress;
   if (!p) return;
@@ -277,6 +289,8 @@ function showRoom() {
   chipIds = new Set(p.items.keys()); // a rebuilt bar does not pop
   refreshStatus();
   prefetchRoom(p);
+  looked.clear();
+  lookFirst();
 }
 
 function turn(step) {
@@ -286,6 +300,7 @@ function turn(step) {
   p.look(side);
   saves.save(p);
   refreshWall();
+  lookFirst();
 }
 
 function refreshWall() {
@@ -300,7 +315,7 @@ function refreshWall() {
     things: p.thingsOnSide(side),
     exitVisible: p.exitVisible(),
     wallName: t('wall_' + side),
-    caption: (room.captions instanceof Map ? room.captions.get(side) : room.captions && room.captions[side]) || '',
+    caption: captionOf(room, side),
   });
 }
 
@@ -370,13 +385,11 @@ function onItem(id) {
 const itemName = (p, id) => (p.items.get(id) && p.items.get(id).name) || names[id] || id;
 const rememberNames = (p) => { names = {}; for (const it of p.items.values()) names[it.id] = it.name; };
 
-/** A tap beside every zone is not silent: the wall's caption speaks (none written: the ring alone). */
+/** A tap beside every zone is not silent: the wall's caption comes back as the look line (none written: the ring alone). */
 function onMiss() {
   buzz(10);
   const room = progress && progress.room;
-  if (!room) return;
-  const cap = (room.captions instanceof Map ? room.captions.get(side) : room.captions && room.captions[side]) || '';
-  if (cap && cap !== message) say(cap);
+  if (room && ui.wall) ui.wall.look(captionOf(room, side));
 }
 
 function onThing(th) {

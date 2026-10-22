@@ -98,6 +98,15 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 .wall-zones.flash .zone { background: rgba(217, 164, 65, .33); }
 .wall-fb { position: absolute; inset: 0; pointer-events: none; }
+/* the look line: the wall's caption over the foot of the plate for a few seconds (wall.js look) */
+.wall-look {
+  position: absolute; left: 0; right: 0; bottom: 0; pointer-events: none; box-sizing: border-box;
+  padding: 14px; background: rgba(18, 14, 10, .8); border-top: 2px solid rgba(217, 164, 65, .8);
+  color: #F5EEDF; font-size: 18px; line-height: 1.35; text-shadow: 0 1px 2px #000;
+  opacity: 0; transition: opacity .6s;
+}
+.wall-look.on { opacity: 1; transition: opacity .25s; }
+.wall-look.now { transition: none; }
 .tap-glow { position: absolute; border-radius: 8px; background: rgb(217, 164, 65); opacity: 0; animation: tap-glow .25s ease-out; }
 @keyframes tap-glow { from { opacity: .35; } to { opacity: 0; } }
 .tap-ring {
@@ -204,7 +213,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   #app { border-left: 1px solid rgba(217, 164, 65, .15); border-right: 1px solid rgba(217, 164, 65, .15); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wall-img, .toast { transition: none; }
+  .wall-img, .toast, .wall-look { transition: none; }
   .chip.new { animation: none; }
   /* the close-up zoom is a Web Animation: ui.js checks the same media query and skips it */
 }
