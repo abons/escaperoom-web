@@ -110,6 +110,33 @@ test('padCheckRejectsBadWheels', () => {
   bad.forEach((t, i) => assert.throws(() => checkPad(`bad${i}`, t), undefined, `bad pad ${i} should fail`));
 });
 
+/** A fill-in conclusion: one ___ per answer word, every answer word in the bank, no word twice, at least one decoy. */
+function checkAsk(who, a) {
+  if (!a) return;
+  assert.ok(!blank(a.text), `${who}: ask text`);
+  assert.ok(a.answer.length > 0, `${who}: ask needs an answer`);
+  assert.equal(a.gaps, a.answer.length, `${who}: ask has ${a.gaps} gaps for ${a.answer.length} answer words`);
+  assert.equal(new Set(a.words).size, a.words.length, `${who}: ask words repeat`);
+  // the view takes a word out of the bank once it sits in a gap
+  assert.equal(new Set(a.answer).size, a.answer.length, `${who}: ask answer repeats a word`);
+  for (const w of a.answer) assert.ok(a.words.includes(w), `${who}: answer '${w}' not in the words`);
+  assert.ok(a.words.length > new Set(a.answer).size, `${who}: ask words need a decoy`);
+  a.words.forEach((w) => assert.ok(!blank(w), `${who}: blank ask word`));
+}
+
+test('askCheckRejectsBadAsks', () => {
+  const ask = (text, words, answer) => ({ text, words, answer, gaps: text.split('___').length - 1 });
+  checkAsk('good', ask('Wie? ___. Waarom? ___.', ['a', 'b', 'c'], ['a', 'c']));
+  const bad = [
+    ask('Wie? ___.', ['a', 'b'], ['a', 'b']), // gaps != answer
+    ask('Wie? ___.', ['a', 'b'], ['x']), // answer not in the bank
+    ask('Wie? ___.', ['a'], ['a']), // no decoy
+    ask('Wie? ___.', ['a', 'a', 'b'], ['a']), // word twice
+    ask('Wie? ___ en ___.', ['a', 'b'], ['a', 'a']), // answer repeats a word
+  ];
+  bad.forEach((a, i) => assert.throws(() => checkAsk(`bad${i}`, a), undefined, `bad ask ${i} should fail`));
+});
+
 test('sequenceLockIsCheckedLikeTheRest', () => {
   checkLock('fixture', 'SMHT', 'sequence', 4);
   assert.throws(() => checkLock('fixture', 'SMX', 'sequence', 3));
@@ -185,6 +212,7 @@ test('rulesHoldForEveryStory', () => {
         checkLock(`${n}/${t.id}`, t.code, t.input, t.len);
         checkKeys(`${n}/${t.id}`, t);
         checkPad(`${n}/${t.id}`, t);
+        checkAsk(`${n}/${t.id}`, t.ask);
         if (t.code === null) assert.equal(t.input, 'digits', `${n}/${t.id}: input/len without code`);
         if (t.closeup !== null && !plateExists(path.join(dir, n, r.id, t.closeup))) {
           console.log(`WARNING ${n}/${t.id}: closeup file ${n}/${r.id}/${t.closeup}.png missing`);
@@ -230,6 +258,7 @@ test('rulesHoldForEveryStory', () => {
       assert.equal(new Set(e.needs).size, e.needs.length, `${n}/${r.id}: exit needs repeats an item`);
       for (const need of e.needs) assert.ok(given.has(need), `${n}/${r.id}: exit needs ${need} not given`);
       checkLock(`${n}/${r.id}/exit`, e.code, e.input, e.len);
+      checkAsk(`${n}/${r.id}/exit`, e.ask);
     }
   }
 });
@@ -342,6 +371,14 @@ function work(p, t) {
         assert.equal(p.tryCode(t, code).kind, 'said', `${t.id}: code rejected`);
         break;
       }
+      case 'needsAsk': {
+        const a = o.thing.ask;
+        assert.deepEqual(p.tryAsk(t, [...a.answer].reverse().concat('x')), { kind: 'wrong' }, `${t.id}: wrong conclusion accepted`);
+        const r = p.tryAsk(t, a.answer);
+        // a code after the conclusion: the next round of the loop taps it again and gets needsCode
+        assert.ok(['said', 'needsCode'].includes(r.kind), `${t.id}: conclusion rejected: ${JSON.stringify(r)}`);
+        break;
+      }
       case 'search': {
         for (const a of o.thing.search) {
           const zz = a.zone;
@@ -400,6 +437,11 @@ test('everyStoryCanBePlayedOut', () => {
         } else if (pick !== null) p.select(pick);
         const ask = p.tapExit();
         if (ask === ExitAsk.PARTIAL) { p.select(null); continue; }
+        if (ask === ExitAsk.ASK) {
+          assert.equal(p.checkAsk([...e.ask.answer].reverse().concat('x')), false, `${s.id}: wrong conclusion accepted`);
+          assert.equal(p.checkAsk(e.ask.answer), true, `${s.id}/${p.room.id}: conclusion rejected`);
+          continue;
+        }
         if (ask === ExitAsk.ENTER_CODE) {
           assert.equal(p.checkCode(`${e.code}x`), false, `${s.id}: wrong code accepted`);
           assert.equal(p.checkCode(e.code), true, `${s.id}/${p.room.id}: code rejected`);

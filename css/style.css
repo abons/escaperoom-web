@@ -325,6 +325,26 @@ html.big .cp-wheels.cp-colors .cp-disc { font-size: 13px; }
 html.big .cp-turn { width: 76px; height: 52px; font-size: 26px; }
 @media (prefers-reduced-motion: reduce) { .cp-disc.roll-up, .cp-disc.roll-down { animation: none; } }
 
+/* fill-in conclusion (docs/besluiten/invul-conclusie.md in the app repo): sentence with gaps, word bank, check */
+.ask { display: flex; flex-direction: column; gap: 10px; }
+.ask-text { font: 18px/1.9 var(--serif); padding: 6px 8px; border-radius: 8px; transition: background-color 120ms; }
+.ask-text.right { background: rgba(93, 187, 99, .2); }
+.ask-text.wrong { background: rgba(224, 82, 74, .2); }
+.ask-gap {
+  font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; vertical-align: baseline;
+  min-width: 5.5em; padding: 0 8px; margin: 0 2px; line-height: 1.5;
+  background: var(--accent-soft); border: 0; border-bottom: 3px solid var(--accent); border-radius: 4px 4px 0 0;
+}
+.ask-gap.empty { color: var(--accent); }
+.ask-text.right .ask-gap { background: rgba(93, 187, 99, .33); border-bottom-color: var(--right); }
+.ask-text.wrong .ask-gap { background: rgba(224, 82, 74, .33); border-bottom-color: var(--wrong); }
+.ask-how { font-size: 13px; color: var(--ink-dim); }
+.ask-bank { display: flex; flex-wrap: wrap; gap: 8px; }
+.ask-bank .btn.ask-word { border-radius: 18px; border-width: 2px; color: var(--ink); background: var(--card); font-weight: 500; }
+.ask-bank .btn.ask-word:disabled { opacity: .3; cursor: default; }
+.btn.ask-check:disabled { opacity: .4; cursor: default; }
+html.big .ask-text { font-size: 24px; }
+
 /* toast */
 .toast {
   position: fixed; left: 50%; top: calc(16px + env(safe-area-inset-top)); transform: translate(-50%, -20px);

@@ -228,3 +228,79 @@ function wheelPad(type, len, onSubmit) {
   };
   return { el, handleKey, press };
 }
+
+/**
+ * A fill-in conclusion (../escaperoom/docs/besluiten/invul-conclusie.md): the sentence of ask with its gaps, a word bank
+ * under it and a check button. Tap a word: it fills the first empty gap and leaves the bank; tap a filled gap: the word
+ * goes back. Same contract as codePad: onSubmit(words) returns false for a wrong answer (the sentence turns red, shakes,
+ * the gaps empty) or the next step, which runs after a short green flash. Returns {el, handleKey}. Mirrors AskView.kt.
+ */
+export function askPanel(ask, onSubmit) {
+  const pieces = ask.text.split('___');
+  const filled = new Array(pieces.length - 1).fill(null);
+  let verdict = null; // 'right' | 'wrong' while the flash shows: taps do nothing then
+  const sentence = h('p', { class: 'ask-text' });
+  const bank = h('div', { class: 'ask-bank' });
+  const words = new Map();
+  const check = button(t('ask_check'), () => submit(), false, 'ask-check');
+  for (const w of ask.words) {
+    const b = button(w, () => { vibrate(TAP); put(w); }, true, 'ask-word');
+    words.set(w, b);
+    bank.append(b);
+  }
+  const put = (w) => {
+    if (verdict || filled.includes(w)) return;
+    const i = filled.indexOf(null);
+    if (i < 0) return;
+    filled[i] = w;
+    refresh();
+  };
+  const clear = (i) => {
+    if (verdict || filled[i] === null) return;
+    vibrate(TAP);
+    filled[i] = null;
+    refresh();
+  };
+  const refresh = () => {
+    sentence.textContent = '';
+    pieces.forEach((p, i) => {
+      sentence.append(p);
+      if (i === pieces.length - 1) return;
+      const w = filled[i];
+      sentence.append(h('button', {
+        type: 'button', class: 'ask-gap' + (w === null ? ' empty' : ''), 'aria-label': w ?? t('ask_gap'),
+        onclick: () => clear(i),
+      }, w ?? ' '));
+    });
+    sentence.classList.toggle('right', verdict === 'right');
+    sentence.classList.toggle('wrong', verdict === 'wrong');
+    for (const [w, b] of words) b.disabled = filled.includes(w) || !!verdict;
+    check.disabled = filled.includes(null) || !!verdict;
+  };
+  const submit = () => {
+    if (verdict || filled.includes(null)) return;
+    const r = onSubmit([...filled]);
+    const next = typeof r === 'function' ? r : () => {};
+    if (r !== false) vibrate(RIGHT); // a wrong one buzzes REJECT in app.js
+    if (reducedMotion()) {
+      if (r === false) { filled.fill(null); refresh(); } else next();
+      return;
+    }
+    verdict = r === false ? 'wrong' : 'right';
+    refresh();
+    if (r === false) {
+      shake(sentence);
+      setTimeout(() => { verdict = null; filled.fill(null); refresh(); }, 560);
+    } else {
+      setTimeout(next, 500);
+    }
+  };
+  const handleKey = (e) => {
+    if (e.key === 'Enter') { submit(); return true; }
+    if (e.key === 'Backspace') { const i = filled.findLastIndex((w) => w !== null); if (i >= 0) clear(i); return true; }
+    return false;
+  };
+  refresh();
+  const el = h('div', { class: 'ask' }, sentence, h('p', { class: 'ask-how' }, t('ask_how')), bank, check);
+  return { el, handleKey };
+}

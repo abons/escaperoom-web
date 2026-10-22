@@ -3,7 +3,7 @@ import { parseStory, Progress, Coins, Wallet, Difficulty, Saves, PALETTE_DEFAULT
 import { lang, t } from './i18n.js';
 import { h, button, modal, modalOpen, closeAllModals, toast, shake, reducedMotion } from './ui.js';
 import { Wall, FLASH_MS } from './wall.js';
-import { codePad } from './codepad.js';
+import { codePad, askPanel } from './codepad.js';
 
 document.documentElement.lang = lang;
 const app = document.getElementById('app');
@@ -732,8 +732,32 @@ function outcome(p, th, o) {
       else if (th.closeup) showCloseup(p, th, th.label || '', { type, len, onCode }); else askCode(type, len, onCode);
       break;
     }
+    case 'needsAsk':
+      askAsk(o.thing.ask, (words) => {
+        const r = p.tryAsk(th, words);
+        if (r.kind === 'wrong') { buzz(40); say(t('ask_wrong')); return false; }
+        saves.save(p);
+        return () => { outcome(p, th, r); saves.save(p); };
+      });
+      break;
     default: break;
   }
+}
+
+/** The fill-in conclusion (../escaperoom/docs/besluiten/invul-conclusie.md); onAnswer has askCode's contract. */
+function askAsk(ask, onAnswer) {
+  refreshStatus();
+  let m = null;
+  const panel = askPanel(ask, (words) => {
+    const next = onAnswer(words);
+    if (next === false) return false;
+    return () => { m.close(); if (typeof next === 'function') next(); };
+  });
+  m = modal({
+    title: t('ask_title'), content: panel.el, className: 'ask-modal',
+    buttons: [{ label: t('cancel') }],
+    onKey: (e) => panel.handleKey(e),
+  });
 }
 
 function onExit() {
@@ -756,6 +780,15 @@ function onExit() {
     case 'WRONG': buzz(40); say(wrongItem(e.stuck)); shakeTile(appliedItem); break;
     case 'OPEN': leave(p); break;
     case 'PARTIAL': say(t('applied', appliedItem ? itemName(p, appliedItem) : '')); break;
+    // right: saved, then the exit is tapped again, which goes on to its code (or opens)
+    case 'ASK':
+      askAsk(e.ask, (words) => {
+        const right = p.checkAsk(words);
+        saves.save(p);
+        if (!right) { buzz(40); say(t('ask_wrong')); return false; }
+        return () => onExit();
+      });
+      break;
     default: break;
   }
   saves.save(p);
