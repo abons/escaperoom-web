@@ -387,6 +387,32 @@ test('allNotesOverReachedRooms', () => {
   assert.equal(p.allNotes().length, 1);
 });
 
+test('journalKeepsWhatWasRead', () => {
+  const s = mkStory('j', 'nl', 'J', '', '', '', [
+    room('a', 'A', 'taak', 'binnen in a', {}, [giver], exit(Side.SOUTH, z, null, [], null, 'weg uit a')),
+    room('b', 'B', 'taak', 'binnen in b', {}, [], exit(Side.SOUTH, z, null, [], null, 'weg uit b')),
+    room('c', 'C', 'taak', '', {}, [], exit(Side.SOUTH, z, null, [], null, '')),
+  ]);
+  const p = new Progress(s);
+  const first = p.journal();
+  assert.equal(first.length, 1); // only the room you are in
+  assert.equal(first[0].intro, 'binnen in a');
+  assert.deepEqual(first[0].notes, []);
+  assert.equal(first[0].exit, null); // not read yet
+  p.tap(giver);
+  p.leave();
+  const second = p.journal();
+  assert.deepEqual(second.map((x) => x.room.id), ['a', 'b']);
+  assert.deepEqual(second[0].notes, ['je pakt een sleutel']);
+  assert.equal(second[0].exit, 'weg uit a');
+  assert.equal(second[1].exit, null);
+  p.leave();
+  assert.equal(p.journal().length, 2); // c has no intro, notes or exit text
+  p.leave();
+  assert.equal(p.finished, true);
+  assert.equal(p.journal()[1].exit, 'weg uit b');
+});
+
 test('sequenceInput', () => {
   assert.ok(Input.SEQUENCE.valid('smhdtc'));
   assert.ok(!Input.SEQUENCE.valid('SMX'));

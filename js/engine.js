@@ -525,6 +525,25 @@ export class Progress {
   notes() { return this.room.things.filter((t) => this.found.has(t.id)).map((t) => t.text); }
 
   /**
+   * Every reached room with its intro, found texts and (once left) its exit text, so what was read stays readable.
+   * Each page is { room, intro, notes, exit } with exit null until the room is left. Derived from roomIndex/finished/found:
+   * nothing new in the save. Rooms with nothing to show are left out. Mirrors Progress.journal() in the app.
+   */
+  journal() {
+    const last = this.finished ? this.story.rooms.length - 1 : this.roomIndex;
+    const out = [];
+    for (let i = 0; i <= last; i++) {
+      const r = this.story.rooms[i];
+      const left = this.finished || i < this.roomIndex;
+      const intro = r.intro || '';
+      const notes = r.things.filter((t) => this.found.has(t.id)).map((t) => t.text);
+      const exit = left && r.exit.text ? r.exit.text : null;
+      if (intro || notes.length || exit !== null) out.push({ room: r, intro, notes, exit });
+    }
+    return out;
+  }
+
+  /**
    * Notes of every room reached (all rooms once finished); rooms without notes are left out.
    * Each entry is [room, texts] (also reachable as .room / .notes).
    */

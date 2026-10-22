@@ -145,6 +145,25 @@ function setScreen(node, name) {
   window.scrollTo(0, 0);
 }
 
+// ---- "Groot" (docs/besluiten/groot.md in the app repo): one switch per device, class `big` on <html>
+function isBig() { try { return localStorage.getItem('escaperoom_big') === '1'; } catch (e) { return false; } }
+function applyBig() { document.documentElement.classList.toggle('big', isBig()); }
+applyBig();
+
+/** "Aa" in the menu head, filled while on. */
+function bigToggle() {
+  const on = isBig();
+  const b = button('Aa', () => {
+    try { localStorage.setItem('escaperoom_big', on ? '0' : '1'); } catch (e) { /* ignore */ }
+    applyBig();
+    toast(t(on ? 'big_off' : 'big_on'));
+    showMenu();
+  }, !on, 'small');
+  b.setAttribute('aria-label', t('big_text'));
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  return b;
+}
+
 // ---- menu
 function showMenu(fromHistory) {
   if (fromHistory) pushed = false;
@@ -153,6 +172,7 @@ function showMenu(fromHistory) {
   const col = h('div', { class: 'menu' },
     h('div', { class: 'menu-head' },
       h('h1', { class: 'title' }, 'Escape Room'),
+      bigToggle(),
       (() => { const b = button('?', showHelp, true, 'small'); b.setAttribute('aria-label', t('help_title')); return b; })(),
     ),
     h('p', { class: 'sub' }, t('start_sub')),
@@ -742,12 +762,17 @@ function showHints() {
 function showNotes() {
   const p = progress;
   if (!p || modalOpen()) return;
-  const groups = p.allNotes();
+  // What you read stays (docs/besluiten/wat-je-las-blijft.md in the app repo): intros and exit texts in italics.
+  const pages = p.journal();
+  const intro = p.story.intro || '';
   const col = h('div', { class: 'notes' });
-  if (!groups.length) col.append(h('p', {}, t('notes_empty')));
-  for (const [room, notes] of groups) {
-    col.append(h('h3', {}, room.title));
-    for (const n of notes) col.append(h('p', {}, n));
+  if (intro) col.append(h('p', { class: 'read' }, intro));
+  if (!pages.length && !intro) col.append(h('p', {}, t('notes_empty')));
+  for (const pg of pages) {
+    col.append(h('h3', {}, pg.room.title));
+    if (pg.intro) col.append(h('p', { class: 'read' }, pg.intro));
+    for (const n of pg.notes) col.append(h('p', {}, n));
+    if (pg.exit) col.append(h('p', { class: 'read' }, pg.exit));
   }
   modal({ title: t('notes'), content: col, buttons: [{ label: t('ok'), primary: true }] });
 }
