@@ -40,6 +40,16 @@ test('sequenceLockParses', () => {
   assert.ok(Input.SEQUENCE.valid(r.exit.code));
 });
 
+test('keysOnACloseupParse', () => {
+  const r = parseStory('s', `{"title":"T","rooms":[{"id":"a","title":"A","task":"t","walls":{},
+    "things":[{"id":"c","wall":"north","x":0.1,"y":0.1,"w":0.1,"h":0.1,"text":"t","code":"NE","input":"dirs","closeup":"lock",
+      "keys":[{"token":"n","x":0.4,"y":0.1,"w":0.2,"h":0.2},{"token":"E","x":0.4,"y":0.4,"w":0.2,"h":0.2}]},
+      {"id":"d","wall":"north","x":0.5,"y":0.1,"w":0.1,"h":0.1,"text":"t","code":"1"}],
+    "exit":{"wall":"south","x":0.1,"y":0.1,"w":0.1,"h":0.1,"code":"1","text":"o"}}]}`).rooms[0];
+  assert.deepEqual(r.things[0].keys, [{ token: 'N', zone: { x: 0.4, y: 0.1, w: 0.2, h: 0.2 } }, { token: 'E', zone: { x: 0.4, y: 0.4, w: 0.2, h: 0.2 } }]);
+  assert.deepEqual(r.things[1].keys, []);
+});
+
 test('needsStringOrArrayAndOwnLocks', () => {
   const r = parseStory('s', `{"title":"T","rooms":[{"id":"a","title":"A","task":"t","walls":{},
     "things":[

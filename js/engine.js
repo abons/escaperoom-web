@@ -144,6 +144,13 @@ function withInputType(obj) {
   return obj;
 }
 
+/** A key drawn on a lock's close-up: {token, zone}. The test checks the token against the thing's input. */
+function parseKey(o) {
+  const tok = reqStr(o, 'token').trim();
+  if (tok.length !== 1) throw new Error(`key token must be one character: '${tok}'`);
+  return { token: tok.toUpperCase(), zone: zone(o) };
+}
+
 function parseThing(o) {
   const code = strOrNull(o, 'code');
   const side = Side.of(reqStr(o, 'wall'));
@@ -156,6 +163,8 @@ function parseThing(o) {
     code, input: optStr(o, 'input', 'digits'), len: optInt(o, 'len', code === null ? 0 : code.length),
     closeup: strOrNull(o, 'closeup'), visibleWhen: condOf(o, 'visible'),
     search: Array.isArray(o.search) ? o.search.map((s) => ({ id: reqStr(s, 'id'), name: reqStr(s, 'name'), zone: zone(s) })) : [],
+    // keys on the close-up: the plate is the panel ({token, x, y, w, h}; the token is one character)
+    keys: Array.isArray(o.keys) ? o.keys.map(parseKey) : [],
   });
 }
 
@@ -373,6 +382,17 @@ export class Progress {
     if (left > 0) return { kind: 'hit', target: t, left };
     const open = thing.code !== null || this.#remaining(thing.id, thing.needs).length > 0;
     return { kind: 'done', target: t, said: open ? Outcome.said(thing.text) : this.#open(thing) };
+  }
+
+  /**
+   * The key of thing's close-up under (x, y), fractions of the plate, or null. Only while its lock is still to
+   * open; the code it builds goes to tryCode like a typed one. A miss is no fault.
+   */
+  keyAt(thingOrId, x, y) {
+    this.#touch();
+    const thing = this.#thing(thingOrId);
+    if (!thing || !this.visible(thing) || this.found.has(thing.id) || thing.code === null || thing.code === undefined) return null;
+    return (thing.keys || []).find((k) => x >= k.zone.x && x <= k.zone.x + k.zone.w && y >= k.zone.y && y <= k.zone.y + k.zone.h) ?? null;
   }
 
   /** Try the own lock of thing: right opens it, wrong is Outcome.wrong. */

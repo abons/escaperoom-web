@@ -171,6 +171,17 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .search-img { display: block; max-width: 100%; max-height: calc(100dvh - 250px); width: auto; height: auto; user-select: none; -webkit-user-drag: none; }
 .search-blank { background: #211c18; width: min(100%, 60dvh); aspect-ratio: 3 / 4; }
 .search-mark { position: absolute; border: 3px solid #d9a441; background: rgba(217, 164, 65, .2); border-radius: 50%; pointer-events: none; }
+/* keys on a close-up: a pressed key lights up and fades, a wrong code flashes the plate red and shakes it */
+.keyplate .search-img { max-height: calc(100dvh - 330px); }
+.key-lit { position: absolute; border: 3px solid #d9a441; background: rgba(217, 164, 65, .45); border-radius: 50%; pointer-events: none; animation: key-lit .3s ease-out forwards; }
+@keyframes key-lit { from { opacity: 1; } to { opacity: 0; } }
+.key-outline { position: absolute; border: 2px solid rgba(237, 227, 208, .55); border-radius: 50%; pointer-events: none; }
+.key-wrong { animation: key-shake .3s linear; }
+.key-wrong::after { content: ''; position: absolute; inset: 0; background: #d64545; pointer-events: none; animation: key-red .4s ease-out forwards; }
+@keyframes key-shake { 0%, 100% { transform: none; } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
+@keyframes key-red { from { opacity: .35; } to { opacity: 0; } }
+.cp-wrong { animation: key-shake .3s linear; }
+.cp-wrong .cp-slot { border-color: #d64545; }
 .search-left { color: #d9a441; font-weight: 700; padding: 8px 0 2px; align-self: stretch; }
 .search-list { align-self: stretch; max-height: 96px; overflow-y: auto; font-size: 15px; line-height: 1.5; }
 .search-name:not(:last-child)::after { content: ' \00b7 '; opacity: .5; }
