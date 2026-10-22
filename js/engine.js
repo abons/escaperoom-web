@@ -547,6 +547,31 @@ export class Progress {
   foundInRoom() { return this.room.things.filter((t) => this.found.has(t.id)).length; }
   thingsInRoom() { return this.room.things.length; }
 
+  /**
+   * Every item this run has held, used-up ones too, in story order (per room: what things give, then combos).
+   * Derived from found, items and applied, never saved; an item not yet reached is never in it. The menu's showcase.
+   */
+  itemsEverHeld() {
+    const held = new Set(this.items.keys());
+    for (const v of this.applied.values()) for (const id of v) held.add(id);
+    for (const r of this.story.rooms) for (const t of r.things) if (this.found.has(t.id) && t.gives) held.add(t.gives.id);
+    // A combo is only made from held items, so a held (or used) result means both inputs were held.
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const r of this.story.rooms) for (const c of r.combos || []) {
+        if (!held.has(c.gives.id)) continue;
+        for (const id of [c.a, c.b]) if (!held.has(id)) { held.add(id); grew = true; }
+      }
+    }
+    const out = new Map();
+    for (const r of this.story.rooms) {
+      for (const t of r.things) if (t.gives && held.has(t.gives.id) && !out.has(t.gives.id)) out.set(t.gives.id, t.gives);
+      for (const c of r.combos || []) if (held.has(c.gives.id) && !out.has(c.gives.id)) out.set(c.gives.id, c.gives);
+    }
+    return [...out.values()];
+  }
+
   hintsShown() { return this.room.hints.slice(0, this.hintCounts.get(this.room.id) ?? 0); }
   hintAvailable() { return (this.hintCounts.get(this.room.id) ?? 0) < this.room.hints.length; }
 

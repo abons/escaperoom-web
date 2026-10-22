@@ -30,6 +30,22 @@ const exitStory = mkStory('e', 'nl', 'E', '', '', '', [
     exit(Side.SOUTH, z, 'RGB', ['k', 'c'], 'dicht', 'klaar', { consumes: true, input: 'colors' })),
 ]);
 
+test('itemsEverHeldKeepsUsedUpItemsAndNothingUnreached', () => {
+  const p = new Progress(story);
+  assert.deepEqual(p.itemsEverHeld(), []);
+  p.tap(giver); p.tap(coinGiver);
+  p.combine('k', 'c'); // both inputs used up
+  assert.deepEqual(p.itemsEverHeld().map((i) => i.id), ['k', 'c', 'kc']);
+  assert.deepEqual(Progress.fromJson(story, p.toJson()).itemsEverHeld().map((i) => i.id), ['k', 'c', 'kc']);
+});
+
+test('itemsEverHeldCountsAnItemAppliedAndConsumed', () => {
+  const p = new Progress(story);
+  p.tap(giver); p.select('k'); p.tap(usedUp);
+  assert.equal(p.items.has('k'), false);
+  assert.deepEqual(p.itemsEverHeld().map((i) => i.id), ['k']);
+});
+
 test('itemIsTakenOnce', () => {
   const p = new Progress(story);
   assert.deepEqual(p.tap(giver).gained, key);

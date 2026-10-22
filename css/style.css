@@ -278,3 +278,10 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .menu-head .btn { min-width: 48px; }
 .stats-box { width: 100%; box-sizing: border-box; background: var(--bg); color: var(--ink, inherit); border: 1px solid var(--accent); border-radius: 8px; font: 12px monospace; }
+/* menu card: the first room's north wall on top, fading into the card, the title on it; the showcase of held items */
+.card-cover { position: relative; margin: -14px -16px 8px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px 12px 0 0; }
+.card-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-cover::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 45%; background: linear-gradient(to bottom, transparent, var(--card)); }
+.card-cover h2 { position: absolute; left: 16px; right: 16px; bottom: 2px; z-index: 1; font: 700 28px/1.15 Georgia, "Times New Roman", serif; text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
+.showcase { display: flex; gap: 6px; overflow-x: auto; padding-top: 8px; scrollbar-width: none; }
+.showcase img { flex: none; width: 32px; height: 32px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
