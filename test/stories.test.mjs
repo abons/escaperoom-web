@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseStory, Progress, Side, Input, Zone, Difficulty, CondKind, ExitAsk, Saves, aside } from '../js/engine.js';
+import { parseStory, Progress, Side, Input, Zone, Difficulty, CondKind, ExitAsk, Saves, MAX_FORMAT, doorLocked, aside } from '../js/engine.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -154,7 +154,9 @@ test('rulesHoldForEveryStory', () => {
     assert.ok(!blank(s.intro), `${n}: intro`);
     assert.ok(!blank(s.outro), `${n}: outro`);
     assert.ok(s.rooms.length > 0, `${n}: no rooms`);
-    assert.equal(s.format, 1, `${n}: format`);
+    assert.ok(s.format >= 1 && s.format <= MAX_FORMAT, `${n}: format ${s.format}`);
+    const doorsUsed = s.rooms.some((r) => r.doors.length > 0 || r.exits.some((e) => e.to !== null || e.arrive !== null));
+    assert.equal(doorsUsed, s.format === 2, `${n}: doors (exits/to/arrive) need format 2, and format 2 needs doors`);
     assert.ok(s.difficulty >= 1 && s.difficulty <= 5, `${n}: difficulty ${s.difficulty}`);
     const ids = new Set();
     const roomIds = new Set();
@@ -232,7 +234,7 @@ test('rulesHoldForEveryStory', () => {
         assert.ok(ok, `${n}/${who}: condition ${c.kind}:${c.id} refers to nothing`);
       };
       r.things.forEach((t) => checkCond(t.id, t.visibleWhen));
-      checkCond(`${r.id}/exit`, r.exit.visibleWhen);
+      r.exits.forEach((e) => checkCond(`${r.id}/${e.id}`, e.visibleWhen));
       for (const v of r.variants) {
         checkCond(`${r.id}/variant ${v.image}`, v.when);
         assert.ok(!blank(v.image), `${n}/${r.id}: variant image blank`);
@@ -240,25 +242,35 @@ test('rulesHoldForEveryStory', () => {
           console.log(`WARNING ${n}/${r.id}: variant file ${v.image}.png missing`);
         }
       }
-      // Zones on one wall must not overlap, exit included.
+      // Zones on one wall must not overlap, doors included.
       for (const side of Side.values) {
         const zones = r.things.filter((t) => t.side === side).map((t) => [t.id, t.zone]);
-        if (r.exit.side === side) zones.push(['exit', r.exit.zone]);
+        for (const e of r.exits) if (e.side === side) zones.push([`door ${e.id}`, e.zone]);
         for (let i = 0; i < zones.length; i++) {
           for (let j = i + 1; j < zones.length; j++) {
             assert.ok(!Zone.overlap(zones[i][1], zones[j][1]), `${n}/${r.id}: ${zones[i][0]} overlaps ${zones[j][0]}`);
           }
         }
       }
-      const e = r.exit;
-      assert.ok(Zone.inUnitSquare(e.zone), `${n}/${r.id}: exit zone`);
-      assert.ok(!blank(e.text), `${n}/${r.id}: exit text`);
-      assert.ok(e.code !== null || e.needs.length > 0, `${n}/${r.id}: exit needs a code or needs`);
-      assert.equal(e.needs.length > 0, e.stuck !== null, `${n}/${r.id}: exit needs goes with stuck`);
-      assert.equal(new Set(e.needs).size, e.needs.length, `${n}/${r.id}: exit needs repeats an item`);
-      for (const need of e.needs) assert.ok(given.has(need), `${n}/${r.id}: exit needs ${need} not given`);
-      checkLock(`${n}/${r.id}/exit`, e.code, e.input, e.len);
-      checkAsk(`${n}/${r.id}/exit`, e.ask);
+      const doorIds = new Set();
+      for (const e of r.exits) {
+        const d = `${n}/${r.id}/${e.id}`;
+        assert.ok(!doorIds.has(e.id), `${d}: door id twice in the room`);
+        doorIds.add(e.id);
+        assert.ok(Zone.inUnitSquare(e.zone), `${d}: exit zone`);
+        assert.ok(!blank(e.text), `${d}: exit text`);
+        assert.ok(doorLocked(e) || e.to !== null, `${d}: exit needs a code or needs (an open passage needs a \`to\`)`);
+        if (e.to !== null) {
+          assert.ok(s.rooms.some((x) => x.id === e.to), `${d}: to '${e.to}' is no room`);
+          assert.notEqual(e.to, r.id, `${d}: a door to its own room`);
+        }
+        assert.equal(e.needs.length > 0, e.stuck !== null, `${d}: exit needs goes with stuck`);
+        assert.equal(new Set(e.needs).size, e.needs.length, `${d}: exit needs repeats an item`);
+        for (const need of e.needs) assert.ok(given.has(need), `${d}: exit needs ${need} not given`);
+        checkLock(d, e.code, e.input, e.len);
+        checkAsk(d, e.ask);
+      }
+      assert.equal(r.exit.id, 'exit', `${n}/${r.id}: the main door keeps the id \`exit\``);
     }
   }
 });
@@ -284,7 +296,7 @@ function unusedItems(s) {
   for (const r of s.rooms) {
     for (const t of r.things) { if (t.gives) given.add(t.gives.id); t.needs.forEach((x) => used.add(x)); cond(t.visibleWhen); }
     for (const c of r.combos) { given.add(c.gives.id); used.add(c.a); used.add(c.b); }
-    r.exit.needs.forEach((x) => used.add(x)); cond(r.exit.visibleWhen);
+    for (const e of r.exits) { e.needs.forEach((x) => used.add(x)); cond(e.visibleWhen); }
     r.variants.forEach((v) => cond(v.when));
   }
   return [...given].filter((x) => !used.has(x));
@@ -317,20 +329,40 @@ function usedIn(r) {
   const cond = (c) => { if (c && c.kind !== CondKind.FOUND) used.add(c.id); };
   for (const t of r.things) { t.needs.forEach((x) => used.add(x)); cond(t.visibleWhen); }
   for (const c of r.combos) { used.add(c.a); used.add(c.b); }
-  r.exit.needs.forEach((x) => used.add(x)); cond(r.exit.visibleWhen);
+  for (const e of r.exits) { e.needs.forEach((x) => used.add(x)); cond(e.visibleWhen); }
   r.variants.forEach((v) => cond(v.when));
   return used;
 }
 
-/** Mirror of laterNeedsAreForcedByTheExit: no way back, so a later room's item must be forced by its own room's exit. */
+/** Mirror of StoriesTest.walkBack: rooms reachable from room j through open passages and the main doors of earlier rooms. */
+function walkBack(s, j) {
+  const out = new Set([j]);
+  const todo = [j];
+  while (todo.length) {
+    const i = todo.shift();
+    const r = s.rooms[i];
+    for (const e of r.exits) {
+      const free = !doorLocked(e) || (e.id === r.exit.id && i < j);
+      if (!free) continue;
+      const to = e.to !== null ? s.rooms.findIndex((x) => x.id === e.to) : i + 1;
+      if (to >= 0 && to < s.rooms.length && !out.has(to)) { out.add(to); todo.push(to); }
+    }
+  }
+  return out;
+}
+
+/** Mirror of laterNeedsAreForcedByTheExit: a later room's item is forced by its own room's exit, or an open door leads back. */
 test('laterNeedsAreForcedByTheExit', () => {
   for (const s of stories) {
     s.rooms.forEach((r, i) => {
-      const later = new Set(s.rooms.slice(i + 1).flatMap((x) => [...usedIn(x)]));
       const f = forced(r);
       const gives = [...r.things.filter((t) => t.gives).map((t) => t.gives.id), ...r.combos.map((c) => c.gives.id)];
-      for (const g of gives) {
-        if (later.has(g)) assert.ok(f.has(g), `${s.id}/${r.id}/${g}: needed in a later room but the exit lets you leave without it`);
+      for (let j = i + 1; j < s.rooms.length; j++) {
+        const used = usedIn(s.rooms[j]);
+        for (const g of gives) {
+          if (used.has(g)) assert.ok(f.has(g) || walkBack(s, j).has(i),
+            `${s.id}/${r.id}/${g}: needed in ${s.rooms[j].id} but the exit lets you leave without it, and no open door leads back`);
+        }
       }
     });
   }
@@ -395,15 +427,54 @@ function work(p, t) {
   }
 }
 
-test('everyStoryCanBePlayedOut', () => {
-  for (const s of stories) {
-    const p = new Progress(s);
-    let guard = 0;
-    while (!p.finished) {
-      assert.ok(guard++ < 100, `${s.id}: solver loops`);
-      let changed = true;
-      const combined = new Set();
-      while (changed) {
+/** Mirror of StoriesTest.tryDoor: open door e with what is held; true when open now, false when it stays shut. */
+function tryDoor(p, e) {
+  const s = p.story;
+  let step = 0;
+  for (;;) {
+    assert.ok(step++ < 20, `${s.id}/${p.room.id}/${e.id}: door loops`);
+    if (p.isOpened(e)) return p.exitVisible(e);
+    const done = p.applied.get(p.doorKey(e)) ?? new Set();
+    const rest = e.needs.filter((x) => !done.has(x));
+    const pick = rest.find((x) => p.items.has(x)) ?? null;
+    if (rest.length > 0 && pick === null) return false;
+    p.select(null);
+    if (!p.exitVisible(e)) {
+      let show = null;
+      for (const id of [...p.items.keys()]) { p.select(id); if (p.exitVisible(e)) { show = id; break; } }
+      if (show === null) { p.select(null); return false; }
+      if (pick !== null) assert.equal(show, pick, `${s.id}/${p.room.id}: hidden door needs ${pick} but ${show} must be selected`);
+    } else if (pick !== null) p.select(pick);
+    const ask = p.tapExit(e);
+    if (ask === ExitAsk.PARTIAL) { p.select(null); continue; }
+    if (ask === ExitAsk.ASK) {
+      assert.equal(p.checkAsk([...e.ask.answer].reverse().concat('x'), e), false, `${s.id}: wrong conclusion accepted`);
+      assert.equal(p.checkAsk(e.ask.answer, e), true, `${s.id}/${p.room.id}/${e.id}: conclusion rejected`);
+      continue;
+    }
+    if (ask === ExitAsk.ENTER_CODE) {
+      assert.equal(p.checkCode(`${e.code}x`, e), false, `${s.id}: wrong code accepted`);
+      assert.equal(p.checkCode(e.code, e), true, `${s.id}/${p.room.id}: code rejected`);
+    } else if (ask === ExitAsk.BLOCKED || ask === ExitAsk.WRONG) return false;
+    return true;
+  }
+}
+
+/**
+ * Mirror of everyStoryCanBePlayedOut: the solver over the door graph. Play the room out, go once through each further
+ * door that opens, then through the main door, which must open. Every room entered, every door opened.
+ */
+function playOut(s) {
+  const p = new Progress(s);
+  let guard = 0;
+  const combined = new Set();
+  const walked = new Set();
+  const entered = new Set();
+  while (!p.finished) {
+    assert.ok(guard++ < 100, `${s.id}: solver loops`);
+    entered.add(p.roomIndex);
+    let changed = true;
+    while (changed) {
         changed = false;
         for (const t of p.room.things) {
           if (aside(t)) continue; // hidden coins and the secret are no part of the puzzle
@@ -420,41 +491,28 @@ test('everyStoryCanBePlayedOut', () => {
         }
       }
       for (const c of p.room.combos) assert.ok(combined.has(c), `${s.id}/${p.room.id}: combo ${c.a}+${c.b} unreachable`);
-      const e = p.room.exit;
-      let step = 0;
-      for (;;) {
-        assert.ok(step++ < 20, `${s.id}/${p.room.id}: exit loops`);
-        const done = p.applied.get(`exit:${p.room.id}`) ?? new Set();
-        const rest = e.needs.filter((x) => !done.has(x));
-        const pick = rest.find((x) => p.items.has(x)) ?? null;
-        if (rest.length > 0 && pick === null) assert.fail(`${s.id}/${p.room.id}: exit needs ${rest}, not held`);
-        p.select(null);
-        if (!p.exitVisible()) {
-          let show = null;
-          for (const id of [...p.items.keys()]) { p.select(id); if (p.exitVisible()) { show = id; break; } }
-          assert.ok(show !== null, `${s.id}/${p.room.id}: hidden exit never becomes visible`);
-          if (pick !== null) assert.equal(show, pick, `${s.id}/${p.room.id}: hidden exit needs ${pick} but ${show} must be selected`);
-        } else if (pick !== null) p.select(pick);
-        const ask = p.tapExit();
-        if (ask === ExitAsk.PARTIAL) { p.select(null); continue; }
-        if (ask === ExitAsk.ASK) {
-          assert.equal(p.checkAsk([...e.ask.answer].reverse().concat('x')), false, `${s.id}: wrong conclusion accepted`);
-          assert.equal(p.checkAsk(e.ask.answer), true, `${s.id}/${p.room.id}: conclusion rejected`);
-          continue;
-        }
-        if (ask === ExitAsk.ENTER_CODE) {
-          assert.equal(p.checkCode(`${e.code}x`), false, `${s.id}: wrong code accepted`);
-          assert.equal(p.checkCode(e.code), true, `${s.id}/${p.room.id}: code rejected`);
-        } else if (ask === ExitAsk.BLOCKED || ask === ExitAsk.WRONG) {
-          assert.fail(`${s.id}/${p.room.id}: exit blocked, needs ${e.needs}`);
-        }
-        break;
+      const side = p.room.doors.find((d) => !walked.has(p.doorKey(d)) && tryDoor(p, d));
+      if (side) {
+        walked.add(p.doorKey(side));
+        const from = p.roomIndex;
+        p.leave(side);
+        assert.equal(p.roomIndex, p.doorTo(side, from), `${s.id}: door ${side.id} went elsewhere`);
+        assert.equal(p.side, side.arrive || Side.NORTH, `${s.id}: arrive`);
+        continue;
       }
-      p.leave();
-    }
-    assert.equal(p.finished, true);
-    assert.equal(p.secretFound(), false, `${s.id}: the solver found the secret, so it is on the chain`);
+      const e = p.room.exit;
+      assert.ok(tryDoor(p, e), `${s.id}/${p.room.id}: exit blocked, needs ${e.needs}`);
+      p.leave(e);
   }
+  assert.equal(p.finished, true);
+  assert.equal(p.secretFound(), false, `${s.id}: the solver found the secret, so it is on the chain`);
+  for (const r of s.rooms) for (const e of r.exits) assert.ok(p.opened.has(p.doorKey(e, r)), `${s.id}/${r.id}/${e.id}: door never opened`);
+  s.rooms.forEach((_, i) => assert.ok(entered.has(i), `${s.id}: room ${i} never reached`));
+  return p;
+}
+
+test('everyStoryCanBePlayedOut', () => {
+  for (const s of stories) playOut(s);
 });
 
 test('every story survives a save/load at each room', () => {
@@ -489,8 +547,10 @@ test('touringOpensEverythingAndMeasuresNothing', () => {
         assert.ok(o.kind === 'said' && o.text === (t.again ?? t.text), `${s.id}/${p.room.id}/${t.id}: tour got ${o.kind}`);
       }
       p.select(null);
-      assert.equal(p.exitAsk(), ExitAsk.OPEN, `${s.id}/${p.room.id}: exit not open`);
-      assert.equal(p.tapExit(), ExitAsk.OPEN);
+      for (const e of p.room.exits) {
+        assert.equal(p.exitAsk(e), ExitAsk.OPEN, `${s.id}/${p.room.id}/${e.id}: door not open`);
+        assert.equal(p.tapExit(e), ExitAsk.OPEN);
+      }
       const ids = [...p.items.keys()];
       if (ids.length >= 2) p.combine(ids[0], ids[1]);
       p.pause();

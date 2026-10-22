@@ -1,7 +1,7 @@
 // Mirror of ParserDifficultyTest.kt
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseStory, parseCond, Difficulty, Input, Side, CondKind, PALETTE_DEFAULT } from '../js/engine.js';
+import { parseStory, parseCond, Difficulty, Input, Side, CondKind, PALETTE_DEFAULT, MAX_FORMAT } from '../js/engine.js';
 
 const room = `{"id":"a","title":"A","task":"t","walls":{"north":"n","east":"e","south":"s","west":"w"},
   "difficulty":3,"hints":["h1","h2"],
@@ -94,7 +94,7 @@ test('storyWithoutRoomsIsRejected', () => {
 });
 
 test('newerFormatRejected', () => {
-  assert.throws(() => story('"format":2,'), /format 2 not supported/);
+  assert.throws(() => story(`"format":${MAX_FORMAT + 1},`), new RegExp(`format ${MAX_FORMAT + 1} not supported`));
 });
 
 test('analyseChain', () => {

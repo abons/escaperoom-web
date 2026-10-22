@@ -146,6 +146,13 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .wall-dots span { width: 8px; height: 8px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid rgba(245, 238, 223, .8); }
 .wall-dots span.on { width: 10px; height: 10px; border: none; background: var(--accent); }
 .wall:not(.has-plate) .wall-dots { display: none; }
+/* door tags: where a door leads, and whether that room is done (docs/besluiten/deuren.md in the app repo) */
+.wall-tags { position: absolute; inset: 0; pointer-events: none; }
+.door-tag {
+  position: absolute; transform: translate(-50%, 4px); white-space: nowrap; max-width: 90%; overflow: hidden; text-overflow: ellipsis;
+  padding: 4px 9px; border-radius: 99px; background: rgba(18, 14, 10, .8); border: 2px solid var(--accent-zone);
+  color: #F5EEDF; font-size: 13px; font-weight: 700;
+}
 .tap-glow {
   position: absolute; border-radius: 10px; background: var(--fb-glow); border: 2.5px solid var(--fb-light);
   box-shadow: 0 0 0 1.5px var(--fb-dark), inset 0 0 0 1.5px var(--fb-dark);

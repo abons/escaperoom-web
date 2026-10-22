@@ -89,7 +89,8 @@ export const Input = Object.freeze({
 // ---------------------------------------------------------------- Parser
 
 /** Highest story format this build understands. */
-export const MAX_FORMAT = 1;
+/** Highest story format this build understands. 2: doors (`exits`, `to`, `arrive`). */
+export const MAX_FORMAT = 2;
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -218,7 +219,22 @@ function parseExit(o) {
     input: optStr(o, 'input', 'digits'), len: optInt(o, 'len', code === null ? 0 : code.length),
     visibleWhen: condOf(o, 'visible'),
     ask: parseAsk(o.ask),
+    // doors (../escaperoom/docs/besluiten/deuren.md): id `exit` keeps the old key, `to` a room id, `arrive` a wall
+    id: optStr(o, 'id', 'exit') || 'exit', to: strOrNull(o, 'to'),
+    arrive: strOrNull(o, 'arrive') === null ? null : Side.of(strOrNull(o, 'arrive')),
   });
+}
+
+/** A lock to open (code, needs or ask), as opposed to an open passage. Mirrors Exit.locked. */
+export function doorLocked(e) { return e.code !== null || e.needs.length > 0 || !!e.ask; }
+
+/** `exit` (one door) and/or `exits` (a list); `exit` comes first. At least one. */
+function parseDoors(o) {
+  const out = [];
+  if (isObj(o.exit)) out.push(parseExit(o.exit));
+  if (Array.isArray(o.exits)) for (const e of o.exits) out.push(parseExit(e));
+  if (out.length === 0) throw new Error(`room ${o.id} has no exit`);
+  return out;
 }
 
 function parseCombo(o) {
@@ -242,7 +258,7 @@ function parseRoom(o) {
     id: reqStr(o, 'id'), title: reqStr(o, 'title'), task: reqStr(o, 'task'),
     intro: optStr(o, 'intro'), captions,
     things: arr('things', parseThing),
-    exit: parseExit(req(o, 'exit')),
+    ...((d) => ({ exit: d[0], doors: d.slice(1), exits: d }))(parseDoors(o)),
     difficulty: optInt(o, 'difficulty', 1),
     hints: arr('hints', (h) => String(h)),
     combos: arr('combos', parseCombo),
@@ -332,10 +348,15 @@ export class Progress {
     this.hits = new Set();
     /** Close-up details read, as `<thingId>/<lookId>`. Optional in the save. */
     this.seen = new Set();
-    /** Fill-in conclusions answered, per key: a thing id or `exit:<roomId>`. Optional in the save. */
+    /** Fill-in conclusions answered, per key: a thing id or a door key (doorKey, `exit:<roomId>` for the main door). Optional in the save. */
     this.asked = new Set();
-    /** Needed items already applied, per key: a thing id or `exit:<roomId>`. Saved. */
+    /** Needed items already applied, per key: a thing id or a door key (doorKey). Saved. */
     this.applied = new Map();
+    /**
+     * Doors gone through, as doorKeys: an opened door is a free passage afterwards. Optional in the save; an old save
+     * without it opened the main door of every room before roomIndex (../escaperoom/docs/besluiten/deuren.md).
+     */
+    this.opened = new Set();
     /** The item chosen in the inventory, or null. Not saved. */
     this.selected = null;
     /** The wall the player is looking at; saved. */
@@ -406,7 +427,7 @@ export class Progress {
   #mistake() { if (!this.touring) this.mistakes.set(this.room.id, (this.mistakes.get(this.room.id) ?? 0) + 1); }
 
   get room() { return this.story.rooms[this.roomIndex]; }
-  get started() { return this.finished || this.roomIndex > 0 || this.found.size > 0; }
+  get started() { return this.finished || this.roomIndex > 0 || this.found.size > 0 || this.opened.size > 0; }
 
   look(s) { this.#touch(); this.side = s; }
 
@@ -447,7 +468,10 @@ export class Progress {
   }
 
   visible(thing) { return thing.visibleWhen ? this.holds(thing.visibleWhen) : true; }
-  exitVisible() { const c = this.room.exit.visibleWhen; return c ? this.holds(c) : true; }
+  exitVisible(e = this.room.exit) { const c = e.visibleWhen; return c ? this.holds(c) : true; }
+
+  /** The visible doors of the current room besides the main exit (a view draws them on their wall). */
+  moreDoors() { return (this.room.doors || []).filter((e) => this.exitVisible(e)); }
 
   /** The visible things on side s of the current room. */
   thingsOnSide(s) { return this.room.things.filter((t) => t.side === s && this.visible(t)); }
@@ -502,21 +526,21 @@ export class Progress {
     return thing.code !== null ? Outcome.needsCode(thing) : this.#open(thing);
   }
 
-  /** Answer the exit's fill-in conclusion: right is remembered (then tapExit goes on), wrong is one mistake. */
-  checkAsk(filled) {
+  /** Answer door e's fill-in conclusion: right is remembered (then tapExit goes on), wrong is one mistake. */
+  checkAsk(filled, e = this.room.exit) {
     this.#touch();
-    const a = this.room.exit.ask;
+    const a = e.ask;
     if (!a) return false;
-    if (this.asked.has(this.#exitKey())) return true;
+    if (this.asked.has(this.#exitKey(e))) return true;
     if (!askRight(a, filled)) { this.#mistake(); return false; }
-    this.asked.add(this.#exitKey());
+    this.asked.add(this.#exitKey(e));
     this.#stepped();
     return true;
   }
 
-  /** What the exit asks once its needs are met: its conclusion if not answered yet, then its code, else open. */
+  /** What door e asks once its needs are met: its conclusion if not answered yet, then its code, else open. */
   #exitNext(e) {
-    if (e.ask && !this.asked.has(this.#exitKey())) return ExitAsk.ASK;
+    if (e.ask && !this.asked.has(this.#exitKey(e))) return ExitAsk.ASK;
     return e.code !== null ? ExitAsk.ENTER_CODE : ExitAsk.OPEN;
   }
 
@@ -616,15 +640,27 @@ export class Progress {
     return Outcome.said(c.text, c.gives);
   }
 
-  #exitKey() { return `exit:${this.room.id}`; }
+  /** Key of door e of room r in applied and opened: `exit:<roomId>` for the main id `exit`, else `exit:<roomId>:<id>`. */
+  doorKey(e, r = this.room) { return !e.id || e.id === 'exit' ? `exit:${r.id}` : `exit:${r.id}:${e.id}`; }
 
-  /** Pure question: what would tapping the exit mean now? Changes nothing. */
-  exitAsk() {
+  #exitKey(e) { return this.doorKey(e); }
+
+  /** Door e of the current room was gone through before: a free passage now. */
+  isOpened(e) { return this.opened.has(this.doorKey(e)); }
+
+  /** Index of the room door e of room `from` leads to; -1 = the end (no `to` in the last room). */
+  doorTo(e, from = this.roomIndex) {
+    if (e.to) return this.story.rooms.findIndex((r) => r.id === e.to);
+    return from === this.story.rooms.length - 1 ? -1 : from + 1;
+  }
+
+  /** Pure question: what would tapping door e mean now? Changes nothing. An opened door is OPEN. */
+  exitAsk(e = this.room.exit) {
     if (this.touring) return ExitAsk.OPEN;
-    const e = this.room.exit;
-    const rest = this.#remaining(this.#exitKey(), e.needs);
+    if (this.isOpened(e) && this.exitVisible(e)) return ExitAsk.OPEN;
+    const rest = this.#remaining(this.#exitKey(e), e.needs);
     const sel = this.selected;
-    if (!this.exitVisible()) return ExitAsk.WRONG;
+    if (!this.exitVisible(e)) return ExitAsk.WRONG;
     if (rest.length === 0) return this.#exitNext(e);
     if (sel === null) return ExitAsk.BLOCKED;
     if (!rest.includes(sel) || !this.items.has(sel)) return ExitAsk.WRONG;
@@ -632,25 +668,24 @@ export class Progress {
     return this.#exitNext(e);
   }
 
-  /** Tap the exit: applies the selected needed item and says what is next. */
-  tapExit() {
+  /** Tap door e: applies the selected needed item and says what is next. */
+  tapExit(e = this.room.exit) {
     if (this.touring) return ExitAsk.OPEN;
     this.#touch();
-    const e = this.room.exit;
-    if (!this.exitVisible()) return ExitAsk.WRONG;
-    const rest = this.#remaining(this.#exitKey(), e.needs);
+    if (!this.exitVisible(e)) return ExitAsk.WRONG;
+    if (this.isOpened(e)) return ExitAsk.OPEN;
+    const rest = this.#remaining(this.#exitKey(e), e.needs);
     if (rest.length > 0) {
       if (this.selected === null) return ExitAsk.BLOCKED;
-      const r = this.#applySelected(this.#exitKey(), rest, e.consumes);
+      const r = this.#applySelected(this.#exitKey(e), rest, e.consumes);
       if (!r) return ExitAsk.WRONG;
       if (r.left > 0) return ExitAsk.PARTIAL;
     }
     return this.#exitNext(e);
   }
 
-  checkCode(code) {
+  checkCode(code, e = this.room.exit) {
     this.#touch();
-    const e = this.room.exit;
     if (e.code === null || e.code === undefined) return false;
     const t = Input.parse(e.input);
     const ok = t.normalise(e.code) === t.normalise(code);
@@ -658,15 +693,33 @@ export class Progress {
     return ok;
   }
 
-  /** Go through the exit; returns its text. The last room sets finished instead of advancing. */
-  leave() {
+  /**
+   * Go through door e; returns its text. It is opened from now on. `to` sets the room, else the next one;
+   * no `to` in the last room sets finished. You face `arrive`, else north.
+   */
+  leave(e = this.room.exit) {
     this.#touch();
-    const text = this.room.exit.text;
-    if (this.roomIndex === this.story.rooms.length - 1) this.finished = true;
-    else this.roomIndex++;
+    const text = e.text;
+    this.opened.add(this.doorKey(e));
+    const to = this.doorTo(e);
+    if (to < 0) this.finished = true;
+    else this.roomIndex = to;
     this.selected = null;
-    this.side = Side.NORTH;
+    this.side = e.arrive || Side.NORTH;
     return text;
+  }
+
+  /** Room i has been stood in: the first, the current, or behind an opened door. All once finished. Derived. */
+  reached(i) {
+    if (this.finished || i === 0 || i === this.roomIndex) return true;
+    return this.story.rooms.some((r, ri) => (r.exits || [r.exit]).some((e) => this.opened.has(this.doorKey(e, r)) && this.doorTo(e, ri) === i));
+  }
+
+  /** Room i was solved: a door of it is opened that is no open passage (a `to` without lock proves nothing), or finished. */
+  roomLeft(i) {
+    if (this.finished) return true;
+    const r = this.story.rooms[i];
+    return (r.exits || [r.exit]).some((e) => (doorLocked(e) || !e.to) && this.opened.has(this.doorKey(e, r)));
   }
 
   /** Texts of what the player has opened in the current room, in the order of the room's things. */
@@ -678,11 +731,11 @@ export class Progress {
    * nothing new in the save. Rooms with nothing to show are left out. Mirrors Progress.journal() in the app.
    */
   journal() {
-    const last = this.finished ? this.story.rooms.length - 1 : this.roomIndex;
     const out = [];
-    for (let i = 0; i <= last; i++) {
+    for (let i = 0; i < this.story.rooms.length; i++) {
+      if (!this.reached(i)) continue;
       const r = this.story.rooms[i];
-      const left = this.finished || i < this.roomIndex;
+      const left = this.roomLeft(i);
       const intro = r.intro || '';
       const notes = this.#noteTexts(r);
       const exit = left && r.exit.text ? r.exit.text : null;
@@ -696,9 +749,9 @@ export class Progress {
    * Each entry is [room, texts] (also reachable as .room / .notes).
    */
   allNotes() {
-    const last = this.finished ? this.story.rooms.length - 1 : this.roomIndex;
     const out = [];
-    for (let i = 0; i <= last; i++) {
+    for (let i = 0; i < this.story.rooms.length; i++) {
+      if (!this.reached(i)) continue;
       const r = this.story.rooms[i];
       const texts = this.#noteTexts(r);
       if (texts.length > 0) {
@@ -725,7 +778,7 @@ export class Progress {
   /** Keepsakes of the rooms left so far, in room order. Derived, never saved; none on a tour. */
   mementos() {
     if (this.touring) return [];
-    return this.story.rooms.filter((r, i) => (this.finished || i < this.roomIndex) && r.memento).map((r) => r.memento);
+    return this.story.rooms.filter((r, i) => this.roomLeft(i) && r.memento).map((r) => r.memento);
   }
   /** How many keepsakes the story has: the card's "1/3". */
   mementosTotal() { return this.story.rooms.filter((r) => r.memento).length; }
@@ -788,7 +841,7 @@ export class Progress {
     return {
       story: this.story.id,
       rooms: this.story.rooms.map((r, i) => ({
-        id: r.id, difficulty: r.difficulty, done: this.finished || i < this.roomIndex,
+        id: r.id, difficulty: r.difficulty, done: this.roomLeft(i),
         playMs: this.playMs.get(r.id) ?? 0, mistakes: this.mistakes.get(r.id) ?? 0,
       })),
     };
@@ -845,6 +898,7 @@ export class Progress {
       seen: [...this.seen],
       asked: [...this.asked],
       applied,
+      opened: [...this.opened],
       side: this.side,
       hints,
       playMs,
@@ -871,8 +925,11 @@ export class Progress {
         if (t.ask) p.asked.add(t.id);
         if (t.gives) p.items.set(t.gives.id, t.gives);
       }
-      if (r.exit.ask) p.asked.add(`exit:${r.id}`);
-      if (r.exit.needs.length) p.applied.set(`exit:${r.id}`, new Set(r.exit.needs));
+      for (const e of r.exits || [r.exit]) {
+        if (e.ask) p.asked.add(p.doorKey(e, r));
+        if (e.needs.length) p.applied.set(p.doorKey(e, r), new Set(e.needs));
+        p.opened.add(p.doorKey(e, r));
+      }
       for (const c of r.combos || []) p.items.set(c.gives.id, c.gives);
     }
     return p;
@@ -894,6 +951,11 @@ export class Progress {
       for (const [k, arr] of Object.entries(o.applied)) {
         if (Array.isArray(arr)) p.applied.set(k, new Set(arr.map((x) => String(x))));
       }
+    }
+    if (Array.isArray(o.opened)) for (const k of o.opened) p.opened.add(String(k));
+    else { // an old save: every room before the current one (all once finished) was left by its main door
+      const last = p.finished ? story.rooms.length : p.roomIndex;
+      for (let i = 0; i < last; i++) p.opened.add(p.doorKey(story.rooms[i].exit, story.rooms[i]));
     }
     p.side = Side.known(o.side) ? o.side : Side.NORTH;
     if (isObj(o.hints)) for (const [k, v] of Object.entries(o.hints)) p.hintCounts.set(k, optInt(o.hints, k, 0));

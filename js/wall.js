@@ -23,6 +23,11 @@ export class Wall {
     this.onTurn = () => {};
     this.onThing = () => {};
     this.onExit = () => {};
+    /** A tap on a further door of the room (not the main exit): ../escaperoom/docs/besluiten/deuren.md. */
+    this.onDoor = () => {};
+    /** Further doors (visible ones), tappable like the exit; tags [{door, text}] say where a door leads. */
+    this.more = [];
+    this.tags = [];
     this.onMiss = () => {};
     this.room = null;
     this.side = null;
@@ -81,6 +86,20 @@ export class Wall {
     this.src = src;
     this.drawPlaceholder();
     this.drawDots();
+    this.drawZones();
+  }
+
+  /** The room's further doors and the door tags ("→ Het magazijn · gehaald ✓"); call after show(). */
+  doors(more, tags) {
+    this.more = more || [];
+    this.tags = tags || [];
+    if (!this.tagsEl) { this.tagsEl = h('div', { class: 'wall-tags', 'aria-hidden': 'true' }); this.el.insertBefore(this.tagsEl, this.lookEl); }
+    this.tagsEl.textContent = '';
+    for (const { door, text } of this.tags) {
+      if (door.side !== this.side || !text) continue;
+      const z = door.zone;
+      this.tagsEl.append(h('span', { class: 'door-tag', style: { left: (z.x + z.w / 2) * 100 + '%', top: z.y * 100 + '%' } }, text));
+    }
     this.drawZones();
   }
 
@@ -176,6 +195,7 @@ export class Wall {
     for (const th of this.things) if (th.side === this.side) out.push({ z: th.zone, label: th.label || '', id: th.id });
     const ex = this.room && this.room.exit;
     if (this.exitOn && ex && ex.side === this.side) out.push({ z: ex.zone, label: '' });
+    for (const d of this.more || []) if (d.side === this.side) out.push({ z: d.zone, label: '' });
     return out;
   }
 
@@ -216,6 +236,7 @@ export class Wall {
     const cands = this.things.filter((x) => x.side === this.side).map((th) => ({ th, z: th.zone }));
     const ex = this.room.exit;
     if (this.exitOn && ex.side === this.side) cands.push({ th: null, z: ex.zone });
+    for (const d of this.more || []) if (d.side === this.side) cands.push({ th: null, door: d, z: d.zone });
     let best = null; let bestD = Infinity;
     for (const c of cands) {
       const z = c.z;
@@ -239,8 +260,10 @@ export class Wall {
     if (th) { this.feedback(th.zone); this.onThing(th); return; }
     const ex = this.room.exit;
     if (this.exitOn && ex.side === this.side && inZone(ex.zone)) { this.feedback(ex.zone); this.onExit(); return; }
+    const door = (this.more || []).find((d) => d.side === this.side && inZone(d.zone));
+    if (door) { this.feedback(door.zone); this.onDoor(door); return; }
     const nb = this.near(fx, fy, r);
-    if (nb) { this.feedback(nb.z); if (nb.th) this.onThing(nb.th); else this.onExit(); return; }
+    if (nb) { this.feedback(nb.z); if (nb.th) this.onThing(nb.th); else if (nb.door) this.onDoor(nb.door); else this.onExit(); return; }
     this.missesHere++;
     this.feedback(null, fx, fy);
     this.onMiss(fx, fy);
