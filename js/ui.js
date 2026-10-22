@@ -34,7 +34,16 @@ export function modalOpen() { return stack.length > 0; }
 export function closeAllModals() { while (stack.length) stack[stack.length - 1].close(); }
 
 const ZOOM_MS = 220;
-const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+export const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/** A short horizontal shake (wrong code, wrong item); nothing with reduced motion (the css rule too). */
+export function shake(el) {
+  if (!el || reducedMotion()) return;
+  el.classList.remove('shake');
+  void el.offsetWidth; // restart when it is still shaking
+  el.classList.add('shake');
+  el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+}
 
 /** Start frame of the zoom: the box shrunk onto the rect `from` (client px), centres aligned. */
 function zoomFrom(box, from) {

@@ -1,7 +1,7 @@
 // Escape Room (web): menu, panels and the room screen. The engine decides; this file mirrors it.
 import { parseStory, Progress, Coins, Wallet, Difficulty, Saves } from './engine.js';
 import { lang, t } from './i18n.js';
-import { h, button, modal, modalOpen, closeAllModals, toast } from './ui.js';
+import { h, button, modal, modalOpen, closeAllModals, toast, shake, reducedMotion } from './ui.js';
 import { Wall } from './wall.js';
 import { codePad } from './codepad.js';
 
@@ -30,6 +30,10 @@ let msgItem = null;
 let names = {};
 let ui = {}; // refs of the room screen
 let chipIds = new Set(); // item ids the bar already shows, so only a tile that just arrived pops in
+let chipKey = null; // what the bar was last built from (ids + selection): an unchanged refresh keeps the tiles and their animations
+let tiles = new Map(); // item id -> its tile in the bar
+let flyFrom = null; // client rect of the thing just tapped, so an item it gives flies from there to the bar
+let held = null; // the item selected just before a tap, so a wrong use shakes its tile
 
 // ---- plates
 const EXTS = ['webp', 'png', 'jpg'];
@@ -259,6 +263,7 @@ function showRoom() {
   ui = { wall, found, coins, msg, sel, chips };
   setScreen(h('div', { class: 'room' }, top, stage, msgBox, sel, bottom), 'room');
   chipIds = new Set(p.items.keys()); // a rebuilt bar does not pop
+  chipKey = null;
   refreshStatus();
 }
 
@@ -301,7 +306,11 @@ function refreshStatus() {
   ui.coins.textContent = '● ' + wallet.balance();
   const sel = p.selected ? p.items.get(p.selected) : null;
   ui.sel.textContent = sel ? t('selected_item', sel.name) : (p.items.size === 0 ? t('items_none') : '');
+  const key = [...p.items.keys()].join(',') + '|' + p.selected;
+  if (key === chipKey) return;
+  chipKey = key;
   ui.chips.textContent = '';
+  tiles = new Map();
   for (const item of p.items.values()) {
     const on = item.id === p.selected;
     const img = itemPlate(p, item.id);
@@ -309,11 +318,42 @@ function refreshStatus() {
       type: 'button', class: 'chip' + (on ? ' on' : ''), title: item.name, 'aria-label': item.name,
       'aria-pressed': on ? 'true' : 'false', onclick: () => onItem(item.id),
     }, img ? h('img', { src: img, alt: item.name, draggable: 'false' }) : h('span', {}, item.name));
-    if (!chipIds.has(item.id)) chip.classList.add('new'); // css pops it in, unless prefers-reduced-motion
+    if (!chipIds.has(item.id)) {
+      // css pops it in (0 -> 1.15 -> 1) and rings it, unless prefers-reduced-motion; first it flies in from the thing
+      if (img && flyFrom && !reducedMotion()) { chip.style.setProperty('--pop-delay', (FLY_MS - 80) + 'ms'); fly(img, flyFrom, chip); }
+      chip.classList.add('new');
+    }
+    tiles.set(item.id, chip);
     ui.chips.append(chip);
   }
   chipIds = new Set(p.items.keys());
   chipEdges(ui.chips);
+}
+
+const FLY_MS = 450;
+
+/** The item's plate travels from rect `from` (client px) to `chip` in an arc, then is removed. */
+function fly(src, from, chip) {
+  requestAnimationFrame(() => {
+    const to = chip.getBoundingClientRect();
+    if (!to.width || !document.body.animate) return;
+    const s0 = 72;
+    const x0 = from.x + from.w / 2 - s0 / 2; const y0 = from.y + from.h / 2 - s0 / 2;
+    const k = to.width / s0;
+    const x1 = to.left + to.width / 2 - s0 / 2; const y1 = to.top + to.height / 2 - s0 / 2;
+    const el = h('img', { class: 'fly', src, alt: '', style: { width: s0 + 'px', height: s0 + 'px' } });
+    document.body.append(el);
+    const at = (f, s, o) => ({ transform: `translate(${x0 + (x1 - x0) * f}px, ${y0 + (y1 - y0) * f - 48 * Math.sin(Math.PI * f)}px) scale(${s})`, opacity: o });
+    const a = el.animate([at(0, 1, 1), at(0.5, (1 + k) / 2, 1), at(0.85, 0.15 + 0.85 * k, 1), at(1, k, 0)],
+      { duration: FLY_MS, easing: 'ease-in-out' });
+    a.onfinish = () => el.remove();
+    setTimeout(() => el.remove(), FLY_MS + 200); // in case onfinish never fires (hidden tab)
+  });
+}
+
+/** Shake the tiles of these item ids, after the refreshes of this tap have settled. */
+function shakeTile(...ids) {
+  setTimeout(() => { for (const id of ids) if (id && tiles.get(id)) shake(tiles.get(id)); }, 0);
 }
 
 /** Fades the bar's edge on the side where more tiles are scrolled out of view. */
@@ -340,7 +380,7 @@ function onItem(id) {
   if (sel && sel !== id) {
     const o = p.combine(sel, id);
     if (o.kind === 'said') say(o.gained ? gainedMessage(o.text, o.gained) : o.text);
-    else if (o.kind === 'wrong') { buzz(40); say(t('wrong_combine')); }
+    else if (o.kind === 'wrong') { buzz(40); say(t('wrong_combine')); shakeTile(sel, id); }
     else if (o.kind === 'blocked') say(o.text);
     refreshStatus();
     saves.save(p);
@@ -366,7 +406,11 @@ function onThing(th) {
   const p = progress;
   if (!p || modalOpen()) return;
   rememberNames(p);
-  outcome(p, th, p.tap(th));
+  held = p.selected;
+  const wr = ui.wall && ui.wall.el.getBoundingClientRect();
+  const z = th.zone;
+  flyFrom = wr && wr.width > 0 && z ? { x: wr.left + z.x * wr.width, y: wr.top + z.y * wr.height, w: z.w * wr.width, h: z.h * wr.height } : null;
+  try { outcome(p, th, p.tap(th)); } finally { flyFrom = null; }
   saves.save(p);
 }
 
@@ -380,19 +424,19 @@ function outcome(p, th, o) {
     }
     case 'search': showSearch(p, o.thing); break;
     case 'blocked': say(o.text); break;
-    case 'wrong': buzz(40); say(t('wrong_use')); break;
+    case 'wrong': buzz(40); say(t('wrong_use')); shakeTile(held); break;
     case 'applied': say(t('applied', itemName(p, o.item))); break;
     case 'needsCode':
       refreshStatus();
     {
       const type = o.thing.input || 'digits';
       const len = o.thing.len || (o.thing.code || '').length;
+      // false for a wrong code; a right one is saved at once, its outcome runs after the pad's green flash
       const onCode = (code) => {
         const r = p.tryCode(th, code);
         if (r.kind === 'wrong') { buzz(40); say(t('code_wrong')); return false; }
-        outcome(p, th, r);
         saves.save(p);
-        return true;
+        return () => { outcome(p, th, r); saves.save(p); };
       };
       if (th.closeup) showCloseup(p, th, th.label || '', { type, len, onCode }); else askCode(type, len, onCode);
       break;
@@ -411,13 +455,13 @@ function onExit() {
     case 'ENTER_CODE':
       askCode(e.input || 'digits', e.len || (e.code || '').length, (code) => {
         const right = p.checkCode(code);
-        if (right) leave(p); else { buzz(40); say(t('code_wrong')); }
         saves.save(p);
-        return right;
+        if (!right) { buzz(40); say(t('code_wrong')); return false; }
+        return () => leave(p);
       });
       break;
     case 'BLOCKED': say(e.stuck || ''); break;
-    case 'WRONG': buzz(40); say(t('wrong_use')); break;
+    case 'WRONG': buzz(40); say(t('wrong_use')); shakeTile(appliedItem); break;
     case 'OPEN': leave(p); break;
     case 'PARTIAL': say(t('applied', appliedItem ? itemName(p, appliedItem) : '')); break;
     default: break;
@@ -427,11 +471,11 @@ function onExit() {
 
 function askCode(type, len, onCode) {
   let m = null;
-  // onCode returns true for a right code: only then the pad closes
+  // onCode returns false for a wrong code, else the next step: only then the pad closes (after its green flash)
   const pad = codePad(type, len, (code) => {
-    const ok = onCode(code);
-    if (ok) m.close();
-    return ok;
+    const next = onCode(code);
+    if (next === false) return false;
+    return () => { m.close(); if (typeof next === 'function') next(); };
   });
   m = modal({
     title: t('code_title'), content: pad.el, className: 'code-modal',
@@ -457,10 +501,10 @@ function showCloseup(p, th, msg, code) {
   let m = null;
   const enterCode = () => {
     pad = codePad(code.type, code.len, (typed) => {
-      const ok = code.onCode(typed);
-      // a right code removes the close-up at once: the outcome may open the next one itself
-      if (ok) { m.close(); m.box.parentElement?.remove(); }
-      return ok;
+      const next = code.onCode(typed);
+      if (next === false) return false;
+      // after the green flash a right code removes the close-up at once: the outcome may open the next one itself
+      return () => { m.close(); m.box.parentElement?.remove(); if (typeof next === 'function') next(); };
     });
     said.replaceWith(pad.el);
     m.box.querySelector('.modal-buttons .btn')?.remove(); // the enter button itself

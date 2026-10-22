@@ -1,5 +1,5 @@
 // One wall of a room: 3:4 box, plate or placeholder, tap zones in fractions, swipe to turn.
-import { h } from './ui.js';
+import { h, reducedMotion } from './ui.js';
 
 const SWIPE = 80;
 const SLOP = 16;
@@ -45,9 +45,10 @@ export class Wall {
   show({ room, side, src, things, exitVisible, wallName, caption }) {
     const same = this.room === room; // a turn to another wall of the same room fades too (no slide)
     const old = this.src;
+    // a refresh of the same wall (say() after every tap) keeps the tap feedback running; another wall drops it
+    if (!same || this.side !== side) this.fbEl.textContent = '';
     this.room = room; this.side = side; this.things = things; this.exitOn = exitVisible;
     this.wallName = wallName; this.caption = caption;
-    this.fbEl.textContent = '';
     if (src !== old || !same || !this.imgLayer.firstChild) this.setImage(src, same && !!old && !!src);
     this.el.dataset.side = side;
     this.el.classList.toggle('has-plate', !!src);
@@ -125,10 +126,10 @@ export class Wall {
     this.onMiss(fx, fy);
   }
 
-  /** Tap feedback: a soft glow over the hit zone `z`, or (no zone) a widening ring at the miss. Off with reduced motion. */
+  /** Tap feedback: a filled highlight plus outline over the hit zone `z`, or (no zone) a widening ring at the miss. Off with reduced motion. */
   feedback(z, fx = 0, fy = 0) {
     this.fbEl.textContent = '';
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion()) return;
     const style = z
       ? { left: z.x * 100 + '%', top: z.y * 100 + '%', width: z.w * 100 + '%', height: z.h * 100 + '%' }
       : { left: fx * 100 + '%', top: fy * 100 + '%' };
