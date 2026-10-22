@@ -2,6 +2,7 @@
   "format": 1,
   "difficulty": 2,
   "lang": "nl",
+  "palette": { "bg": "#131512", "card": "#1F2420", "ink": "#E8E4D4", "accent": "#D9A441" },
   "title": "Het Archief",
   "blurb": "Je wordt wakker in de kelder van een vergeten archief. Twee kamers, één weg naar buiten.",
   "intro": "Je komt bij op een koude, stenen vloer. Het ruikt naar stof en oud papier. Boven je hoofd valt een luik dicht; ergens hoor je een slot omdraaien. Het archief is gesloten voor de nacht, en jij zit er nog in.",
@@ -35,6 +36,7 @@
           "id": "werkbank", "wall": "east", "x": 0.13, "y": 0.55, "w": 0.75, "h": 0.33,
           "label": "Werkbank",
           "text": "Aan de rail onder het blad hangen tangen en hamers. Achter een van de tangen zit een kleine sleutel geklemd. Op het blad is met krijt een route gekrast: West, Noord, en daarna is het weggeveegd. Je steekt de sleutel in je zak.",
+          "again": "Tussen de tangen zit niets meer. Het krijt op het blad zegt nog steeds: West, Noord, en dan een veeg.",
           "gives": { "id": "key_small", "name": "kleine sleutel" }
         },
         {
@@ -90,6 +92,7 @@
           "id": "bureau", "wall": "north", "x": 0.08, "y": 0.55, "w": 0.8, "h": 0.38,
           "label": "Bureau",
           "text": "In de onderste la ligt een kleine kluissleutel, geplakt onder een stapel formulieren. Op de agenda staat: 'Afspraak 9 sept, 09:40'. Je pakt de sleutel.",
+          "again": "De onderste la is leeg, op de formulieren na. De agenda ligt nog open: 'Afspraak 9 sept, 09:40'.",
           "gives": { "id": "key_safe", "name": "kluissleutel" }
         },
         {
@@ -107,6 +110,7 @@
           "id": "klok", "wall": "west", "x": 0.38, "y": 0.1, "w": 0.22, "h": 0.17,
           "label": "Klok",
           "text": "De klok staat stil op vijf voor half twee, de wijzers vastgeroest. Achter het gebarsten glas ligt een rubberen stempel met 'GEZIEN'. Je pakt hem.",
+          "again": "Nog steeds vijf voor half twee. Achter het glas ligt alleen een vierkantje zonder stof, waar de stempel lag.",
           "gives": { "id": "stamp", "name": "stempel" }
         },
         {
@@ -118,8 +122,22 @@
           "id": "prikbord", "wall": "west", "x": 0.26, "y": 0.3, "w": 0.51, "h": 0.33,
           "label": "Prikbord",
           "text": "Roosters, memo's en een verlopen noodnummer. Achter een vergeeld rooster zit de rechterhelft van een doorgangskaart geprikt. Je neemt hem mee.",
+          "again": "Waar de kaart hing, zit alleen nog een speldengat. De rest van het prikbord hangt er nog net zo.",
           "closeup": "prikbord-rooster",
+          "look": [
+            { "id": "noodnummer", "x": 0.184, "y": 0.221, "w": 0.262, "h": 0.212, "text": "Het verlopen noodnummer, met pen doorgestreept. Niemand heeft er een nieuw naast gehangen." },
+            { "id": "geel", "x": 0.344, "y": 0.443, "w": 0.183, "h": 0.138, "text": "Een geel briefje in blokletters: 'Wie het laatst gaat, doet het licht uit.' Het licht brandt nog." },
+            { "id": "label", "x": 0.134, "y": 0.438, "w": 0.076, "h": 0.097, "text": "Een blauw label aan een touwtje, leeg. Iemand wilde er iets op schrijven en deed het nooit." },
+            { "id": "roze", "x": 0.670, "y": 0.727, "w": 0.138, "h": 0.130, "text": "Een roze briefje: 'Vrijdag taart, iedereen welkom!' Er staat geen datum op." },
+            { "id": "lamellen", "x": 0.876, "y": 0.000, "w": 0.124, "h": 0.392, "text": "Door de lamellen valt blauw avondlicht. Op straat is het stil." }
+          ],
           "gives": { "id": "pass_b", "name": "Doorgangskaart (rechterhelft)" }
+        },
+        {
+          "id": "munt_briefje", "wall": "north", "x": 0.11, "y": 0.26, "w": 0.1, "h": 0.105,
+          "label": "Briefje",
+          "text": "Een leeg briefje aan de muur. Erachter zit met plakband een munt vastgeplakt. Die is voor jou.",
+          "coin": true
         }
       ],
       "combos": [

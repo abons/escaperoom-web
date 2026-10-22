@@ -2,22 +2,23 @@
   "format": 1,
   "difficulty": 1,
   "lang": "nl",
+  "palette": { "bg": "#EEF5FA", "card": "#D5E7F3", "ink": "#1E3348", "accent": "#2A62A3" },
   "title": "De Speelgoedwinkel",
   "blurb": "Alle sleutels van de speelgoedwinkel zijn weg! Wie heeft er gerommeld? Een speurtocht voor jonge speurders.",
-  "intro": "De winkel is stil. Jij viel in het leeshoekje in slaap. De voordeur zit dicht en het licht is aan.",
-  "outro": "Rob was niet stout bezig. Hij wilde de winkel om negen uur open hebben. Dankzij jou slaat de klok negen en komen de eerste kinderen binnen. Goed gespeurd!",
+  "intro": "Jij bent in de speelgoedwinkel in slaap gevallen, in het leeshoekje. Nu zijn alle sleutels weg.",
+  "outro": "Rob was niet stout bezig. Hij wilde de winkel om negen uur open hebben. Dankzij jou slaat de klok negen. De eerste kinderen komen binnen. Goed gespeurd!",
   "rooms": [
     {
       "id": "winkel",
       "title": "De winkel",
       "difficulty": 1,
       "hints": [
-        "Kijk eens naar de planken met knuffels. Daar zit iets bij een beer.",
-        "Er hoort iets op te winden bij het tafeltje met de muziek.",
+        "Kijk eens bij de beer. Daar zit iets.",
+        "Kijk eens bij de muziekdoos. Die moet worden opgewonden.",
         "Tik met de opwindsleutel op het paneeltje bij de deur. Druk dan ster, maan, hart: de tonen van de muziekdoos."
       ],
-      "task": "Kom door de deur met 'Alleen personeel' en zoek wie er in de winkel heeft gerommeld.",
-      "intro": "De winkel is stil. Jij viel in het leeshoekje in slaap. De voordeur zit dicht en het licht is aan.",
+      "task": "Open de rode deur: 'Alleen personeel'.",
+      "intro": "De winkel is stil en het licht is aan. De voordeur zit dicht.",
       "walls": {
         "north": "Ballonnen dansen boven de toonbank, en op de kassa zit een briefje.",
         "east": "Een lange plank vol knuffels: beren, konijnen en olifanten.",
@@ -34,6 +35,7 @@
           "h": 0.19,
           "label": "Beer met sleuteltje",
           "text": "Een beer heeft een sleuteltje op zijn rug. Je pakt het.",
+          "again": "De beer kijkt je blij aan. Zijn rug is nu leeg.",
           "gives": {
             "id": "opwindsleutel",
             "name": "opwindsleutel"
@@ -70,11 +72,11 @@
         "w": 0.49,
         "h": 0.57,
         "needs": "opwindsleutel",
-        "stuck": "De knoppen doen niets. Het paneeltje is van speelgoed: het moet eerst worden opgewonden.",
+        "stuck": "De knoppen doen niets. Het paneeltje is van speelgoed. Het moet eerst worden opgewonden.",
         "code": "SMH",
         "input": "sequence",
         "len": 3,
-        "text": "De knoppen klikken. De deur gaat open. Daarachter ligt het magazijn."
+        "text": "De knoppen klikken en de deur gaat open. Daarachter ligt het magazijn."
       }
     },
     {
@@ -82,16 +84,16 @@
       "title": "Het magazijn",
       "difficulty": 1,
       "hints": [
-        "Kijk eens naar de stapel dozen bij de noordmuur.",
-        "De kist bij de oostmuur heeft een slot met kleuren.",
+        "Kijk eens naar de stapel dozen.",
+        "De speelgoedkist heeft een slot met kleuren.",
         "De dozen staan rood, geel, blauw van boven naar beneden. Druk de kleuren in die volgorde."
       ],
       "task": "Kom de trap op. Zoek de sleutel van de trap.",
-      "intro": "Achter de deur is het magazijn. Overal staan dozen. Rechts begint een trap.",
+      "intro": "Achter de deur is het magazijn, vol dozen. Rechts begint een trap.",
       "walls": {
         "north": "Drie grote dozen op elkaar, elk in een andere kleur.",
         "east": "Een houten kist met een slot, en een beer ernaast.",
-        "south": "Boven aan de trap is het licht, maar het hekje zit op slot.",
+        "south": "Boven aan de trap is licht, maar het hekje zit op slot.",
         "west": "Een rij haakjes met sleuteltjes, en één haakje is leeg."
       },
       "things": [
@@ -117,6 +119,7 @@
           "input": "colors",
           "len": 3,
           "text": "De kist springt open. Er ligt een sleutel in.",
+          "again": "De kist is leeg. Er rolt alleen een knikker heen en weer.",
           "gives": {
             "id": "trapsleutel",
             "name": "trapsleutel"
@@ -150,12 +153,12 @@
       "title": "De klokkenkamer",
       "difficulty": 1,
       "hints": [
-        "Kijk eens naar de noordmuur. Daar staat iemand bij de grote klok.",
-        "Rob mist een sleutel. Welke sleutel heb jij nog in je tas?",
-        "Kies de opwindsleutel in je tas en tik daarmee op de grote klok."
+        "Kijk eens bij de grote klok. Daar staat iemand.",
+        "Rob mist een sleutel: die heb jij nog. De koekoek weet hoe laat het moet zijn.",
+        "Kies de opwindsleutel en tik op de grote klok. Zet hem dan op het uur van de koekoek."
       ],
-      "task": "Zoek uit wat Rob wil en zet de grote klok aan de praat.",
-      "intro": "Boven is een kamer vol klokken. Bij de grote klok staat Rob, de opwind-robot. Hij heeft overal sleutels.",
+      "task": "Help Rob. Wind de grote klok op en zet hem op tijd.",
+      "intro": "Boven is een kamer vol klokken. Bij de grote klok staat Rob, de opwind-robot.",
       "walls": {
         "north": "De grote klok staat stil, en Rob de robot kijkt je aan.",
         "east": "Overal wekkers, en in het midden een koekoeksklok die slaapt.",
@@ -171,7 +174,7 @@
           "w": 0.25,
           "h": 0.21,
           "label": "Rob",
-          "text": "Rob piept blij. Hij had alle sleutels, maar één mist nog: die van de beer. Hij wil de klok opwinden."
+          "text": "Rob piept blij. Hij had alle sleutels, maar één mist nog: die van de beer. Hij wil de klok opwinden en op het goede uur zetten."
         },
         {
           "id": "koekoeksklok",
@@ -203,7 +206,10 @@
         "h": 0.36,
         "needs": "opwindsleutel",
         "stuck": "De grote klok staat stil. Hij moet worden opgewonden. Heb je een sleutel?",
-        "text": "Je draait de sleutel. De klok slaat negen! Rob danst van blijdschap en de koekoek springt naar buiten."
+        "code": "9",
+        "input": "digits",
+        "len": 1,
+        "text": "De wijzer staat op negen en de klok slaat. Rob danst en de koekoek springt naar buiten."
       }
     }
   ]
