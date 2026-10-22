@@ -75,6 +75,7 @@ const nl = {
   applied: 'Je gebruikt {0}. Er ontbreekt nog iets.',
   close: 'Sluiten',
   search_left: 'Nog {0} te vinden',
+  look_on_plate: 'Tik op de gemarkeerde details in de plaat om beter te kijken.',
   // web only
   to_menu_short: 'Menu',
   zones: 'Toon zones',
@@ -167,6 +168,7 @@ const en = {
   applied: 'You use {0}. Something is still missing.',
   close: 'Close',
   search_left: '{0} left to find',
+  look_on_plate: 'Tap the marked details on the plate to look closer.',
   to_menu_short: 'Menu',
   zones: 'Show zones',
   spots_button: '◎ Look',

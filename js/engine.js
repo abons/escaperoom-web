@@ -167,6 +167,10 @@ function parseThing(o) {
     keys: Array.isArray(o.keys) ? o.keys.map(parseKey) : [],
     // how the code pad looks: null = keys, 'wheels' = combination wheels (a view matter, same code)
     pad: strOrNull(o, 'pad'),
+    // details on the close-up that each say a line ({id, text, x, y, w, h}); the thing opens as usual
+    look: Array.isArray(o.look) ? o.look.map((d) => ({ id: reqStr(d, 'id'), text: reqStr(d, 'text'), zone: zone(d) })) : [],
+    // said instead of text when the thing is tapped again after it opened
+    again: (strOrNull(o, 'again') || '').trim() ? strOrNull(o, 'again') : null,
   });
 }
 
@@ -262,6 +266,8 @@ export class Progress {
     this.found = new Set();
     /** Search targets found, as `<thingId>/<targetId>`. Saved. */
     this.hits = new Set();
+    /** Close-up details read, as `<thingId>/<lookId>`. Optional in the save. */
+    this.seen = new Set();
     /** Needed items already applied, per key: a thing id or `exit:<roomId>`. Saved. */
     this.applied = new Map();
     /** The item chosen in the inventory, or null. Not saved. */
@@ -392,7 +398,7 @@ export class Progress {
     this.#touch();
     const thing = this.#thing(thingOrId);
     if (!thing || !this.visible(thing)) return Outcome.wrong();
-    if (this.found.has(thing.id)) return Outcome.said(thing.text);
+    if (this.found.has(thing.id)) return Outcome.said(thing.again ?? thing.text);
     const rest = this.#remaining(thing.id, thing.needs);
     if (rest.length > 0) {
       // No stuck text: the label speaks, so no tap is silent.
@@ -427,6 +433,30 @@ export class Progress {
     if (left > 0) return { kind: 'hit', target: t, left };
     const open = thing.code !== null || this.#remaining(thing.id, thing.needs).length > 0;
     return { kind: 'done', target: t, said: open ? Outcome.said(thing.text) : this.#open(thing) };
+  }
+
+  isSeen(thing, d) { return this.seen.has(`${thing.id}/${d.id}`); }
+
+  /**
+   * The close-up detail of thing under (x, y), fractions of the plate, or null; it is marked seen and its text goes
+   * to the notes. Reading is no step forward (the hint clock runs on) and a miss is no fault. Mirrors Progress.lookAt.
+   */
+  lookAt(thingOrId, x, y) {
+    this.#touch();
+    const thing = this.#thing(thingOrId);
+    if (!thing || !this.visible(thing)) return null;
+    const d = (thing.look || []).find((l) => x >= l.zone.x && x <= l.zone.x + l.zone.w && y >= l.zone.y && y <= l.zone.y + l.zone.h);
+    if (!d) return null;
+    this.seen.add(`${thing.id}/${d.id}`);
+    return d;
+  }
+
+  /** What room r's notes hold: per thing in room order its text once opened, then the details read on its close-up. */
+  #noteTexts(r) {
+    return r.things.flatMap((t) => [
+      ...(this.found.has(t.id) ? [t.text] : []),
+      ...(t.look || []).filter((d) => this.isSeen(t, d)).map((d) => d.text),
+    ]);
   }
 
   /**
@@ -532,7 +562,7 @@ export class Progress {
   }
 
   /** Texts of what the player has opened in the current room, in the order of the room's things. */
-  notes() { return this.room.things.filter((t) => this.found.has(t.id)).map((t) => t.text); }
+  notes() { return this.#noteTexts(this.room); }
 
   /**
    * Every reached room with its intro, found texts and (once left) its exit text, so what was read stays readable.
@@ -546,7 +576,7 @@ export class Progress {
       const r = this.story.rooms[i];
       const left = this.finished || i < this.roomIndex;
       const intro = r.intro || '';
-      const notes = r.things.filter((t) => this.found.has(t.id)).map((t) => t.text);
+      const notes = this.#noteTexts(r);
       const exit = left && r.exit.text ? r.exit.text : null;
       if (intro || notes.length || exit !== null) out.push({ room: r, intro, notes, exit });
     }
@@ -562,7 +592,7 @@ export class Progress {
     const out = [];
     for (let i = 0; i <= last; i++) {
       const r = this.story.rooms[i];
-      const texts = r.things.filter((t) => this.found.has(t.id)).map((t) => t.text);
+      const texts = this.#noteTexts(r);
       if (texts.length > 0) {
         const pair = [r, texts];
         pair.room = r;
@@ -663,6 +693,7 @@ export class Progress {
       items: [...this.items.values()].map((i) => ({ id: i.id, name: i.name })),
       found: [...this.found],
       hits: [...this.hits],
+      seen: [...this.seen],
       applied,
       side: this.side,
       hints,
@@ -705,6 +736,7 @@ export class Progress {
     if (Array.isArray(o.items)) for (const i of o.items) p.items.set(String(req(i, 'id')), { id: String(i.id), name: String(req(i, 'name')) });
     if (Array.isArray(o.found)) for (const f2 of o.found) p.found.add(String(f2));
     if (Array.isArray(o.hits)) for (const h2 of o.hits) p.hits.add(String(h2));
+    if (Array.isArray(o.seen)) for (const s2 of o.seen) p.seen.add(String(s2));
     if (isObj(o.applied)) {
       for (const [k, arr] of Object.entries(o.applied)) {
         if (Array.isArray(arr)) p.applied.set(k, new Set(arr.map((x) => String(x))));

@@ -442,7 +442,7 @@ test('touringOpensEverythingAndMeasuresNothing', () => {
         if (!p.visible(t)) [...p.items.keys()].find((id) => { p.select(id); return p.visible(t); });
         now += 30000;
         const o = p.tap(t);
-        assert.ok(o.kind === 'said' && o.text === t.text, `${s.id}/${p.room.id}/${t.id}: tour got ${o.kind}`);
+        assert.ok(o.kind === 'said' && o.text === (t.again ?? t.text), `${s.id}/${p.room.id}/${t.id}: tour got ${o.kind}`);
       }
       p.select(null);
       assert.equal(p.exitAsk(), ExitAsk.OPEN, `${s.id}/${p.room.id}: exit not open`);
