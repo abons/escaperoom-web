@@ -47,7 +47,21 @@ test('blockedWithoutSelection', () => {
   p.select('k');
   assert.equal(p.tap(locked).kind, 'said');
   assert.ok(p.found.has('l'));
-  assert.equal(p.selected, 'k'); // not consumed: selection stays
+  assert.equal(p.selected, null); // hand empty after use, consumed or not
+});
+
+test('selectionClearsAfterUse', () => {
+  const p = new Progress(story);
+  p.tap(giver); p.tap(coinGiver); p.select('k');
+  assert.equal(p.tap(locked).kind, 'said');
+  assert.equal(p.selected, null);
+  assert.ok(p.items.has('k')); // not consumed: still held, only the hand is empty
+  // Tapping on: no hanging key, so this is blocked and not a measured fault.
+  assert.equal(p.tap(two).kind, 'blocked');
+  assert.equal(p.mistakes.get('a'), undefined);
+  p.select('k');
+  assert.equal(p.tap(two).kind, 'applied');
+  assert.equal(p.selected, null);
 });
 
 test('blockedWithoutStuckSaysItsLabel', () => {
@@ -263,6 +277,8 @@ test('listNeedsAppliedOneByOneInAnyOrder', () => {
   p.select('c');
   assert.deepEqual(p.tap(two), Outcome.applied('c', 1));
   assert.ok(!p.found.has('two'));
+  assert.deepEqual(p.tap(two), Outcome.blocked('dicht')); // hand empty after use
+  p.select('c');
   assert.deepEqual(p.tap(two), Outcome.wrong()); // c is already applied
   assert.ok(p.items.has('c')); // not consumed
   p.select('k');
