@@ -195,6 +195,17 @@ test('roomCounts', () => {
   assert.equal(p.foundInRoom(), 1);
 });
 
+test('foundOnSide', () => {
+  const p = new Progress(story);
+  assert.equal(p.foundOnSide(Side.NORTH), false);
+  p.tap(giver);
+  assert.equal(p.foundOnSide(Side.NORTH), false); // coinGiver still shut
+  p.tap(coinGiver);
+  assert.equal(p.foundOnSide(Side.NORTH), true);
+  assert.equal(p.foundOnSide(Side.EAST), false);
+  assert.equal(p.foundOnSide(Side.SOUTH), true); // no things there, only the exit
+});
+
 test('startedFollowsFoundRoomAndFinished', () => {
   const p = new Progress(story);
   assert.equal(p.started, false);
