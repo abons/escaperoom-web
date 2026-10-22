@@ -30,6 +30,10 @@ h1, h2, h3, p { margin: 0; }
 .btn.ghost { background: transparent; color: var(--accent); }
 .btn.small { min-height: 48px; padding: 4px 12px; font-size: 13px; }
 .btn:active { filter: brightness(1.15); }
+/* the Hint button fills up while the free layer comes nearer (--fill, app.js refreshHint) and pulses once it is free */
+.btn.hint { background: linear-gradient(to right, rgba(217, 164, 65, .33) var(--fill, 0%), transparent var(--fill, 0%)); font-variant-numeric: tabular-nums; }
+.btn.hint.free { background: var(--accent); color: var(--bg); font-weight: 700; animation: hint-pulse 1.3s ease-in-out infinite; }
+@keyframes hint-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -204,6 +208,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .wall-img, .toast { transition: none; }
   .chip.new { animation: none; }
+  .btn.hint.free { animation: none; }
   /* the close-up zoom is a Web Animation: ui.js checks the same media query and skips it */
 }
 .menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

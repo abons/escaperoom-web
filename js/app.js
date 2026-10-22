@@ -224,6 +224,8 @@ function showRoom() {
   const p = progress;
   const room = p.room;
   const found = h('span', { class: 'found' });
+  const hint = smallBtn(t('hint_button'), showHints);
+  hint.classList.add('hint');
   const coins = h('span', { class: 'coins' });
   const wall = new Wall();
   wall.onTurn = turn;
@@ -239,7 +241,7 @@ function showRoom() {
     h('div', { class: 'task' }, room.task),
     h('div', { class: 'bar' }, found, coins,
       smallBtn('◎', () => wall.flashZones(), t('zones')),
-      smallBtn(t('hint_button'), showHints),
+      hint,
       smallBtn(t('notes'), showNotes),
     ),
   );
@@ -256,7 +258,8 @@ function showRoom() {
   const chips = h('div', { class: 'chips', onscroll: () => chipEdges(chips) });
   const bottom = h('div', { class: 'bottom' }, chips);
 
-  ui = { wall, found, coins, msg, sel, chips };
+  ui = { wall, found, coins, msg, sel, chips, hint };
+  hintWasFree = p.hintFreeByWaiting(); // only a change seen live is announced
   setScreen(h('div', { class: 'room' }, top, stage, msgBox, sel, bottom), 'room');
   chipIds = new Set(p.items.keys()); // a rebuilt bar does not pop
   refreshStatus();
@@ -326,6 +329,24 @@ function gainedMessage(text, g) {
   msgItem = g;
   return text + '\n' + t('took', g.name);
 }
+
+// ---- the Hint button: counts down to a free layer, fills up while it does, pulses once it is free
+let hintWasFree = false;
+const clockText = (ms) => { const s = Math.ceil(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+function refreshHint() {
+  const b = ui.hint, p = progress;
+  if (!b || !p || screen !== 'room') return;
+  const left = p.hintFreeInMs();
+  const free = p.hintFreeByWaiting();
+  b.textContent = free ? t('hint_button_free') : left > 0 ? t('hint_button_wait', clockText(left)) : t('hint_button');
+  const wait = Coins.hintWaitMs(p.room.difficulty);
+  b.style.setProperty('--fill', (free ? 100 : left > 0 ? Math.round((wait - left) * 100 / wait) : 0) + '%');
+  b.classList.toggle('free', free);
+  if (free && !hintWasFree) say(t('hint_now_free'));
+  hintWasFree = free;
+}
+setInterval(refreshHint, 1000);
 
 function say(s) {
   if (!msgItem || !s.includes(t('took', msgItem.name))) msgItem = null;
@@ -541,17 +562,21 @@ function showHints() {
   else if (!shown.length) msg = t('hint_none');
   else if (available) msg = list;
   else msg = list + '\n\n' + t('hint_none');
+  const left = p.hintFreeInMs();
+  if (available && p.hintFreeByWaiting()) msg += '\n\n' + t('hint_waited');
+  else if (available && left > 0) msg += '\n\n' + t('hint_wait', clockText(left));
   const buttons = [{ label: t('ok') }];
   if (available) {
-    const cost = Coins.hintCost(shown.length, p.room.hints.length);
+    const cost = p.nextHintCost();
     buttons.unshift({
       label: cost === 0 ? t('hint_next_free') : cost === 1 ? t('hint_next', cost) : t('hint_next_many', cost),
       primary: true,
       onClick: () => {
-        if (wallet.spend(cost)) {
+        if (wallet.spend(Math.min(cost, p.nextHintCost()))) { // waiting may have made it free meanwhile
           p.revealHint();
           saves.save(p);
           refreshStatus();
+          refreshHint();
           setTimeout(showHints, 0);
         } else {
           say(t('hint_poor'));
