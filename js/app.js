@@ -186,10 +186,11 @@ function showMenu(fromHistory) {
 function storyCard(story) {
   const p = saves.load(story);
   const card = h('div', { class: 'card' },
-    h('h2', {}, story.title),
+    cardHead(story),
     story.blurb ? h('p', { class: 'blurb' }, story.blurb) : null,
     h('p', { class: 'meta' }, t('stars_min', stars(story.difficulty), Difficulty.storyMinutes(story))),
     h('p', { class: 'meta small' }, p.finished ? finishedTag(p.hintsUsed()) : t('room_of', p.roomIndex + 1, story.rooms.length)),
+    showcase(story, p),
   );
   const row = h('div', { class: 'row' }, button(p.started ? t('start_continue') : t('start_new'), () => play(story)));
   if (p.started) {
@@ -205,6 +206,23 @@ function storyCard(story) {
   }
   card.append(row);
   return card;
+}
+
+/** The card's plate: the first room's north wall, cropped 16:9, fading into the card colour, the title on it; a plain title without one. */
+function cardHead(story) {
+  const src = story.rooms.length ? plate(story.id, `${story.rooms[0].id}/north`) : null;
+  if (!src) return h('h2', {}, story.title);
+  return h('div', { class: 'card-cover' }, h('img', { src, alt: '', loading: 'lazy' }), h('h2', {}, story.title));
+}
+
+/** The showcase: 32 px tiles of every item plate this run has held, used-up ones too; only what was reached, no empty slots. */
+function showcase(story, p) {
+  if (!p.started) return null;
+  const tiles = p.itemsEverHeld()
+    .map((it) => ({ it, src: plate(story.id, `items/${it.id}`) }))
+    .filter((x) => x.src)
+    .map(({ it, src }) => h('img', { src, alt: it.name, title: it.name, loading: 'lazy' }));
+  return tiles.length ? h('div', { class: 'showcase' }, ...tiles) : null;
 }
 
 // ---- text panel
