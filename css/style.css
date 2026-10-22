@@ -52,6 +52,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .panel-wrap { display: flex; flex-direction: column; height: 100%; }
 .panel { padding: 32px 20px 20px; }
 .panel-title { font-size: 26px; color: var(--accent); padding-bottom: 16px; }
+.panel-img { display: block; width: 100%; height: auto; border-radius: 8px; margin-bottom: 16px; }
 .panel-body { font-size: 17px; line-height: 1.5; white-space: pre-wrap; }
 .panel-btn { padding: 8px 20px 20px; }
 .panel-btn .btn { width: 100%; }
