@@ -50,6 +50,15 @@ test('blockedWithoutSelection', () => {
   assert.equal(p.selected, 'k'); // not consumed: selection stays
 });
 
+test('blockedWithoutStuckSaysItsLabel', () => {
+  const p = new Progress(story);
+  const mute = thing('m', Side.EAST, z, 'Een kist met een pijlenslot.', 'open', ['k'], null, null);
+  const empty = thing('e', Side.EAST, z, 'Een la', 'open', ['k'], '', null);
+  assert.deepEqual(p.tap(mute), Outcome.blocked('Een kist met een pijlenslot.'));
+  assert.deepEqual(p.tap(empty), Outcome.blocked('Een la'));
+  assert.deepEqual(p.tap(locked), Outcome.blocked('dicht')); // a stuck text still wins
+});
+
 test('wrongItemIsWrong', () => {
   const p = new Progress(story);
   p.tap(giver); p.tap(coinGiver);

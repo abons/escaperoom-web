@@ -94,6 +94,14 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   color: var(--accent); font-size: 11px; overflow: hidden; padding: 3px 4px;
 }
 .wall-zones.flash .zone { background: rgba(217, 164, 65, .33); }
+.wall-fb { position: absolute; inset: 0; pointer-events: none; }
+.tap-glow { position: absolute; border-radius: 8px; background: rgb(217, 164, 65); opacity: 0; animation: tap-glow .25s ease-out; }
+@keyframes tap-glow { from { opacity: .35; } to { opacity: 0; } }
+.tap-ring {
+  position: absolute; width: 80px; height: 80px; margin: -40px 0 0 -40px; box-sizing: border-box;
+  border: 2px solid rgba(217, 164, 65, .8); border-radius: 50%; opacity: 0; animation: tap-ring .3s ease-out;
+}
+@keyframes tap-ring { from { transform: scale(.2); opacity: 1; } to { transform: scale(1); opacity: 0; } }
 .arrow {
   position: absolute; top: 50%; transform: translateY(-50%);
   background: rgba(0, 0, 0, .33); border: 0; color: var(--accent);

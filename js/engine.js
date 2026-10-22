@@ -342,7 +342,8 @@ export class Progress {
     if (this.found.has(thing.id)) return Outcome.said(thing.text);
     const rest = this.#remaining(thing.id, thing.needs);
     if (rest.length > 0) {
-      if (this.selected === null) return Outcome.blocked(thing.stuck ?? '');
+      // No stuck text: the label speaks, so no tap is silent.
+      if (this.selected === null) return Outcome.blocked(thing.stuck || thing.label);
       const r = this.#applySelected(thing.id, rest, thing.consumes);
       if (!r) return Outcome.wrong();
       if (r.left > 0) return Outcome.applied(r.item, r.left);

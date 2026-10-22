@@ -25,7 +25,8 @@ export class Wall {
     this.imgLayer = h('div', { class: 'wall-imgs' });
     this.placeholder = h('div', { class: 'wall-ph' });
     this.zonesEl = h('div', { class: 'wall-zones' });
-    this.el = h('div', { class: 'wall' }, this.placeholder, this.imgLayer, this.zonesEl);
+    this.fbEl = h('div', { class: 'wall-fb' });
+    this.el = h('div', { class: 'wall' }, this.placeholder, this.imgLayer, this.zonesEl, this.fbEl);
 
     let down = null;
     this.el.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
@@ -46,6 +47,7 @@ export class Wall {
     const old = this.src;
     this.room = room; this.side = side; this.things = things; this.exitOn = exitVisible;
     this.wallName = wallName; this.caption = caption;
+    this.fbEl.textContent = '';
     if (src !== old || !same || !this.imgLayer.firstChild) this.setImage(src, same && !!old && !!src);
     this.el.dataset.side = side;
     this.el.classList.toggle('has-plate', !!src);
@@ -116,9 +118,22 @@ export class Wall {
     if (fx < 0 || fx > 1 || fy < 0 || fy > 1) return;
     const inZone = (z) => fx >= z.x && fx <= z.x + z.w && fy >= z.y && fy <= z.y + z.h;
     const th = this.things.find((x) => x.side === this.side && inZone(x.zone));
-    if (th) { this.onThing(th); return; }
+    if (th) { this.feedback(th.zone); this.onThing(th); return; }
     const ex = this.room.exit;
-    if (this.exitOn && ex.side === this.side && inZone(ex.zone)) { this.onExit(); return; }
-    this.onMiss();
+    if (this.exitOn && ex.side === this.side && inZone(ex.zone)) { this.feedback(ex.zone); this.onExit(); return; }
+    this.feedback(null, fx, fy);
+    this.onMiss(fx, fy);
+  }
+
+  /** Tap feedback: a soft glow over the hit zone `z`, or (no zone) a widening ring at the miss. Off with reduced motion. */
+  feedback(z, fx = 0, fy = 0) {
+    this.fbEl.textContent = '';
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const style = z
+      ? { left: z.x * 100 + '%', top: z.y * 100 + '%', width: z.w * 100 + '%', height: z.h * 100 + '%' }
+      : { left: fx * 100 + '%', top: fy * 100 + '%' };
+    const d = h('div', { class: z ? 'tap-glow' : 'tap-ring', style });
+    d.addEventListener('animationend', () => d.remove());
+    this.fbEl.append(d);
   }
 }
