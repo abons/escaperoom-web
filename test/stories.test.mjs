@@ -196,6 +196,48 @@ test('everyItemIsUsedSomewhere', () => {
   for (const s of stories) assert.deepEqual(unusedItems(s), [], `${s.id}: items given but never used`);
 });
 
+/** Mirror of StoriesTest.forced: the exit's needs, transitively what the thing or combo giving each one needs. A code forces nothing. */
+function forced(r) {
+  const out = new Set();
+  const todo = [...r.exit.needs];
+  while (todo.length) {
+    const id = todo.shift();
+    if (out.has(id)) continue;
+    out.add(id);
+    for (const t of r.things) {
+      if (t.gives?.id !== id) continue;
+      todo.push(...t.needs);
+      if (t.visibleWhen && t.visibleWhen.kind !== CondKind.FOUND) todo.push(t.visibleWhen.id);
+    }
+    for (const c of r.combos) if (c.gives.id === id) todo.push(c.a, c.b);
+  }
+  return out;
+}
+
+function usedIn(r) {
+  const used = new Set();
+  const cond = (c) => { if (c && c.kind !== CondKind.FOUND) used.add(c.id); };
+  for (const t of r.things) { t.needs.forEach((x) => used.add(x)); cond(t.visibleWhen); }
+  for (const c of r.combos) { used.add(c.a); used.add(c.b); }
+  r.exit.needs.forEach((x) => used.add(x)); cond(r.exit.visibleWhen);
+  r.variants.forEach((v) => cond(v.when));
+  return used;
+}
+
+/** Mirror of laterNeedsAreForcedByTheExit: no way back, so a later room's item must be forced by its own room's exit. */
+test('laterNeedsAreForcedByTheExit', () => {
+  for (const s of stories) {
+    s.rooms.forEach((r, i) => {
+      const later = new Set(s.rooms.slice(i + 1).flatMap((x) => [...usedIn(x)]));
+      const f = forced(r);
+      const gives = [...r.things.filter((t) => t.gives).map((t) => t.gives.id), ...r.combos.map((c) => c.gives.id)];
+      for (const g of gives) {
+        if (later.has(g)) assert.ok(f.has(g), `${s.id}/${r.id}/${g}: needed in a later room but the exit lets you leave without it`);
+      }
+    });
+  }
+});
+
 const appliedCount =(p) => [...p.applied.values()].reduce((a, v) => a + v.size, 0);
 
 /** Play one thing as far as it goes now: apply held needs one by one, enter its code from the data. */
