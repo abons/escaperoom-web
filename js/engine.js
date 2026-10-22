@@ -251,6 +251,11 @@ export class Progress {
     this.story = story;
     this.roomIndex = 0;
     this.finished = false;
+    /**
+     * Looking round after the end (Progress.tour): everything open, the exit always OPEN, nothing measured.
+     * Never saved: the save stays the real run (../escaperoom/docs/besluiten/rondkijken-na-afloop.md).
+     */
+    this.touring = false;
     /** @type {Map<string,{id:string,name:string}>} */
     this.items = new Map();
     /** @type {Set<string>} */
@@ -282,7 +287,7 @@ export class Progress {
   static IDLE_MS = 120000;
 
   /** The room screen is up: start counting (no-op when already counting). */
-  resume() { if (this.lastActive === null) this.lastActive = this.clock(); }
+  resume() { if (!this.touring && this.lastActive === null) this.lastActive = this.clock(); }
 
   /** Screen left or tab/app in the background: credit the time so far and stop counting. */
   pause() { this.#touch(); this.lastActive = null; }
@@ -326,7 +331,7 @@ export class Progress {
       && this.nextHintCost() === 0;
   }
 
-  #mistake() { this.mistakes.set(this.room.id, (this.mistakes.get(this.room.id) ?? 0) + 1); }
+  #mistake() { if (!this.touring) this.mistakes.set(this.room.id, (this.mistakes.get(this.room.id) ?? 0) + 1); }
 
   get room() { return this.story.rooms[this.roomIndex]; }
   get started() { return this.finished || this.roomIndex > 0 || this.found.size > 0; }
@@ -477,6 +482,7 @@ export class Progress {
 
   /** Pure question: what would tapping the exit mean now? Changes nothing. */
   exitAsk() {
+    if (this.touring) return ExitAsk.OPEN;
     const e = this.room.exit;
     const rest = this.#remaining(this.#exitKey(), e.needs);
     const sel = this.selected;
@@ -490,6 +496,7 @@ export class Progress {
 
   /** Tap the exit: applies the selected needed item and says what is next. */
   tapExit() {
+    if (this.touring) return ExitAsk.OPEN;
     this.#touch();
     const e = this.room.exit;
     if (!this.exitVisible()) return ExitAsk.WRONG;
@@ -663,6 +670,29 @@ export class Progress {
       mistakes,
       stepMs,
     });
+  }
+
+  /**
+   * Look round `story` after the end, standing in room `roomIndex`: every thing opened, every search target hit,
+   * every need applied, every item held, finished true, touring on. Built from the story alone, so the real save
+   * is never read or touched; Saves.save skips it.
+   */
+  static tour(story, roomIndex) {
+    const p = new Progress(story);
+    p.touring = true;
+    p.finished = true;
+    p.roomIndex = Math.min(Math.max(roomIndex, 0), story.rooms.length - 1);
+    for (const r of story.rooms) {
+      for (const t of r.things) {
+        p.found.add(t.id);
+        for (const s of t.search || []) p.hits.add(`${t.id}/${s.id}`);
+        if (t.needs.length) p.applied.set(t.id, new Set(t.needs));
+        if (t.gives) p.items.set(t.gives.id, t.gives);
+      }
+      if (r.exit.needs.length) p.applied.set(`exit:${r.id}`, new Set(r.exit.needs));
+      for (const c of r.combos || []) p.items.set(c.gives.id, c.gives);
+    }
+    return p;
   }
 
   static fromJson(story, json) {
@@ -872,6 +902,7 @@ export const Saves = Object.freeze({
     return new Progress(story);
   },
   save(progress, storage = defaultStorage()) {
+    if (progress.touring) return; // looking round after the end: the save stays the real run
     try { storage.setItem(saveKey(progress.story), progress.toJson()); } catch { /* full or blocked */ }
   },
   clear(story, storage = defaultStorage()) {
