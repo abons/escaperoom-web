@@ -15,6 +15,15 @@
   --fb-glow: rgba(255, 241, 208, .45);
   --right: #5DBB63;
   --wrong: #E0524A;
+  --scrim: rgba(0, 0, 0, .94);
+  --accent-fill: rgba(217, 164, 65, .33);
+  /* the book letter (docs/besluiten/boekletter.md in the app repo): titles, story text, the message card, notes */
+  --serif: "Alegreya", Georgia, "Times New Roman", serif;
+}
+@font-face {
+  font-family: "Alegreya"; font-style: normal; font-weight: 400 900; font-display: swap;
+  src: url(../fonts/alegreya-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
@@ -42,7 +51,7 @@ h1, h2, h3, p { margin: 0; }
 .btn.small { min-height: 48px; padding: 4px 12px; font-size: 13px; }
 .btn:active { filter: brightness(1.15); }
 /* the Hint button fills up while the free layer comes nearer (--fill, app.js refreshHint) and pulses once it is free */
-.btn.hint { background: linear-gradient(to right, rgba(217, 164, 65, .33) var(--fill, 0%), transparent var(--fill, 0%)); font-variant-numeric: tabular-nums; }
+.btn.hint { background: linear-gradient(to right, var(--accent-fill) var(--fill, 0%), transparent var(--fill, 0%)); font-variant-numeric: tabular-nums; }
 .btn.hint.free { background: var(--accent); color: var(--bg); font-weight: 700; animation: hint-pulse 1.3s ease-in-out infinite; }
 @keyframes hint-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -162,8 +171,12 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .arrow.left { left: 0; }
 .arrow.right { right: 0; }
 
-.msgbox { height: 110px; overflow-y: auto; background: var(--card); flex: none; }
-.msg { padding: 8px 16px; font-size: 15px; white-space: pre-wrap; display: flex; align-items: flex-start; gap: 10px; }
+.msgbox {
+  max-height: 110px; overflow-y: auto; flex: none; margin: 4px 8px;
+  background: var(--card); border-left: 3px solid var(--accent); border-radius: 8px;
+}
+.msgbox[hidden], .sel[hidden] { display: none; }
+.msg { padding: 8px 14px; font-size: 16px; font-family: var(--serif); white-space: pre-wrap; display: flex; align-items: flex-start; gap: 10px; }
 .msg-item { width: 48px; height: 48px; object-fit: contain; flex: none; }
 .sel { font-size: 13px; color: var(--accent); padding: 4px 16px 0; min-height: 1px; flex: none; }
 .bottom { display: flex; align-items: center; gap: 8px; padding: 4px 8px 6px 16px; flex: none; }
@@ -212,7 +225,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .notes h3 { color: var(--accent); font-size: 16px; padding: 10px 0 4px; }
 .notes p { padding-bottom: 8px; font-size: 15px; white-space: pre-wrap; }
 
-.modal-box.closeup { max-width: 560px; height: 100%; display: flex; flex-direction: column; background: rgba(0, 0, 0, .94); }
+.modal-box.closeup { max-width: 560px; height: 100%; display: flex; flex-direction: column; background: var(--scrim); }
 .closeup-col { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; }
 .closeup-img { flex: 1; min-height: 0; max-width: 100%; object-fit: contain; }
 .closeup-label {
@@ -306,7 +319,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 /* "Groot" (docs/besluiten/groot.md in the app repo): html.big, text x1.35, message strip 160px, pad keys 52 -> 64 */
 .menu-head .title { flex: 1; }
 html.big body { font-size: 21.6px; }
-html.big .msgbox { height: 160px; }
+html.big .msgbox { max-height: 160px; }
 html.big .msg { font-size: 20px; }
 html.big .task { font-size: 19px; }
 html.big .room-title { font-size: 24px; }
@@ -333,6 +346,14 @@ html.big .cp-row .btn.cp-key { font-size: 24px; }
 .card-cover { position: relative; margin: -14px -16px 8px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px 12px 0 0; }
 .card-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .card-cover::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 45%; background: linear-gradient(to bottom, transparent, var(--card)); }
-.card-cover h2 { position: absolute; left: 16px; right: 16px; bottom: 2px; z-index: 1; font: 700 28px/1.15 Georgia, "Times New Roman", serif; text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
+.card-cover h2 { position: absolute; left: 16px; right: 16px; bottom: 2px; z-index: 1; font: 700 28px/1.15 var(--serif); text-shadow: 0 1px 4px var(--cover-shadow, rgba(0, 0, 0, .8)); }
 .showcase { display: flex; gap: 6px; overflow-x: auto; padding-top: 8px; scrollbar-width: none; }
 .showcase img { flex: none; width: 32px; height: 32px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
+
+/* the book letter on titles and story text; the code pad and buttons stay sans */
+.title, .card h2, .panel-title, .panel-body, .room-title, .modal-title, .notes, .closeup-text { font-family: var(--serif); }
+.title, .panel-title, .room-title, .modal-title { font-weight: 700; }
+/* one-line task; a tap shows it whole in the message card */
+.task { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+/* a menu card carries its story's palette (setPaletteVars in app.js) */
+.card { color: var(--ink); }

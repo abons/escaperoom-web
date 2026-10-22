@@ -1,5 +1,5 @@
 // Escape Room (web): menu, panels and the room screen. The engine decides; this file mirrors it.
-import { parseStory, Progress, Coins, Wallet, Difficulty, Saves } from './engine.js';
+import { parseStory, Progress, Coins, Wallet, Difficulty, Saves, PALETTE_DEFAULT } from './engine.js';
 import { lang, t } from './i18n.js';
 import { h, button, modal, modalOpen, closeAllModals, toast, shake, reducedMotion } from './ui.js';
 import { Wall, FLASH_MS } from './wall.js';
@@ -168,6 +168,7 @@ function bigToggle() {
 function showMenu(fromHistory) {
   if (fromHistory) pushed = false;
   closeAllModals();
+  applyPalette(null);
   progress = null; ui = {};
   const col = h('div', { class: 'menu' },
     h('div', { class: 'menu-head' },
@@ -205,6 +206,7 @@ function storyCard(story) {
     }, true));
   }
   card.append(row);
+  setPaletteVars(card, story.palette || PALETTE_DEFAULT); // the card in its story's colours; the menu stays default
   return card;
 }
 
@@ -257,6 +259,7 @@ function nextUnfinished(story) {
 
 // ---- play
 function play(story) {
+  applyPalette(story.palette);
   const p = saves.load(story);
   progress = p;
   side = sideKey(p.side);
@@ -317,7 +320,7 @@ function showRoom() {
       h('button', { type: 'button', class: 'back', onclick: goMenu, 'aria-label': t('to_menu_short'), title: t('to_menu_short') }, '‹'),
       h('h1', { class: 'room-title' }, room.title + '  ' + stars(room.difficulty)),
     ),
-    h('div', { class: 'task' }, room.task),
+    h('div', { class: 'task', onclick: () => say(room.task), title: room.task }, room.task), // one line; a tap shows it whole
     h('div', { class: 'bar' }, found, coins,
       smallBtn(t('spots_button'), spots, t('zones')),
       hint,
@@ -379,6 +382,7 @@ function refreshStatus() {
   if (!p || !ui.wall) return;
   refreshWall();
   ui.msg.textContent = '';
+  ui.msg.parentElement.hidden = !message; // the note card is only there when it says something
   if (message) {
     const img = msgItem ? itemPlate(p, msgItem.id) : null;
     if (img) ui.msg.append(h('img', { class: 'msg-item', src: img, alt: '' }));
@@ -387,7 +391,8 @@ function refreshStatus() {
   ui.found.textContent = t('found_progress', p.foundInRoom(), p.thingsInRoom());
   ui.coins.textContent = '● ' + wallet.balance();
   const sel = p.selected ? p.items.get(p.selected) : null;
-  ui.sel.textContent = sel ? t('selected_item', sel.name) : (p.items.size === 0 ? t('items_none') : '');
+  ui.sel.textContent = sel ? t('selected_item', sel.name) : '';
+  ui.sel.hidden = !sel; // empty chrome goes (13-ui-chrome voorstel 3)
   const key = [...p.items.keys()].join(',') + '|' + p.selected;
   if (key === chipKey) return;
   chipKey = key;
@@ -859,3 +864,35 @@ document.addEventListener('keydown', (e) => {
 });
 
 boot();
+
+// ---- palette per story (docs/besluiten/palet-per-verhaal.md in the app repo)
+function rgba(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+/** Luminance 299/587/114 over 160, as Ui.light in the app. */
+function light(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return (((n >> 16) & 255) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 160;
+}
+
+/** The four roles and the shades the css derives from them, as custom properties on `el`. */
+function setPaletteVars(el, pal) {
+  const v = {
+    '--bg': pal.bg, '--card': pal.card, '--ink': pal.ink, '--accent': pal.accent, '--modal': pal.card,
+    '--line': rgba(pal.accent, 0.4), '--accent-soft': rgba(pal.accent, 0.2), '--accent-zone': rgba(pal.accent, 0.8),
+    '--ink-dim': rgba(pal.ink, 0.6), '--scrim': rgba(pal.bg, 0.94), '--accent-fill': rgba(pal.accent, 0.33),
+    '--cover-shadow': light(pal.card) ? rgba(pal.card, 0.9) : 'rgba(0, 0, 0, .8)',
+  };
+  for (const [k, x] of Object.entries(v)) el.style.setProperty(k, x);
+}
+
+/** The story's colours on the whole page (null = the default), and the browser bar with them. */
+function applyPalette(pal) {
+  const root = document.documentElement;
+  if (pal) setPaletteVars(root, pal);
+  else for (const k of ['--bg', '--card', '--ink', '--accent', '--modal', '--line', '--accent-soft', '--accent-zone', '--ink-dim', '--scrim', '--cover-shadow', '--accent-fill']) root.style.removeProperty(k);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', (pal || PALETTE_DEFAULT).bg);
+}
