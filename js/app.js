@@ -874,7 +874,8 @@ function askCode(type, len, onCode) {
 
 /** code {type, len, onCode}: a button swaps the text for the code pad, under the plate (which shrinks). */
 function showCloseup(p, th, msg, code) {
-  const src = plate(p.story.id, `${p.room.id}/${th.closeup}`);
+  // an opened thing shows <closeup>-open when that plate exists (the safe stands open), else its own plate
+  const src = (p.found.has(th.id) && plate(p.story.id, `${p.room.id}/${th.closeup}-open`)) || plate(p.story.id, `${p.room.id}/${th.closeup}`);
   let visual = src
     ? h('img', { class: 'closeup-img', src, alt: th.label || '' })
     : h('div', { class: 'closeup-label' }, th.label || '');

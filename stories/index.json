@@ -12,6 +12,7 @@
     "archief/items/stamp.webp",
     "archief/items/stencil.webp",
     "archief/kantoor/east.webp",
+    "archief/kantoor/kluisslot-open.webp",
     "archief/kantoor/kluisslot.webp",
     "archief/kantoor/north.webp",
     "archief/kantoor/prikbord-rooster.webp",
@@ -23,6 +24,7 @@
     "archief/kelder/schilderij-achterkant.webp",
     "archief/kelder/south.webp",
     "archief/kelder/west.webp",
+    "archief/outro.webp",
     "archief/story.json"
    ]
   },
@@ -47,6 +49,7 @@
     "bakker/magazijn/south.webp",
     "bakker/magazijn/west-uv.webp",
     "bakker/magazijn/west.webp",
+    "bakker/outro.webp",
     "bakker/story.json",
     "bakker/woonkamer/east.webp",
     "bakker/woonkamer/kistje-pijlenslot.webp",
@@ -69,6 +72,7 @@
     "speelgoed/magazijn/north.webp",
     "speelgoed/magazijn/south.webp",
     "speelgoed/magazijn/west.webp",
+    "speelgoed/outro.webp",
     "speelgoed/story.json",
     "speelgoed/winkel/east.webp",
     "speelgoed/winkel/north.webp",

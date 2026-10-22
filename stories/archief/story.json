@@ -6,19 +6,21 @@
   "title": "Het Archief",
   "blurb": "Je wordt wakker in de kelder van een vergeten archief. Twee kamers, één weg naar buiten.",
   "intro": "Je komt bij op een koude, stenen vloer. Het ruikt naar stof en oud papier. Boven je hoofd valt een luik dicht; ergens hoor je een slot omdraaien. Het archief is gesloten voor de nacht, en jij zit er nog in.",
-  "outro": "De voordeur zwaait open en de koele nachtlucht slaat je in het gezicht. Achter je blijft het archief zijn geheimen bewaren. Jij niet meer.",
+  "outro": "De voordeur zwaait open en de koele nachtlucht slaat je in het gezicht. Achter je begint de klok in het kantoor weer te tikken. Wie jouw naam op die kaart zette, wist dat je de weg naar buiten zou vinden.",
+  "outroSecret": "Op de stoep kijk je nog één keer om. Achter de lamellen gaat een bureaulamp aan, en een hand schuift een nieuw dossier tussen de boeken.",
   "rooms": [
     {
       "id": "kelder",
       "title": "De kelder",
       "difficulty": 2,
+      "memento": { "id": "aandenken_rooster", "name": "Het rooster uit de kist", "plate": "stencil" },
       "hints": [
         "Het luik wil een code. Waar in deze kelder staan cijfers geschreven?",
         "Drie plekken bewaren de cijfers: het wijnrek, het kastje en het schilderij. Het kastje zit op slot en de achterkant van het schilderij is onleesbaar. Eén cijfer moet je zelf afleiden.",
         "De werkbank geeft een sleutel voor het kastje. De route voor het pijlenslot van de oude kist is onvolledig: kijk in het kastje. In de kist zit iets waarmee je de krassen op het schilderij kunt lezen.",
         "Kist: West, Noord, Zuid, Oost. Kastje met de sleutel: 4 en 1. Schilderij met het rooster uit de kist: 3. Wijnrek: juli, dus 7. Samen: 7, 4, 1, 3."
       ],
-      "task": "Kom uit de kelder via het luik op de zuidmuur. Het slot wil een code van vier cijfers.",
+      "task": "Het luik in de zuidmuur zit dicht. Vier cijfers, en ze liggen hier ergens.",
       "intro": "Een enkele peertje zwaait zachtjes heen en weer, flikkert zonder patroon en gooit schaduwen over de muren. Het luik naar boven zit stevig op slot.",
       "walls": {
         "north": "Rijen stoffige flessen in een houten rek; een kale lamp zoemt erboven.",
@@ -28,9 +30,15 @@
       },
       "things": [
         {
-          "id": "wijnrek", "wall": "north", "x": 0.17, "y": 0.3, "w": 0.67, "h": 0.5,
+          "id": "wijnrek", "wall": "north", "x": 0.17, "y": 0.3, "w": 0.67, "h": 0.4,
           "label": "Wijnrek",
           "text": "Tussen de flessen ligt een vergeeld etiket, met pen beschreven: 'Oogst: juli. Eerste cijfer = nummer van de maand.'"
+        },
+        {
+          "id": "liggende_flessen", "wall": "north", "x": 0.66, "y": 0.71, "w": 0.17, "h": 0.09,
+          "label": "Liggende flessen",
+          "visible": { "found": "wijnrek" },
+          "text": "Nu zie je het: in het onderste vak liggen de flessen plat, en er zit geen stof op. Iemand heeft hier kort geleden nog gestaan."
         },
         {
           "id": "werkbank", "wall": "east", "x": 0.13, "y": 0.55, "w": 0.75, "h": 0.33,
@@ -73,13 +81,14 @@
       "id": "kantoor",
       "title": "Het kantoor",
       "difficulty": 3,
+      "memento": { "id": "aandenken_kaart", "name": "De afgestempelde kaart", "plate": "pass_stamped" },
       "hints": [
         "De kaartlezer wil een doorgangskaart, maar zo'n kaart ligt hier niet zomaar ergens. En er hoort nog iets bij.",
         "Er zijn twee helften van een kaart. Een ervan zit achter slot, de ander hangt ergens waar je eerst niet op lette. De kluis heeft twee sloten.",
         "Pak de sleutel in het bureau voor de kluis. De kluis wil ook een code, maar die staat niet letterlijk ergens: op de westmuur ligt een memo dat zegt welk tijdstip telt, de klok laat het zien. Combineer de twee kaartdelen.",
         "Klok: vijf voor half twee 's middags, in 24-uursnotatie 1, 3, 2, 5 voor de kluis. Linkerhelft uit de kluis, rechterhelft van het prikbord, samen een kaart. Het stempel achter de klok moet je op de heel gemaakte kaart drukken voor je hem in de lezer houdt."
       ],
-      "task": "Vind de twee helften van de doorgangskaart en een stempel, en open de voordeur.",
+      "task": "De voordeur zit dicht, en het kastje ernaast laat niet zomaar iemand door. Buiten is het nacht.",
       "intro": "Maanlicht valt door de lamellen over een rommelig bureau. Aan de zuidkant zie je de voordeur, met een kaartlezer ernaast.",
       "walls": {
         "north": "Maanlicht valt door de lamellen op een bureau vol formulieren en laden.",
@@ -98,7 +107,7 @@
         {
           "id": "kluis", "wall": "east", "x": 0.31, "y": 0.31, "w": 0.37, "h": 0.28,
           "label": "Kluis",
-          "text": "De sleutel draait soepel, maar breekt af in het slot. Je toetst het tijdstip in waarop de klok stilviel en de deur zwaait open. In de kluis ligt de linkerhelft van een doorgangskaart, met jouw naam erop. Dat is vreemd.",
+          "text": "De sleutel draait soepel, maar breekt af in het slot. Je toetst het tijdstip in waarop de klok stilviel en de deur zwaait open. In de kluis ligt de linkerhelft van een doorgangskaart, met jouw naam erop, en een kaartje: 'Alles stond voor je klaar.' Geen naam eronder, alleen een getekend sleuteltje.",
           "needs": "key_safe",
           "consumes": true,
           "code": "1325", "input": "digits", "len": 4,
@@ -138,6 +147,12 @@
           "label": "Briefje",
           "text": "Een leeg briefje aan de muur. Erachter zit met plakband een munt vastgeplakt. Die is voor jou.",
           "coin": true
+        },
+        {
+          "id": "geheim_dossier", "wall": "north", "x": 0.55, "y": 0.42, "w": 0.105, "h": 0.09,
+          "label": "Boeken op de vensterbank",
+          "text": "Tussen de boeken op de vensterbank staat een dun dossier met jouw naam op de rug. Er zit één blad in, van vandaag: 'Kelder, na sluitingstijd. Vindt de weg.' Het is jouw handschrift.",
+          "secret": true
         }
       ],
       "combos": [

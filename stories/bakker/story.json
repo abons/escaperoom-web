@@ -1,5 +1,5 @@
 {
-  "format": 1,
+  "format": 2,
   "difficulty": 3,
   "lang": "nl",
   "palette": { "bg": "#F1E4C7", "card": "#E6D5AE", "ink": "#3B2A1A", "accent": "#9A421C" },
@@ -7,18 +7,20 @@
   "blurb": "Bakker Teun is nergens te vinden, maar zijn oven is nog warm. Drie kamers vol meel, licht en een raadsel dat niet is wat het lijkt.",
   "intro": "Zaterdagmiddag. Je staat in Bakkerij Brouwer: de deur was open, de oven is warm en Teun, die al dertig jaar jouw brood bewaart, is nergens. Zijn dochter Fien belde je aan: 'Pap is verdwenen, kom je helpen zoeken?' Je stapt naar binnen.",
   "outro": "De deur zwaait open. Twaalf mensen, slingers en Teun zelf, met een schort vol slagroom. 'Gefeliciteerd met mijn eigen verjaardag!' roept hij. Hij wilde geen feest, hij wilde een speurtocht, en jij was zijn gast. Het briefje, de warme oven, de voetafdrukken: alles klopte opeens.",
+  "outroSecret": "Teun ziet het kaartje in je hand en knipoogt. 'De twaalf wisten van het feest,' zegt hij. 'Jij was de enige die het moest vinden. Daarom ben jij de eregast.' Het eerste stuk taart is voor jou.",
   "rooms": [
     {
       "id": "bakkerij",
       "title": "De bakkerij",
       "difficulty": 2,
+      "memento": { "id": "aandenken_broodje", "name": "Het sleutelbroodje", "plate": "broodje_sleutel" },
       "hints": [
         "De deur naar het magazijn zit op slot. Zoek eerst iets in de bakkerij dat ook dicht zit.",
         "De oven heeft draaiknoppen en wil een getal. Op de westmuur staat een bord met Teuns vaste regel; de noordmuur zegt iets over de taart.",
         "Neem de temperatuur van de taart en tel de regel van oma erbij op voor het brood. In de oven zit iets meegebakken; in het kassalaatje ligt iets om mee te snijden.",
         "Selecteer het broodmes in je tas en tik op het broodje met de sleutel. Gebruik daarna de sleutel op de deur naar het magazijn."
       ],
-      "task": "Vind de sleutel van het magazijn en kom door de deur op de zuidmuur.",
+      "task": "De deur naar het magazijn zit op slot. De sleutel ligt vast ergens in de bakkerij.",
       "intro": "Meelstof zweeft in de zon. Achter de toonbank ruikt het naar versgebakken brood, maar er staat niemand achter de kassa.",
       "walls": {
         "north": "Zon op de toonbank: een koperen kassa, vers brood en een scheurkalender.",
@@ -78,13 +80,14 @@
       "id": "magazijn",
       "title": "Het magazijn",
       "difficulty": 3,
+      "memento": { "id": "aandenken_touwtje", "name": "Een rood touwtje van een meelzak" },
       "hints": [
         "Het hek voor de trap zit op slot, en de trap erachter is donker. Je hebt een sleutel én iets dat licht geeft nodig.",
         "De graankist op de westmuur ligt onder de rommel. Tik erop en zoek alles van de lijst: daaronder ligt de trapsleutel.",
         "Zoek rustig per hoek van de plaat. Kleine dingen liggen achter grotere, op de planken en op de grond.",
         "Vergeet de lamp uit de gereedschapskast op de oostmuur niet: je hebt hem boven nodig. Kies hem in je tas, tik op het hek, en doe dat ook met de sleutel."
       ],
-      "task": "Zoek de trapsleutel onder de rommel bij de graankist en neem een lamp mee voor de donkere trap.",
+      "task": "Het hek voor de trap zit dicht, en daarachter is het pikdonker. Boven moet Teun zijn.",
       "intro": "Zakken meel tot aan het plafond, een lange houten balk en een koelcel. Het is koel en schemerig, en iemand is hier vanmorgen druk geweest.",
       "walls": {
         "north": "Rijen meelzakken op houten stellingen, elk dichtgeknoopt met een gekleurd touwtje.",
@@ -159,23 +162,24 @@
       "id": "woonkamer",
       "title": "De woonkamer boven",
       "difficulty": 3,
+      "memento": { "id": "aandenken_kaarsjes", "name": "Fiens kaarsjesdoosje", "plate": "kaarsjes" },
       "hints": [
-        "De deur aan de zuidkant wil vier cijfers: een aantal gasten en een leeftijd. De leeftijd vind je in deze kamer; het aantal gasten las je al in het magazijn.",
+        "De deur aan de zuidkant vraagt eerst wie achter de verdwijning zat en waarom, en wil dan vier cijfers: een aantal gasten en een leeftijd. De leeftijd vind je in deze kamer; het aantal gasten las je al in het magazijn, en de trap links brengt je daar terug.",
         "De taart op de tafel is nog niet te openen: er zijn kaarsjes en iets om ze mee aan te steken nodig. Het kistje op de westmuur wil pijlen. Op de foto zit een vage vlek: heb je nog iets uit het magazijn dat licht geeft?",
-        "Kaarsjes uit de servieskast, lucifers tussen de bankkussens. Kies de UV-lamp en kijk bij de foto: de route opent het kistje met de brief. Het aantal gasten staat in je notities van het magazijn: wat lag er bij de trapsleutel?",
-        "Foto onder UV: Noord, Oost, Zuid, West. Het bonnetje bij de trapsleutel: twaalf gebakjes, één per gast. De taart heeft zestig kaarsjes. De code is 1260."
+        "Kaarsjes uit de servieskast, lucifers tussen de bankkussens. Kies de UV-lamp en kijk bij de foto: de route opent het kistje met de brief. Het aantal gasten staat in je notities van het magazijn: wat lag er bij de trapsleutel? Voor de vraag bij de deur: wie schreef 'het spelletje loopt', en voor wie zijn de kaarsjes?",
+        "Foto onder UV: Noord, Oost, Zuid, West. Het bonnetje bij de trapsleutel: twaalf gebakjes, één per gast. De taart heeft zestig kaarsjes. De code is 1260. De vraag bij de deur: Teun zelf, voor een speurtocht voor zijn verjaardag."
       ],
-      "task": "Lees de brief van Teun aan zijn dochter en open de deur naar de gang. Het slot wil vier cijfers.",
+      "task": "Teun dekte hier een feest. Bedenk wie achter de verdwijning zat, en de deur naar de gang gaat open.",
       "intro": "Een gezellige kamer met een gedekte tafel en veel te veel borden voor één man. Op de bank liggen kussens.",
       "walls": {
         "north": "Een lange tafel, gedekt voor een feest, met in het midden een taartdoos.",
         "east": "Een servieskast vol borden, en een foto van een jongen op een fiets.",
-        "south": "Bij de deur naar de gang hangt een kaartje: 'Aantal gasten, dan zijn leeftijd.'",
+        "south": "Bij de deur naar de gang hangt een kaartje: 'Aantal gasten, dan zijn leeftijd.' Links gaat de trap terug naar beneden.",
         "west": "Een bank vol kussens, en op een tafeltje een kistje met vier pijlknoppen."
       },
       "things": [
         {
-          "id": "taart", "wall": "north", "x": 0.38, "y": 0.47, "w": 0.26, "h": 0.17,
+          "id": "taart", "wall": "north", "x": 0.4, "y": 0.5, "w": 0.2, "h": 0.1,
           "label": "Taartdoos",
           "needs": ["kaarsjes", "lucifers"],
           "consumes": true,
@@ -189,11 +193,17 @@
           ]
         },
         {
-          "id": "servieskast", "wall": "east", "x": 0.0, "y": 0.16, "w": 0.4, "h": 0.72,
+          "id": "servieskast", "wall": "east", "x": 0.0, "y": 0.16, "w": 0.4, "h": 0.44,
           "label": "Servieskast",
           "text": "Achter de borden ligt een ongeopend doosje kaarsjes, met Fiens handschrift op het etiket. Je pakt het.",
           "again": "Achter de borden is het nu leeg. Wel veel servies, voor één bakker alleen.",
           "gives": { "id": "kaarsjes", "name": "doosje kaarsjes" }
+        },
+        {
+          "id": "onderkast", "wall": "east", "x": 0.0, "y": 0.62, "w": 0.37, "h": 0.24,
+          "label": "Onderkast",
+          "visible": { "found": "servieskast" },
+          "text": "Toen je de borden verschoof, sprong onder in de kast een deurtje open. Binnen een kaartje, niet in Teuns krabbel: 'Alles stond voor je klaar.' Geen naam, alleen een getekend sleuteltje."
         },
         {
           "id": "fotolijst", "wall": "east", "x": 0.5, "y": 0.22, "w": 0.42, "h": 0.22,
@@ -207,7 +217,7 @@
           "text": "Onder het paarse licht gloeit er op de rand van de lijst een route, in meelwater geschreven: eerst noord, dan oost, dan zuid, dan west."
         },
         {
-          "id": "tafel", "wall": "north", "x": 0.17, "y": 0.66, "w": 0.66, "h": 0.18,
+          "id": "tafel", "wall": "north", "x": 0.04, "y": 0.6, "w": 0.93, "h": 0.29,
           "label": "Gedekte tafel",
           "text": "Een bord voor elke gast, en bij elk bord een schoteltje voor een gebakje. Teun zit apart, zijn bord staat aan de kop."
         },
@@ -230,13 +240,31 @@
             { "token": "W", "x": 0.475, "y": 0.525, "w": 0.175, "h": 0.13 },
             { "token": "S", "x": 0.47, "y": 0.69, "w": 0.175, "h": 0.135 }
           ]
+        },
+        {
+          "id": "geheim_kaartje", "wall": "south", "x": 0.9, "y": 0.355, "w": 0.087, "h": 0.105,
+          "label": "Kaartje aan de knijper",
+          "text": "Je draait het kaartje om. Op de achterkant staat, klein en in potlood, in Teuns krabbel: 'Eregast: wie dit vindt.' Daaronder heeft Fien jouw naam geschreven, met een hartje.",
+          "secret": true
         }
       ],
       "exit": {
-        "wall": "south", "x": 0.28, "y": 0.19, "w": 0.44, "h": 0.63,
+        "wall": "south", "x": 0.558, "y": 0.253, "w": 0.326, "h": 0.517,
         "code": "1260",
+        "ask": {
+          "text": "Je hand ligt op de klink en opeens klopt alles. Wie zat achter de verdwijning? ___. En waarom? ___.",
+          "words": ["Fien", "Teun zelf", "de buur", "oma", "geldzorgen", "een speurtocht voor zijn verjaardag", "een ruzie met Fien"],
+          "answer": ["Teun zelf", "een speurtocht voor zijn verjaardag"]
+        },
         "text": "Het slot springt open. Aantal gasten, dan zijn leeftijd: twaalf en zestig. Je duwt de deur open."
-      }
+      },
+      "exits": [
+        {
+          "id": "trap", "wall": "south", "x": 0.116, "y": 0.253, "w": 0.324, "h": 0.517,
+          "to": "magazijn",
+          "text": "Je loopt de krakende trap weer af, terug naar het magazijn."
+        }
+      ]
     }
   ]
 }

@@ -7,11 +7,13 @@
   "blurb": "Alle sleutels van de speelgoedwinkel zijn weg! Wie heeft er gerommeld? Een speurtocht voor jonge speurders.",
   "intro": "Jij bent in de speelgoedwinkel in slaap gevallen, in het leeshoekje. Nu zijn alle sleutels weg.",
   "outro": "Rob was niet stout bezig. Hij wilde de winkel om negen uur open hebben. Dankzij jou slaat de klok negen. De eerste kinderen komen binnen. Goed gespeurd!",
+  "outroSecret": "Rob rolt naar je toe. Hij geeft je de tekening van onder de deken. 'Voor jou,' piept hij. 'Kom je morgen weer?'",
   "rooms": [
     {
       "id": "winkel",
       "title": "De winkel",
       "difficulty": 1,
+      "memento": { "id": "aandenken_ballon", "name": "Een gele ballon" },
       "hints": [
         "Kijk eens bij de beer. Daar zit iets.",
         "Kijk eens bij de muziekdoos. Die moet worden opgewonden.",
@@ -29,10 +31,10 @@
         {
           "id": "knuffelplank",
           "wall": "east",
-          "x": 0.4,
-          "y": 0.39,
-          "w": 0.24,
-          "h": 0.19,
+          "x": 0.41,
+          "y": 0.44,
+          "w": 0.19,
+          "h": 0.145,
           "label": "Beer met sleuteltje",
           "text": "Een beer heeft een sleuteltje op zijn rug. Je pakt het.",
           "again": "De beer kijkt je blij aan. Zijn rug is nu leeg.",
@@ -83,6 +85,7 @@
       "id": "magazijn",
       "title": "Het magazijn",
       "difficulty": 1,
+      "memento": { "id": "aandenken_lintje", "name": "Sleutel met een groen lintje", "plate": "trapsleutel" },
       "hints": [
         "Kijk eens naar de stapel dozen.",
         "De speelgoedkist heeft een slot met kleuren.",
@@ -152,6 +155,7 @@
       "id": "klokkenkamer",
       "title": "De klokkenkamer",
       "difficulty": 1,
+      "memento": { "id": "aandenken_veer", "name": "Een veertje van de koekoek" },
       "hints": [
         "Kijk eens bij de grote klok. Daar staat iemand.",
         "Rob mist een sleutel: die heb jij nog. De koekoek weet hoe laat het moet zijn.",
@@ -184,7 +188,7 @@
           "w": 0.28,
           "h": 0.23,
           "label": "Koekoeksklok",
-          "text": "De koekoek zit stil in zijn huisje. Hij komt pas naar buiten als het negen uur is."
+          "text": "De koekoek zit stil in zijn huisje. Hij komt pas naar buiten als het negen uur is. Eronder ligt een kaartje: 'Alles staat klaar, voor jou.' Er staat een sleuteltje op getekend."
         },
         {
           "id": "raam",
@@ -195,6 +199,12 @@
           "h": 0.385,
           "label": "Raam",
           "text": "Buiten komt de zon op. Er staan al kinderen te wachten voor de winkel."
+        },
+        {
+          "id": "geheim_tekening", "wall": "west", "x": 0.07, "y": 0.72, "w": 0.62, "h": 0.24,
+          "label": "Lappendeken",
+          "text": "Onder de lappendeken ligt een tekening. Rob en een kind, hand in hand. Er staat bij: 'Mijn nieuwe vriend.'",
+          "secret": true
         }
       ],
       "combos": [],
