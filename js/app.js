@@ -29,6 +29,7 @@ let message = '';
 let msgItem = null;
 let names = {};
 let ui = {}; // refs of the room screen
+let chipIds = new Set(); // item ids the bar already shows, so only a tile that just arrived pops in
 
 // ---- plates
 const EXTS = ['webp', 'png', 'jpg'];
@@ -225,6 +226,7 @@ function showRoom() {
     h('div', { class: 'bar' }, found, coins,
       smallBtn('◎', () => wall.flashZones(), t('zones')),
       smallBtn(t('hint_button'), showHints),
+      smallBtn(t('notes'), showNotes),
     ),
   );
 
@@ -237,11 +239,12 @@ function showRoom() {
   const msg = h('div', { class: 'msg', 'aria-live': 'polite' });
   const msgBox = h('div', { class: 'msgbox' }, msg);
   const sel = h('div', { class: 'sel' });
-  const chips = h('div', { class: 'chips' });
-  const bottom = h('div', { class: 'bottom' }, chips, button(t('notes'), showNotes, true, 'small'));
+  const chips = h('div', { class: 'chips', onscroll: () => chipEdges(chips) });
+  const bottom = h('div', { class: 'bottom' }, chips);
 
   ui = { wall, found, coins, msg, sel, chips };
   setScreen(h('div', { class: 'room' }, top, stage, msgBox, sel, bottom), 'room');
+  chipIds = new Set(p.items.keys()); // a rebuilt bar does not pop
   refreshStatus();
 }
 
@@ -292,8 +295,17 @@ function refreshStatus() {
       type: 'button', class: 'chip' + (on ? ' on' : ''), title: item.name, 'aria-label': item.name,
       'aria-pressed': on ? 'true' : 'false', onclick: () => onItem(item.id),
     }, img ? h('img', { src: img, alt: item.name, draggable: 'false' }) : h('span', {}, item.name));
+    if (!chipIds.has(item.id)) chip.classList.add('new'); // css pops it in, unless prefers-reduced-motion
     ui.chips.append(chip);
   }
+  chipIds = new Set(p.items.keys());
+  chipEdges(ui.chips);
+}
+
+/** Fades the bar's edge on the side where more tiles are scrolled out of view. */
+function chipEdges(el) {
+  el.classList.toggle('more-l', el.scrollLeft > 1);
+  el.classList.toggle('more-r', el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
 }
 
 function gainedMessage(text, g) {
