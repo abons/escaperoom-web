@@ -45,6 +45,22 @@ function plate(storyId, name) {
 const wallPlate = (p, name) => plate(p.story.id, `${p.room.id}/${name}`);
 const itemPlate = (p, id) => plate(p.story.id, `items/${id}`);
 
+/** The other walls (and variants) of the room, decoded ahead so the turn slide does not wait. Only this room's. */
+let decoded = new Map();
+function prefetchRoom(p) {
+  decoded = new Map(); // the previous room's images go to the GC
+  const names = [1, -1, 2].map((k) => turnSide(side, k)); // neighbours first
+  for (const v of p.room.variants || []) if (v && v.image) names.push(v.image);
+  for (const name of names) {
+    const src = wallPlate(p, name);
+    if (!src || decoded.has(src)) continue;
+    const im = new Image();
+    im.src = src;
+    if (im.decode) im.decode().catch(() => {});
+    decoded.set(src, im);
+  }
+}
+
 // ---- boot
 async function boot() {
   saves = typeof Saves === 'function' ? new Saves() : Saves; // contract: object with load/save/clear
@@ -260,6 +276,7 @@ function showRoom() {
   setScreen(h('div', { class: 'room' }, top, stage, msgBox, sel, bottom), 'room');
   chipIds = new Set(p.items.keys()); // a rebuilt bar does not pop
   refreshStatus();
+  prefetchRoom(p);
 }
 
 function turn(step) {

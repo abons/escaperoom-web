@@ -83,6 +83,8 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .wall-imgs { pointer-events: none; }
 .wall-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; transition: opacity .2s; pointer-events: none; }
 .wall-zones { pointer-events: none; }
+/* the turn slide: a dark seam where two walls meet, the corner of the room */
+.wall-img.sliding { transition: none; box-shadow: 0 0 0 2px rgba(0, 0, 0, .6), 0 0 22px 6px rgba(0, 0, 0, .55); }
 .wall-ph { padding: 16px; background: linear-gradient(#3A2E24, #1B1511); }
 .wall[data-side="east"] .wall-ph { background: linear-gradient(#2B3A34, #121A17); }
 .wall[data-side="south"] .wall-ph { background: linear-gradient(#3A2A3A, #181118); }

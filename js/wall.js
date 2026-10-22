@@ -3,6 +3,10 @@ import { h } from './ui.js';
 
 const SWIPE = 80;
 const SLOP = 16;
+/** Turning slides sideways (the Myst turn); same duration as on Android (`WallView.SLIDE_MS`). */
+const SLIDE_MS = 280;
+const SIDES = ['north', 'east', 'south', 'west'];
+const reduced = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 /**
  * Wall: .el is the 3:4 box (CSS sizes it to fit its container).
@@ -36,19 +40,28 @@ export class Wall {
       const dx = e.clientX - down.x;
       const dy = e.clientY - down.y;
       down = null;
-      if (Math.abs(dx) > SWIPE) this.onTurn(dx < 0 ? 1 : -1);
+      if (Math.abs(dx) > SWIPE && Math.abs(dx) > 1.5 * Math.abs(dy)) this.onTurn(dx < 0 ? 1 : -1); // a clear sideways fling only
       else if (Math.abs(dx) <= SLOP && Math.abs(dy) <= SLOP) this.tap(e.clientX, e.clientY);
     });
   }
 
-  /** Show a wall; a changed plate, or a turn to another wall of the same room, cross-fades. */
+  /**
+   * Show a wall. A turn to another wall of the same room slides sideways: right turn, the new wall comes in
+   * from the right; left turn, from the left. A changed plate on the same wall (a variant) cross-fades.
+   * Reduced motion: a cut.
+   */
   show({ room, side, src, things, exitVisible, wallName, caption }) {
-    const same = this.room === room; // a turn to another wall of the same room fades too (no slide)
+    const same = this.room === room;
     const old = this.src;
+    const oldSide = this.side;
     this.room = room; this.side = side; this.things = things; this.exitOn = exitVisible;
     this.wallName = wallName; this.caption = caption;
     this.fbEl.textContent = '';
-    if (src !== old || !same || !this.imgLayer.firstChild) this.setImage(src, same && !!old && !!src);
+    if (src !== old || !same || !this.imgLayer.firstChild) {
+      const diff = (SIDES.indexOf(side) - SIDES.indexOf(oldSide) + 4) % 4;
+      const dir = same && oldSide && oldSide !== side ? (diff === 1 ? 1 : diff === 3 ? -1 : 0) : 0;
+      this.setImage(src, same && !!old && !!src, dir);
+    }
     this.el.dataset.side = side;
     this.el.classList.toggle('has-plate', !!src);
     this.src = src;
@@ -56,12 +69,18 @@ export class Wall {
     this.drawZones();
   }
 
-  setImage(src, fade) {
+  setImage(src, fade, dir = 0) {
     clearTimeout(this.fadeTimer);
     const layer = this.imgLayer;
+    this.slideToken = (this.slideToken || 0) + 1;
+    for (const a of this.slides || []) a.cancel();
+    this.slides = [];
     if (!src) { layer.textContent = ''; return; }
     const img = h('img', { class: 'wall-img', src, alt: '', draggable: 'false' });
-    if (fade && layer.firstChild) {
+    if (fade && dir !== 0 && layer.firstChild && img.animate) {
+      if (reduced()) { layer.textContent = ''; layer.append(img); return; } // a cut
+      this.slide(layer, img, dir);
+    } else if (fade && layer.firstChild) {
       img.style.opacity = '0';
       layer.append(img);
       void img.offsetWidth;
@@ -71,6 +90,39 @@ export class Wall {
       layer.textContent = '';
       layer.append(img);
     }
+  }
+
+  /** The old wall slides out against the turn and darkens; the new one slides in from the turn side. */
+  slide(layer, img, dir) {
+    while (layer.children.length > 1) layer.firstChild.remove(); // a turn mid-slide: keep only the newest
+    const prev = layer.lastChild;
+    prev.classList.add('sliding');
+    img.classList.add('sliding');
+    img.style.transform = `translateX(${dir * 100}%)`; // parked beside the box until decoded
+    layer.append(img);
+    const token = this.slideToken;
+    let started = false;
+    const go = () => {
+      if (started || token !== this.slideToken) return;
+      started = true;
+      const opts = { duration: SLIDE_MS, easing: 'cubic-bezier(.15,.75,.35,1)' }; // decelerate
+      const a = prev.animate([
+        { transform: 'translateX(0)', filter: 'brightness(1)' },
+        { transform: `translateX(${-dir * 100}%)`, filter: 'brightness(.55)' },
+      ], opts);
+      const b = img.animate([
+        { transform: `translateX(${dir * 100}%)`, filter: 'brightness(.7)' },
+        { transform: 'translateX(0)', filter: 'brightness(1)' },
+      ], opts);
+      img.style.transform = '';
+      this.slides = [a, b];
+      b.onfinish = () => {
+        if (token !== this.slideToken) return;
+        prev.remove(); img.classList.remove('sliding'); this.slides = [];
+      };
+    };
+    // app.js decodes the room's walls ahead, so this resolves at once; never wait long for it
+    if (img.decode) { img.decode().then(go, go); setTimeout(go, 150); } else go();
   }
 
   drawPlaceholder() {
