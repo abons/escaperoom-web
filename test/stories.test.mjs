@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseStory, Progress, Side, Input, Zone, Difficulty, CondKind, ExitAsk, Saves } from '../js/engine.js';
+import { parseStory, Progress, Side, Input, Zone, Difficulty, CondKind, ExitAsk, Saves, aside } from '../js/engine.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -406,7 +406,7 @@ test('everyStoryCanBePlayedOut', () => {
       while (changed) {
         changed = false;
         for (const t of p.room.things) {
-          if (t.coin) continue; // hidden coins are no part of the puzzle
+          if (aside(t)) continue; // hidden coins and the secret are no part of the puzzle
           const before = [p.items.size, p.found.size, appliedCount(p)].join();
           work(p, t);
           if (before !== [p.items.size, p.found.size, appliedCount(p)].join()) changed = true;
@@ -453,6 +453,7 @@ test('everyStoryCanBePlayedOut', () => {
       p.leave();
     }
     assert.equal(p.finished, true);
+    assert.equal(p.secretFound(), false, `${s.id}: the solver found the secret, so it is on the chain`);
   }
 });
 
@@ -501,5 +502,30 @@ test('touringOpensEverythingAndMeasuresNothing', () => {
       assert.equal(p.roomIndex, i === s.rooms.length - 1 ? i : i + 1);
     }
     assert.equal([...mem.entries()].join('|'), before, `${s.id}: touring changed the real save`);
+  }
+});
+
+// One secret per story at most, with its outro paragraph; mementos have a name and, when they name one, a plate.
+test('secretAndMementosAreWellFormed', () => {
+  for (const s of stories) {
+    const secrets = s.rooms.flatMap((r) => r.things).filter((t) => t.secret);
+    assert.ok(secrets.length <= 1, `${s.id}: more than one secret`);
+    assert.equal(secrets.length > 0, !!s.outroSecret.trim(), `${s.id}: a secret goes with outroSecret`);
+    for (const t of secrets) {
+      assert.ok(!t.gives && t.needs.length === 0 && t.code === null && t.search.length === 0 && t.keys.length === 0 &&
+        t.closeup === null && t.visibleWhen === null && !t.coin, `${s.id}/${t.id}: a secret is no puzzle`);
+    }
+    const ids = new Set();
+    for (const r of s.rooms) {
+      const m = r.memento;
+      if (!m) continue;
+      assert.ok(!ids.has(m.id), `${s.id}/${r.id}: memento id ${m.id} twice`);
+      ids.add(m.id);
+      assert.ok(m.name.trim(), `${s.id}/${r.id}: memento name`);
+      if (m.plate) {
+        assert.ok(['webp', 'png', 'jpg'].some((x) => fs.existsSync(path.join(dir, s.id, 'items', `${m.plate}.${x}`))),
+          `${s.id}/${r.id}: memento plate ${m.plate} missing`);
+      }
+    }
   }
 });
