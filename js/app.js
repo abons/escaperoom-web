@@ -659,7 +659,7 @@ function showCloseup(p, th, msg, code) {
       if (next === false) return false;
       // after the green flash a right code removes the close-up at once: the outcome may open the next one itself
       return () => { m.close(); m.box.parentElement?.remove(); if (typeof next === 'function') next(); };
-    });
+    }, { wheels: th.pad === 'wheels' });
     said.replaceWith(pad.el);
     m.box.querySelector('.modal-buttons .btn')?.remove(); // the enter button itself
     return false;

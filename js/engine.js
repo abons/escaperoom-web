@@ -165,6 +165,8 @@ function parseThing(o) {
     search: Array.isArray(o.search) ? o.search.map((s) => ({ id: reqStr(s, 'id'), name: reqStr(s, 'name'), zone: zone(s) })) : [],
     // keys on the close-up: the plate is the panel ({token, x, y, w, h}; the token is one character)
     keys: Array.isArray(o.keys) ? o.keys.map(parseKey) : [],
+    // how the code pad looks: null = keys, 'wheels' = combination wheels (a view matter, same code)
+    pad: strOrNull(o, 'pad'),
   });
 }
 
