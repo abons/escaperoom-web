@@ -266,6 +266,13 @@ function enterRoom(announce) {
   message = announce ? p.room.intro || '' : '';
   msgItem = null;
   showRoom();
+  if (announce) fadeInRoom();
+}
+
+/** A new room (after the intro or a door) comes up out of the dark in 300 ms; resuming mid-room stays a cut. Reduced motion: CSS drops it. */
+function fadeInRoom() {
+  const stage = ui.wall && ui.wall.el.closest('.stage');
+  if (stage) stage.classList.add('room-in');
 }
 
 function smallBtn(label, onClick, title) {
@@ -737,16 +744,21 @@ function showSearch(p, th) {
 
 function leave(p) {
   const story = p.story;
+  const done = p.room, doneIndex = p.roomIndex;
+  const stats = t('found_progress', p.foundInRoom(), p.thingsInRoom()) + '  ·  ' + t('room_done_hints', p.hintsShown().length);
   const paid = wallet.claimRoomReward(story.id, p.room.id, p.room.difficulty);
   const returned = p.leave() + (paid > 0 ? '\n\n' + t('coins_reward', paid) : '');
   saves.save(p);
-  modal({
-    message: returned, cancelable: false,
-    buttons: [{
-      label: t('ok'), primary: true,
-      onClick: () => { if (p.finished) showOutro(story); else { side = 'north'; enterRoom(true); } },
-    }],
-  });
+  showRoomDone(p, done, doneIndex, returned, stats);
+}
+
+/** The breather between rooms: which room of how many, the exit text, found/hints/coins (no time, no score), then Continue. */
+function showRoomDone(p, done, index, exitText, stats) {
+  const story = p.story;
+  const where = p.finished ? t('room_done_last') : t('room_done_of', index + 1, story.rooms.length);
+  const next = p.finished ? '' : '\n\n' + t('room_done_next', p.room.title);
+  showPanel(done.title, where + '\n\n' + exitText + '\n\n' + stats + next, t('room_done_continue'),
+    () => { if (p.finished) showOutro(story); else { side = 'north'; enterRoom(true); } });
 }
 
 function showHints() {
