@@ -165,6 +165,8 @@ function parseThing(o) {
     search: Array.isArray(o.search) ? o.search.map((s) => ({ id: reqStr(s, 'id'), name: reqStr(s, 'name'), zone: zone(s) })) : [],
     // keys on the close-up: the plate is the panel ({token, x, y, w, h}; the token is one character)
     keys: Array.isArray(o.keys) ? o.keys.map(parseKey) : [],
+    // a hidden coin (Layton): tapping gives one coin, once; no gives/needs/code. Not part of the puzzle.
+    coin: optBool(o, 'coin', false),
   });
 }
 
@@ -229,6 +231,8 @@ export function parseStory(id, json) {
 /** What tapping a thing did. Plain objects with a `kind`. */
 export const Outcome = Object.freeze({
   said(text, gained = null) { return gained ? { kind: 'said', text, gained } : { kind: 'said', text }; },
+  /** A hidden coin found just now (Outcome.Said with coin = true in Kotlin); the view pays it via the wallet. */
+  coin(text) { return { kind: 'said', text, coin: true }; },
   blocked(text) { return { kind: 'blocked', text }; },
   wrong() { return { kind: 'wrong' }; },
   applied(item, remaining) { return { kind: 'applied', item, remaining }; },
@@ -386,6 +390,8 @@ export class Progress {
     const thing = this.#thing(thingOrId);
     if (!thing || !this.visible(thing)) return Outcome.wrong();
     if (this.found.has(thing.id)) return Outcome.said(thing.text);
+    // A hidden coin: found once, no step forward (the free-hint clock runs on).
+    if (thing.coin) { this.found.add(thing.id); return Outcome.coin(thing.text); }
     const rest = this.#remaining(thing.id, thing.needs);
     if (rest.length > 0) {
       // No stuck text: the label speaks, so no tap is silent.
@@ -523,7 +529,7 @@ export class Progress {
   }
 
   /** Texts of what the player has opened in the current room, in the order of the room's things. */
-  notes() { return this.room.things.filter((t) => this.found.has(t.id)).map((t) => t.text); }
+  notes() { return this.room.things.filter((t) => this.found.has(t.id) && !t.coin).map((t) => t.text); }
 
   /**
    * Every reached room with its intro, found texts and (once left) its exit text, so what was read stays readable.
@@ -537,7 +543,7 @@ export class Progress {
       const r = this.story.rooms[i];
       const left = this.finished || i < this.roomIndex;
       const intro = r.intro || '';
-      const notes = r.things.filter((t) => this.found.has(t.id)).map((t) => t.text);
+      const notes = r.things.filter((t) => this.found.has(t.id) && !t.coin).map((t) => t.text);
       const exit = left && r.exit.text ? r.exit.text : null;
       if (intro || notes.length || exit !== null) out.push({ room: r, intro, notes, exit });
     }
@@ -553,7 +559,7 @@ export class Progress {
     const out = [];
     for (let i = 0; i <= last; i++) {
       const r = this.story.rooms[i];
-      const texts = r.things.filter((t) => this.found.has(t.id)).map((t) => t.text);
+      const texts = r.things.filter((t) => this.found.has(t.id) && !t.coin).map((t) => t.text);
       if (texts.length > 0) {
         const pair = [r, texts];
         pair.room = r;
@@ -564,10 +570,10 @@ export class Progress {
     return out;
   }
 
-  foundInRoom() { return this.room.things.filter((t) => this.found.has(t.id)).length; }
-  thingsInRoom() { return this.room.things.length; }
+  foundInRoom() { return this.room.things.filter((t) => this.found.has(t.id) && !t.coin).length; }
+  thingsInRoom() { return this.room.things.filter((t) => !t.coin).length; }
   /** Every thing on wall `s` is opened, hidden ones included (an empty wall: true); mirrors Progress.foundOnSide. */
-  foundOnSide(s) { return this.room.things.filter((t) => t.side === s).every((t) => this.found.has(t.id)); }
+  foundOnSide(s) { return this.room.things.filter((t) => t.side === s && !t.coin).every((t) => this.found.has(t.id)); }
 
   /**
    * Every item this run has held, used-up ones too, in story order (per room: what things give, then combos).
@@ -691,7 +697,7 @@ export class Progress {
 
 /** Family rule: a coin buys hints and nothing else. */
 export const Coins = Object.freeze({
-  START: 5,
+  START: 8, // 5 until 2026-10-22 (munten-dag-1.md)
   DAILY: 1,
   /** Price of the last hint layer of a room (user decides after playing; the middle layers cost 1). */
   LAST_LAYER_COST: 2,
@@ -800,6 +806,16 @@ export class Wallet {
     return true;
   }
 
+  /** Pays one coin for the hidden coin thingId of storyId once, ever (replaying cannot farm). Returns 1, or 0. */
+  claimCoin(storyId, thingId) {
+    const o = this.#read();
+    const key = `${storyId}_${thingId}`;
+    const coins = isObj(o.coins) ? o.coins : {};
+    if (coins[key]) return 0;
+    this.#write({ ...o, coins: { ...coins, [key]: true }, balance: this.balance() + 1 });
+    return 1;
+  }
+
   /** Pays reward once per story/room, ever. Returns the amount paid, 0 if already paid. */
   claimRoomReward(storyId, roomId, difficulty) {
     const o = this.#read();
@@ -818,7 +834,8 @@ export class Wallet {
 export const Difficulty = Object.freeze({
   /** [{roomId, things, chain, locks, estMinutes}] per room. */
   analyse(story) {
-    return story.rooms.map((r) => {
+    // Hidden coins are no part of the puzzle, so they are left out of the estimate.
+    return story.rooms.map((r0) => ({ ...r0, things: r0.things.filter((t) => !t.coin) })).map((r) => {
       // Depth of getting an item: 0 for one from an earlier room, else 1 + what its source needs.
       const itemDepth = (id, seen) => {
         if (seen.has(id)) return 0;

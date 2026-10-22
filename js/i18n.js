@@ -78,7 +78,10 @@ const nl = {
   load_failed: 'De verhalen konden niet geladen worden.',
   color_R: 'Rood', color_G: 'Groen', color_B: 'Blauw', color_Y: 'Geel', color_W: 'Wit', color_K: 'Zwart',
   help_title: 'Zo speel je',
-  help_body: 'Veeg naar links of rechts, of gebruik de pijlen, om de vier muren van de kamer te bekijken.\n\nTik op dingen op een muur om ze te onderzoeken. De knop \u25ce laat alle plekken oplichten waarop je kunt tikken.\n\nTik onderaan op een voorwerp om het te kiezen en tik dan op het ding waarop je het wilt gebruiken. Met een voorwerp gekozen tik je op een tweede voorwerp om ze te combineren.\n\nVast? De knop Hint geeft hints in lagen: de eerste van een kamer is gratis, de volgende kosten een munt per stuk en de laatste kost twee. Zoek je een tijd zonder verder te komen, dan wordt de volgende gratis: de knop Hint telt af. Je krijgt elke dag een munt en meer voor elke kamer die je uitspeelt.\n\nMet de ? in het menu zie je dit opnieuw.',
+  help_body: 'Veeg, of gebruik de pijlen, om de vier muren van de kamer te bekijken.\n\nTik op wat je ziet. De knop \u25ce laat alle plekken oplichten waarop je kunt tikken.\n\nTik onderaan op een voorwerp om het te kiezen en tik dan waar het hoort; tik een tweede voorwerp aan om de twee te combineren. Houd een voorwerp ingedrukt om het van dichtbij te bekijken.\n\nVast? Hint helpt in lagen. In een kamer met \u00e9\u00e9n ster zijn ze allemaal gratis; elders kosten ze munten, en wie een tijd zoekt krijgt de volgende gratis. In sommige kamers ligt een munt verstopt: tik rond.',
+  nudge_look: 'Veeg om rond te kijken, tik op wat oplicht.',
+  coin_found: '+1 munt!',
+  coin_found_before: 'Deze munt had je bij een eerdere keer al gepakt.',
 };
 
 const en = {
@@ -159,7 +162,10 @@ const en = {
   load_failed: 'The stories could not be loaded.',
   color_R: 'Red', color_G: 'Green', color_B: 'Blue', color_Y: 'Yellow', color_W: 'White', color_K: 'Black',
   help_title: 'How to play',
-  help_body: 'Swipe left or right, or use the arrows, to look at the four walls of the room.\n\nTap things on a wall to examine them. The \u25ce button lights up every spot you can tap.\n\nTap an item at the bottom to select it, then tap the thing you want to use it on. With one item selected, tap a second item to combine them.\n\nStuck? The Hint button gives layered hints: the first of a room is free, the ones after cost a coin each, and the last one costs two. Search a while without getting further and the next one becomes free: the Hint button counts down. You earn a coin every day and more for every room you finish.\n\nThe ? on the menu shows this again.',
+  help_body: 'Swipe, or use the arrows, to look at the four walls of the room.\n\nTap what you see. The \u25ce button lights up every spot you can tap.\n\nTap an item at the bottom to select it, then tap where it goes; tap a second item to combine the two. Hold an item to look at it up close.\n\nStuck? Hint helps in layers. In a room with one star they are all free; elsewhere they cost coins, and searching a while makes the next one free. Some rooms hide a coin: tap around.',
+  nudge_look: 'Swipe to look around, tap what lights up.',
+  coin_found: '+1 coin!',
+  coin_found_before: 'You took this coin on an earlier visit.',
 };
 
 export const lang = (navigator.language || 'en').toLowerCase().startsWith('nl') ? 'nl' : 'en';

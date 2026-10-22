@@ -344,6 +344,7 @@ test('everyStoryCanBePlayedOut', () => {
       while (changed) {
         changed = false;
         for (const t of p.room.things) {
+          if (t.coin) continue; // hidden coins are no part of the puzzle
           const before = [p.items.size, p.found.size, appliedCount(p)].join();
           work(p, t);
           if (before !== [p.items.size, p.found.size, appliedCount(p)].join()) changed = true;

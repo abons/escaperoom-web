@@ -1,7 +1,7 @@
 // Mirror of ProgressTest.kt
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Progress, Coins, Side, ExitAsk, Outcome, Input, CondKind } from '../js/engine.js';
+import { Progress, Coins, Side, ExitAsk, Outcome, Input, CondKind, Difficulty, parseStory } from '../js/engine.js';
 import { z, item, thing, exit, combo, room, story as mkStory, variant, cond } from './_helpers.mjs';
 
 const key = item('k', 'sleutel');
@@ -610,4 +610,39 @@ test('keysOnThePlateEnterTheCode', () => {
   assert.equal(p.tryCode(kist, 'NE').kind, 'said');
   assert.ok(p.items.has('b'));
   assert.equal(p.keyAt(kist, 0.5, 0.2), null); // open: the keys are dead
+});
+
+// ---- hidden coins (thing.coin): found once, no step, outside the counts and the notes
+
+test('hiddenCoinIsFoundOnceAndStaysOutOfTheCounts', () => {
+  const hidden = { ...thing('m', Side.NORTH, { x: 0.6, y: 0.6, w: 0.1, h: 0.1 }, 'Briefje', 'een munt', [], null, null), coin: true };
+  const s = { ...story, rooms: story.rooms.map((r, i) => (i === 0 ? { ...r, things: [...r.things, hidden] } : r)) };
+  let now = 0;
+  const p = new Progress(s);
+  p.clock = () => now;
+  p.resume();
+  assert.equal(p.thingsInRoom(), story.rooms[0].things.length); // the coin is not counted
+  now += 30_000;
+  assert.deepEqual(p.tap(hidden), { kind: 'said', text: 'een munt', coin: true });
+  assert.deepEqual(p.tap(hidden), { kind: 'said', text: 'een munt' }); // the second tap pays nothing
+  assert.equal(p.foundInRoom(), 0);
+  assert.equal(p.waitedMs(), 30_000); // no step forward: the hint clock runs on
+  assert.deepEqual(p.notes(), []);
+  assert.ok(Progress.fromJson(s, p.toJson()).found.has('m'));
+  assert.equal(Difficulty.analyse(s)[0].estMinutes, Difficulty.analyse(story)[0].estMinutes);
+});
+
+test('hiddenCoinDoesNotHoldUpAllSeen', () => {
+  const hidden = { ...thing('m', Side.SOUTH, { x: 0.6, y: 0.6, w: 0.1, h: 0.1 }, 'Briefje', 'een munt', [], null, null), coin: true };
+  const s = { ...story, rooms: story.rooms.map((r, i) => (i === 0 ? { ...r, things: [...r.things, hidden] } : r)) };
+  assert.ok(new Progress(s).foundOnSide(Side.SOUTH));
+});
+
+test('parserReadsCoin', () => {
+  const r = parseStory('t', JSON.stringify({ title: 'T', rooms: [{ id: 'a', title: 'A', task: 't', walls: {},
+    exit: { wall: 'south', x: 0, y: 0, w: 0.1, h: 0.1, code: '1', text: 'x' },
+    things: [{ id: 'm', wall: 'north', x: 0.1, y: 0.1, w: 0.1, h: 0.1, text: 'munt', coin: true },
+      { id: 'n', wall: 'north', x: 0.5, y: 0.5, w: 0.1, h: 0.1, text: 'niks' }] }] })).rooms[0];
+  assert.equal(r.things[0].coin, true);
+  assert.equal(r.things[1].coin, false);
 });
