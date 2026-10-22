@@ -272,9 +272,9 @@ test('saveShapeEqualsKotlin', () => {
   const p = new Progress(story);
   p.tap(giver); p.select('c'); p.revealHint();
   const o = JSON.parse(p.toJson());
-  assert.deepEqual(Object.keys(o), ['room', 'finished', 'items', 'found', 'hits', 'applied', 'side', 'hints', 'playMs', 'mistakes', 'stepMs']);
+  assert.deepEqual(Object.keys(o), ['room', 'finished', 'items', 'found', 'hits', 'seen', 'applied', 'side', 'hints', 'playMs', 'mistakes', 'stepMs']);
   assert.deepEqual(o, {
-    room: 0, finished: false, items: [{ id: 'k', name: 'sleutel' }], found: ['g'], hits: [], applied: {}, side: 'north', hints: { a: 1 },
+    room: 0, finished: false, items: [{ id: 'k', name: 'sleutel' }], found: ['g'], hits: [], seen: [], applied: {}, side: 'north', hints: { a: 1 },
     playMs: {}, mistakes: {}, stepMs: { a: 0 }, // stepMs: playMs at the last step (opened, hint), here 0
   });
 });

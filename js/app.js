@@ -641,7 +641,7 @@ function askCode(type, len, onCode) {
 /** code {type, len, onCode}: a button swaps the text for the code pad, under the plate (which shrinks). */
 function showCloseup(p, th, msg, code) {
   const src = plate(p.story.id, `${p.room.id}/${th.closeup}`);
-  const visual = src
+  let visual = src
     ? h('img', { class: 'closeup-img', src, alt: th.label || '' })
     : h('div', { class: 'closeup-label' }, th.label || '');
   // scale open from the zone of the thing that was tapped (and close back into it)
@@ -651,6 +651,7 @@ function showCloseup(p, th, msg, code) {
     ? { x: wr.left + z.x * wr.width, y: wr.top + z.y * wr.height, w: z.w * wr.width, h: z.h * wr.height }
     : undefined;
   const said = h('div', { class: 'closeup-text' }, msg);
+  if (th.look && th.look.length > 0) visual = lookPlate(p, th, src, said, msg);
   let pad = null;
   let m = null;
   const enterCode = () => {
@@ -717,6 +718,31 @@ function showKeyPlate(p, th, code) {
     onKey: (e) => pad.handleKey(e),
     buttons: [{ label: t('close'), primary: true }],
   });
+}
+
+/**
+ * A close-up with details to look at (th.look): every detail marked (dashed while unread, a soft ring once read);
+ * a tap lights it up and says its line in `said`, and the line goes to the notes (Progress.lookAt).
+ */
+function lookPlate(p, th, src, said, msg) {
+  const img = src ? h('img', { class: 'search-img', src, alt: th.label || '', draggable: 'false' }) : h('div', { class: 'search-img search-blank' });
+  const wrap = h('div', { class: 'search-wrap lookplate' }, img);
+  const marks = new Map(th.look.map((d) => [d.id, markAt('look-mark' + (p.isSeen(th, d) ? ' seen' : ''), d.zone)]));
+  for (const mk of marks.values()) wrap.append(mk);
+  said.textContent = `${msg}\n${t('look_on_plate')}`;
+  wrap.addEventListener('click', (e) => {
+    const r = wrap.getBoundingClientRect();
+    const d = p.lookAt(th, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+    if (!d) return;
+    buzz(15);
+    marks.get(d.id)?.classList.add('seen');
+    const lit = markAt('look-lit', d.zone);
+    wrap.append(lit);
+    setTimeout(() => lit.remove(), 600); // not animationend: with reduced motion there is no animation to end
+    said.textContent = d.text;
+    saves.save(p);
+  });
+  return wrap;
 }
 
 /** An absolutely placed box over zone z of a plate wrap (fractions). */
