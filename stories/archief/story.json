@@ -20,10 +20,10 @@
       "task": "Kom uit de kelder via het luik op de zuidmuur. Het slot wil een code van vier cijfers.",
       "intro": "Een enkele peertje zwaait zachtjes heen en weer, flikkert zonder patroon en gooit schaduwen over de muren. Het luik naar boven zit stevig op slot.",
       "walls": {
-        "north": "De noordmuur: een houten wijnrek vol stoffige flessen.",
-        "east": "De oostmuur: een krakkemikkige werkbank vol gereedschap.",
-        "south": "De zuidmuur: een zwaar luik met een cijferslot.",
-        "west": "De westmuur: een afgesloten kastje en een scheef schilderij."
+        "north": "Rijen stoffige flessen in een houten rek; een kale lamp zoemt erboven.",
+        "east": "Een wankele werkbank, tangen en hamers aan de rail, een oude kist erop.",
+        "south": "Een zwaar luik met een koperen cijferslot, en daarachter de weg naar buiten.",
+        "west": "Een kastje met een hangslot, en een schilderij dat scheef aan zijn haak hangt."
       },
       "things": [
         {
@@ -80,10 +80,10 @@
       "task": "Vind de twee helften van de doorgangskaart en een stempel, en open de voordeur.",
       "intro": "Maanlicht valt door de lamellen over een rommelig bureau. Aan de zuidkant zie je de voordeur, met een kaartlezer ernaast.",
       "walls": {
-        "north": "De noordmuur: een groot houten bureau onder een raam.",
-        "east": "De oostmuur: een stalen kluis in de muur.",
-        "south": "De zuidmuur: de voordeur met een kaartlezer.",
-        "west": "De westmuur: een stilstaande klok en een vol prikbord."
+        "north": "Maanlicht valt door de lamellen op een bureau vol formulieren en laden.",
+        "east": "Een stalen kluis in de muur, met een sleutelgat én een draaiknop.",
+        "south": "De voordeur zit dicht; naast de klink wacht een kastje op een pasje.",
+        "west": "Een klok die niet meer tikt, boven een prikbord vol briefjes en memo's."
       },
       "things": [
         {

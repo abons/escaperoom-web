@@ -19,10 +19,10 @@
       "task": "Kom door de deur met 'Alleen personeel' en zoek wie er in de winkel heeft gerommeld.",
       "intro": "De winkel is stil. Jij viel in het leeshoekje in slaap. De voordeur zit dicht en het licht is aan.",
       "walls": {
-        "north": "De noordmuur: de toonbank met de kassa en een bos ballonnen.",
-        "east": "De oostmuur: een plank vol knuffels.",
-        "south": "De zuidmuur: een rode deur met een paneeltje met drie knoppen.",
-        "west": "De westmuur: een tafeltje met een muziekdoos en een treinbaan."
+        "north": "Ballonnen dansen boven de toonbank, en op de kassa zit een briefje.",
+        "east": "Een lange plank vol knuffels: beren, konijnen en olifanten.",
+        "south": "Een rode deur met een bordje, en drie knopjes ernaast.",
+        "west": "Een muziekdoos op een tafeltje, en een treintje op de vloer."
       },
       "things": [
         {
@@ -89,10 +89,10 @@
       "task": "Kom de trap op. Zoek de sleutel van de trap.",
       "intro": "Achter de deur is het magazijn. Overal staan dozen. Rechts begint een trap.",
       "walls": {
-        "north": "De noordmuur: een stapel dozen.",
-        "east": "De oostmuur: een houten speelgoedkist met een slot.",
-        "south": "De zuidmuur: een trap achter een laag hekje.",
-        "west": "De westmuur: haakjes met sleuteltjes."
+        "north": "Drie grote dozen op elkaar, elk in een andere kleur.",
+        "east": "Een houten kist met een slot, en een beer ernaast.",
+        "south": "Boven aan de trap is het licht, maar het hekje zit op slot.",
+        "west": "Een rij haakjes met sleuteltjes, en één haakje is leeg."
       },
       "things": [
         {
@@ -157,10 +157,10 @@
       "task": "Zoek uit wat Rob wil en zet de grote klok aan de praat.",
       "intro": "Boven is een kamer vol klokken. Bij de grote klok staat Rob, de opwind-robot. Hij heeft overal sleutels.",
       "walls": {
-        "north": "De noordmuur: de grote klok, met Rob ervoor.",
-        "east": "De oostmuur: een koekoeksklok en wekkers.",
-        "south": "De zuidmuur: een raam met zonlicht.",
-        "west": "De westmuur: een zacht kussen en een deken."
+        "north": "De grote klok staat stil, en Rob de robot kijkt je aan.",
+        "east": "Overal wekkers, en in het midden een koekoeksklok die slaapt.",
+        "south": "Door het ronde raam zie je de zon opkomen.",
+        "west": "Een zacht kussen en een lappendeken, fijn voor een dutje."
       },
       "things": [
         {

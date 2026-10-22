@@ -20,10 +20,10 @@
       "task": "Vind de sleutel van het magazijn en kom door de deur op de zuidmuur.",
       "intro": "Meelstof zweeft in de zon. Achter de toonbank ruikt het naar versgebakken brood, maar er staat niemand achter de kassa.",
       "walls": {
-        "north": "De noordmuur: een houten toonbank met een kassa en een kalender.",
-        "east": "De oostmuur: de grote bakoven met draaiknoppen.",
-        "south": "De zuidmuur: de deur naar het magazijn.",
-        "west": "De westmuur: lege broodrekken en een schoolbord met de dagaanbieding."
+        "north": "Zon op de toonbank: een koperen kassa, vers brood en een scheurkalender.",
+        "east": "De bakoven gloeit nog na, met drie draaiknoppen naast zijn ronde deur.",
+        "south": "Een zware eiken deur met een groot sleutelgat; ernaast drie schorten.",
+        "west": "Lege broodrekken, alsof alles al verkocht is, en een groot schoolbord."
       },
       "things": [
         {
@@ -79,10 +79,10 @@
       "task": "Zoek de trapsleutel onder de rommel bij de graankist en neem een lamp mee voor de donkere trap.",
       "intro": "Zakken meel tot aan het plafond, een lange houten balk en een koelcel. Het is koel en schemerig, en iemand is hier vanmorgen druk geweest.",
       "walls": {
-        "north": "De noordmuur: stellingen vol meelzakken onder een houten balk.",
-        "east": "De oostmuur: een gereedschapskast.",
-        "south": "De zuidmuur: de trap naar de woning boven, met een afgesloten traphek ervoor.",
-        "west": "De westmuur: een graankist onder een hoop rommel en een koelcel."
+        "north": "Rijen meelzakken op houten stellingen, elk dichtgeknoopt met een gekleurd touwtje.",
+        "east": "Een groene kast staat open; emmers, sponzen en een zwabber eromheen.",
+        "south": "De trap naar boven, maar een dicht houten hek met een koperen slot staat ervoor.",
+        "west": "Een houten graankist met spullen erop, naast een koelcel die zacht bromt."
       },
       "variants": [
         { "wall": "west", "when": { "selected": "uvlamp" }, "image": "west-uv" }
@@ -160,10 +160,10 @@
       "task": "Lees de brief van Teun aan zijn dochter en open de deur naar de gang. Het slot wil vier cijfers.",
       "intro": "Een gezellige kamer met een gedekte tafel en veel te veel borden voor één man. Op de bank liggen kussens.",
       "walls": {
-        "north": "De noordmuur: een grote tafel met een taartdoos, gedekt voor een hele groep.",
-        "east": "De oostmuur: een servieskast en een lijst met een foto.",
-        "south": "De zuidmuur: de deur naar de gang, met een cijferslot en een kaartje: 'Aantal gasten, dan zijn leeftijd.'",
-        "west": "De westmuur: een bank met kussens en een kistje met pijlen."
+        "north": "Een lange tafel, gedekt voor een feest, met in het midden een taartdoos.",
+        "east": "Een servieskast vol borden, en een foto van een jongen op een fiets.",
+        "south": "Bij de deur naar de gang hangt een kaartje: 'Aantal gasten, dan zijn leeftijd.'",
+        "west": "Een bank vol kussens, en op een tafeltje een kistje met vier pijlknoppen."
       },
       "things": [
         {
@@ -208,7 +208,13 @@
           "label": "Pijlenkistje",
           "text": "Het kistje klikt open. Een brief van Teun aan Fien: 'Het spelletje loopt. De buur zoekt zich suf. Elke gast krijgt taart, ik heb voor ieder een bord gedekt. De taart moet aan.'",
           "code": "NESW", "input": "dirs", "len": 4,
-          "closeup": "kistje-pijlenslot"
+          "closeup": "kistje-pijlenslot",
+          "keys": [
+            { "token": "N", "x": 0.475, "y": 0.185, "w": 0.175, "h": 0.13 },
+            { "token": "E", "x": 0.475, "y": 0.355, "w": 0.175, "h": 0.13 },
+            { "token": "W", "x": 0.475, "y": 0.525, "w": 0.175, "h": 0.13 },
+            { "token": "S", "x": 0.47, "y": 0.69, "w": 0.175, "h": 0.135 }
+          ]
         }
       ],
       "exit": {
