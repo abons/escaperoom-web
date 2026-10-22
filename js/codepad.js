@@ -17,11 +17,13 @@ const DARK_TEXT = { W: true, Y: true };
 const PER_ROW = { digits: 3, letters: 7, dirs: 4, colors: 3, sequence: 3 };
 
 /**
- * Returns {el, handleKey(e)}. onSubmit(code) is called when the slots are full or OK is pressed;
+ * Returns {el, handleKey(e), press(c)}. With opts.showKeys false only the slots, backspace and OK are drawn:
+ * the keys are on the close-up plate, which calls press. onSubmit(code) is called when the slots are full or OK is pressed;
  * it returns true when the code was right (the caller closes the pad), false to keep it open.
  * For colors the names of the colours are R G B Y W K; for dirs N E S W.
  */
-export function codePad(type, len, onSubmit) {
+export function codePad(type, len, onSubmit, opts = {}) {
+  const showKeys = opts.showKeys !== false;
   if (!KEYS[type]) type = 'digits';
   // what a token looks like on a key or in a slot
   const glyph = (c) => (type === 'dirs' ? ARROWS[c] : type === 'sequence' ? SYMBOLS[c] : c);
@@ -47,13 +49,17 @@ export function codePad(type, len, onSubmit) {
     });
   };
 
-  // A wrong code (onSubmit returns false) keeps the pad open but empties the slots for another try.
+  // A wrong code (onSubmit returns false) keeps the pad open: the slots show red and shake, then empty.
+  let refused = false;
   const submit = () => {
-    if (!typed) return;
-    if (onSubmit(typed) === false) { typed = ''; refresh(); }
+    if (!typed || refused) return;
+    if (onSubmit(typed) !== false) return;
+    refused = true;
+    slotRow.classList.remove('cp-wrong'); void slotRow.offsetWidth; slotRow.classList.add('cp-wrong');
+    setTimeout(() => { refused = false; slotRow.classList.remove('cp-wrong'); typed = ''; refresh(); }, 400);
   };
   const press = (c) => {
-    if (typed.length >= len) return;
+    if (refused || typed.length >= len) return;
     typed += c;
     refresh();
     if (typed.length === len) submit();
@@ -62,7 +68,7 @@ export function codePad(type, len, onSubmit) {
   const el = h('div', { class: 'codepad cp-' + type }, slotRow);
   const keys = KEYS[type];
   const per = PER_ROW[type];
-  for (let i = 0; i < keys.length; i += per) {
+  for (let i = 0; showKeys && i < keys.length; i += per) {
     const row = h('div', { class: 'cp-row' });
     for (const c of keys.slice(i, i + per)) {
       const k = h('button', { type: 'button', class: 'cp-key', 'aria-label': type === 'colors' ? t('color_' + c) : glyph(c), onclick: () => press(c) });
@@ -106,5 +112,5 @@ export function codePad(type, len, onSubmit) {
     if (c && keys.includes(c)) { press(c); e.preventDefault(); return true; }
     return type === 'dirs' && !!dirKeys[e.key];
   };
-  return { el, handleKey };
+  return { el, handleKey, press };
 }

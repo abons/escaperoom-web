@@ -10,7 +10,7 @@ export function thing(id, side, zone, label, text, needs, stuck, gives, o = {}) 
     id, side, wall: side, zone, label, text, needs, stuck, gives,
     consumes: o.consumes ?? false,
     code, input: o.input ?? 'digits', len: o.len ?? (code === null ? 0 : code.length),
-    closeup: o.closeup ?? null, visibleWhen: o.visibleWhen ?? null, search: o.search ?? [],
+    closeup: o.closeup ?? null, visibleWhen: o.visibleWhen ?? null, search: o.search ?? [], keys: o.keys ?? [],
   };
   Object.defineProperty(t, 'inputType', { get() { return Input.parse(this.input); }, enumerable: false });
   return t;

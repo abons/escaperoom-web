@@ -394,7 +394,8 @@ function outcome(p, th, o) {
         saves.save(p);
         return true;
       };
-      if (th.closeup) showCloseup(p, th, th.label || '', { type, len, onCode }); else askCode(type, len, onCode);
+      if (th.closeup && th.keys && th.keys.length > 0) showKeyPlate(p, th, { type, len, onCode });
+      else if (th.closeup) showCloseup(p, th, th.label || '', { type, len, onCode }); else askCode(type, len, onCode);
       break;
     }
     default: break;
@@ -475,6 +476,55 @@ function showCloseup(p, th, msg, code) {
       ? [{ label: t('code_title'), primary: true, onClick: enterCode }, { label: t('close') }]
       : [{ label: t('close'), primary: true }],
   });
+}
+
+/**
+ * A lock whose close-up is its own panel (th.keys): tap the keys drawn on the plate, the slots fill under it.
+ * A pressed key lights up; a wrong code flashes the plate red and shakes it. Opens from the zone like a close-up.
+ */
+function showKeyPlate(p, th, code) {
+  const src = plate(p.story.id, `${p.room.id}/${th.closeup}`);
+  const img = src ? h('img', { class: 'search-img', src, alt: th.label || '', draggable: 'false' }) : h('div', { class: 'search-img search-blank' });
+  const wrap = h('div', { class: 'search-wrap keyplate' }, img);
+  // no plate yet: the keys are outlined so the lock stays playable before the art
+  if (!src) for (const k of th.keys) wrap.append(markAt('key-outline', k.zone));
+  const wr = ui.wall && ui.wall.el.getBoundingClientRect();
+  const z = th.zone;
+  const animateFrom = wr && wr.width > 0 && z
+    ? { x: wr.left + z.x * wr.width, y: wr.top + z.y * wr.height, w: z.w * wr.width, h: z.h * wr.height }
+    : undefined;
+  let m = null;
+  const pad = codePad(code.type, code.len, (typed) => {
+    const ok = code.onCode(typed);
+    if (ok) { m.close(); m.box.parentElement?.remove(); return true; }
+    wrap.classList.remove('key-wrong'); void wrap.offsetWidth; wrap.classList.add('key-wrong');
+    return false;
+  }, { showKeys: false });
+  wrap.addEventListener('click', (e) => {
+    const r = wrap.getBoundingClientRect();
+    const k = p.keyAt(th, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+    if (!k) return;
+    buzz(15);
+    const lit = markAt('key-lit', k.zone);
+    wrap.append(lit);
+    lit.addEventListener('animationend', () => lit.remove());
+    pad.press(k.token);
+  });
+  const said = h('div', { class: 'closeup-text' }, `${th.label || ''}\n${t('keys_on_plate')}`.trim());
+  m = modal({
+    className: 'closeup',
+    animateFrom,
+    content: h('div', { class: 'closeup-col' }, wrap, said, pad.el),
+    onKey: (e) => pad.handleKey(e),
+    buttons: [{ label: t('close'), primary: true }],
+  });
+}
+
+/** An absolutely placed box over zone z of a plate wrap (fractions). */
+function markAt(cls, z) {
+  const mk = h('div', { class: cls });
+  mk.style.cssText = `left:${z.x * 100}%;top:${z.y * 100}%;width:${z.w * 100}%;height:${z.h * 100}%`;
+  return mk;
 }
 
 /** The search plate of th: tap what is on the list; the last one found opens the thing. */

@@ -520,3 +520,25 @@ test('searchHitsSurviveASave', () => {
   assert.equal(back.searchLeft(rummage), 1);
   assert.deepEqual(back.tap(rummage), Outcome.search(rummage));
 });
+
+// Keys on a close-up: keyAt finds the key under a tap; the code goes to tryCode like a typed one.
+test('keysOnThePlateEnterTheCode', () => {
+  const kist = thing('k', Side.NORTH, z, 'Kistje', 'open', [], null, item('b', 'brief'), {
+    code: 'NE', input: 'dirs', closeup: 'kistje',
+    keys: [{ token: 'N', zone: { x: 0.4, y: 0.1, w: 0.2, h: 0.2 } }, { token: 'E', zone: { x: 0.4, y: 0.4, w: 0.2, h: 0.2 } }],
+  });
+  const p = new Progress(mkStory('s', 'nl', 'S', '', '', '', [
+    room('a', 'A', 't', '', {}, [kist], exit(Side.SOUTH, z, '1', [], null, 'uit')),
+  ]));
+  assert.equal(p.tap(kist).kind, 'needsCode');
+  assert.equal(p.keyAt(kist, 0.05, 0.05), null); // beside every key: nothing, and no fault
+  const faults = () => [...p.mistakes.values()].reduce((a, b) => a + b, 0);
+  assert.equal(faults(), 0);
+  const code = [p.keyAt(kist, 0.5, 0.45), p.keyAt(kist, 0.5, 0.2)].map((k) => k.token).join('');
+  assert.equal(code, 'EN');
+  assert.equal(p.tryCode(kist, code).kind, 'wrong');
+  assert.equal(faults(), 1);
+  assert.equal(p.tryCode(kist, 'NE').kind, 'said');
+  assert.ok(p.items.has('b'));
+  assert.equal(p.keyAt(kist, 0.5, 0.2), null); // open: the keys are dead
+});

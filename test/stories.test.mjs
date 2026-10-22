@@ -43,6 +43,49 @@ function checkLock(who, code, input, len) {
   assert.equal(t.normalise(code).length, len, `${who}: code '${code}' is not len ${len}`);
 }
 
+/**
+ * Keys on a close-up (keys): only on a thing with a code and a closeup, one key per token, only tokens of the
+ * input set, every token of the code reachable, zones inside the plate and not overlapping.
+ */
+function checkKeys(who, t) {
+  const keys = t.keys || [];
+  if (keys.length === 0) return;
+  assert.ok(t.code !== null && t.code !== undefined, `${who}: keys need a code`);
+  assert.ok(t.closeup, `${who}: keys need a closeup (the plate is the panel)`);
+  const type = Input.parse(t.input);
+  const seen = new Set();
+  for (const k of keys) {
+    const z = k.zone;
+    assert.ok(type.tokens.has(k.token), `${who}: key '${k.token}' is not a ${type.key} token`);
+    assert.ok(!seen.has(k.token), `${who}: key '${k.token}' twice`);
+    seen.add(k.token);
+    assert.ok(z.x >= 0 && z.y >= 0 && z.w > 0 && z.h > 0 && z.x + z.w <= 1 && z.y + z.h <= 1, `${who}: key '${k.token}' zone outside the plate`);
+  }
+  for (const c of type.normalise(t.code)) assert.ok(seen.has(c), `${who}: code token '${c}' has no key`);
+  keys.forEach((a, i) => {
+    for (const b of keys.slice(i + 1)) {
+      const z = a.zone; const y = b.zone;
+      assert.ok(z.x + z.w <= y.x || y.x + y.w <= z.x || z.y + z.h <= y.y || y.y + y.h <= z.y, `${who}: keys '${a.token}' and '${b.token}' overlap`);
+    }
+  });
+}
+
+test('keyCheckRejectsBadKeys', () => {
+  const kz = (token, x, y, w, h) => ({ token, zone: { x, y, w, h } });
+  const base = { id: 'k', code: 'NS', input: 'dirs', closeup: 'c', keys: [kz('N', 0.1, 0.1, 0.2, 0.2), kz('S', 0.1, 0.5, 0.2, 0.2)] };
+  checkKeys('ok', base);
+  const bad = [
+    { ...base, keys: [kz('N', 0.1, 0.1, 0.2, 0.2), kz('S', 0.2, 0.2, 0.2, 0.2)] },
+    { ...base, keys: [...base.keys, kz('X', 0.6, 0.6, 0.1, 0.1)] },
+    { ...base, keys: base.keys.slice(0, 1) },
+    { ...base, code: null },
+    { ...base, closeup: null },
+    { ...base, keys: [...base.keys, kz('E', 0.9, 0.9, 0.2, 0.2)] },
+    { ...base, keys: [...base.keys, kz('N', 0.6, 0.1, 0.1, 0.1)] },
+  ];
+  bad.forEach((t, i) => assert.throws(() => checkKeys(`bad${i}`, t), undefined, `bad keys ${i} should fail`));
+});
+
 test('sequenceLockIsCheckedLikeTheRest', () => {
   checkLock('fixture', 'SMHT', 'sequence', 4);
   assert.throws(() => checkLock('fixture', 'SMX', 'sequence', 3));
@@ -116,6 +159,7 @@ test('rulesHoldForEveryStory', () => {
           assert.ok(!blank(t.stuck), `${n}/${t.id}: stuck blank`);
         }
         checkLock(`${n}/${t.id}`, t.code, t.input, t.len);
+        checkKeys(`${n}/${t.id}`, t);
         if (t.code === null) assert.equal(t.input, 'digits', `${n}/${t.id}: input/len without code`);
         if (t.closeup !== null && !plateExists(path.join(dir, n, r.id, t.closeup))) {
           console.log(`WARNING ${n}/${t.id}: closeup file ${n}/${r.id}/${t.closeup}.png missing`);
@@ -261,7 +305,14 @@ function work(p, t) {
     switch (o.kind) {
       case 'applied': p.select(null); break;
       case 'needsCode': {
-        const code = o.thing.code;
+        // keys on the plate: the code is what tapping the centre of each key's zone gives
+        const keys = t.keys || [];
+        const code = keys.length === 0 ? o.thing.code : [...Input.parse(t.input).normalise(t.code)].map((c) => {
+          const kz = keys.find((k) => k.token === c).zone;
+          const k = p.keyAt(t, kz.x + kz.w / 2, kz.y + kz.h / 2);
+          assert.equal(k?.token, c, `${t.id}: key '${c}' not under its own zone`);
+          return k.token;
+        }).join('');
         assert.deepEqual(p.tryCode(t, `${code}x`), { kind: 'wrong' }, `${t.id}: wrong code accepted`);
         assert.equal(p.tryCode(t, code).kind, 'said', `${t.id}: code rejected`);
         break;
