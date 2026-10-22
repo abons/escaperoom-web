@@ -314,13 +314,13 @@ export class Progress {
 
   /** Ms of waiting left before the next layer is free; 0 when it is free already or no layer is left. The view's countdown. */
   hintFreeInMs() {
-    if (!this.hintAvailable() || Coins.hintCost(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length) === 0) return 0;
+    if (!this.hintAvailable() || Coins.hintCost(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length, undefined, this.room.difficulty) === 0) return 0;
     return Math.max(0, Coins.hintWaitMs(this.room.difficulty) - this.waitedMs());
   }
 
   /** True when the next layer would cost coins but waiting has made it free (the view pulses). */
   hintFreeByWaiting() {
-    return this.hintAvailable() && Coins.hintCost(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length) > 0
+    return this.hintAvailable() && Coins.hintCost(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length, undefined, this.room.difficulty) > 0
       && this.nextHintCost() === 0;
   }
 
@@ -571,6 +571,9 @@ export class Progress {
 
   hintsShown() { return this.room.hints.slice(0, this.hintCounts.get(this.room.id) ?? 0); }
   hintAvailable() { return (this.hintCounts.get(this.room.id) ?? 0) < this.room.hints.length; }
+  /** Layers of the current room revealed so far, and how many it has: the dialog's "Hints 1/4". */
+  hintsRevealed() { return Math.min(this.hintCounts.get(this.room.id) ?? 0, this.room.hints.length); }
+  hintsTotal() { return this.room.hints.length; }
 
   /** Reveal the next hint of this room; null when none is left. Charging coins is the caller's job. */
   revealHint() {
@@ -587,7 +590,7 @@ export class Progress {
   /** Coins the revealed hints cost at list price, derived from the counts; layers made free by waiting are not known, so an upper bound. */
   hintCoinsSpent() {
     let s = 0;
-    for (const r of this.story.rooms) s += Coins.hintsCost(this.hintCounts.get(r.id) ?? 0, r.hints.length);
+    for (const r of this.story.rooms) s += Coins.hintsCost(this.hintCounts.get(r.id) ?? 0, r.hints.length, r.difficulty);
     return s;
   }
 
@@ -676,15 +679,23 @@ export const Coins = Object.freeze({
   /**
    * Cost of hint layer `index` (0-based) of `total`: first free, last LAST_LAYER_COST, between 1. First rule wins.
    * With `waitedMs` and `difficulty` (the Kotlin 4-argument overload): 0 once waitedMs reaches hintWaitMs(difficulty).
+   * With `difficulty` alone (waitedMs undefined; the Kotlin 3-argument overload): the list price in that room.
+   * Either way 0 in a difficulty-1 room (hintsFree).
    */
   hintCost(index, total, waitedMs, difficulty) {
+    if (difficulty !== undefined && Coins.hintsFree(difficulty)) return 0;
     if (waitedMs !== undefined && waitedMs >= Coins.hintWaitMs(difficulty)) return 0;
     if (index <= 0) return 0;
     if (index >= total - 1) return Coins.LAST_LAYER_COST;
     return 1;
   },
-  /** Coins spent on the first `n` layers of a room with `total` layers. */
-  hintsCost(n, total) { let s = 0; for (let i = 0; i < Math.min(n, total); i++) s += Coins.hintCost(i, total); return s; },
+  /** Every hint layer is free in a difficulty-1 room; the scarcity stays for 2..5. Mirror of Coins.hintsFree. */
+  hintsFree(difficulty) { return difficulty <= 1; },
+  /** Coins spent on the first `n` layers of a room with `total` layers; 0 in a difficulty-1 room when `difficulty` is given. */
+  hintsCost(n, total, difficulty) {
+    if (difficulty !== undefined && Coins.hintsFree(difficulty)) return 0;
+    let s = 0; for (let i = 0; i < Math.min(n, total); i++) s += Coins.hintCost(i, total); return s;
+  },
   /** Reward for solving a room: its difficulty, 1..5. */
   reward(difficulty) { return Math.min(5, Math.max(1, Math.trunc(difficulty))); },
   /** Strict `<` on yyyyMMdd, so setting the clock back opens nothing. */

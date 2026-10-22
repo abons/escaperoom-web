@@ -22,8 +22,8 @@ const keepCombo = combo('k', 'g2', item('kg', 'x'), 'behouden', false);
 const story = mkStory('t', 'nl', 'T', '', '', '', [
   room('a', 'A', 'taak', '', {}, [giver, coinGiver, locked, usedUp, two, twoUsed, safe, dials],
     exit(Side.SOUTH, z, '1234', [], null, 'naar b'),
-    { hints: ['h1', 'h2'], combos: [theCombo, keepCombo] }),
-  room('b', 'B', 'taak', '', {}, [], exit(Side.SOUTH, z, null, ['k'], 'dicht', 'uit'), { hints: ['x'] }),
+    { difficulty: 2, hints: ['h1', 'h2'], combos: [theCombo, keepCombo] }),
+  room('b', 'B', 'taak', '', {}, [], exit(Side.SOUTH, z, null, ['k'], 'dicht', 'uit'), { difficulty: 2, hints: ['x'] }),
 ]);
 const exitStory = mkStory('e', 'nl', 'E', '', '', '', [
   room('x', 'X', 'taak', '', {}, [giver, coinGiver],

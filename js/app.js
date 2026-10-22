@@ -466,7 +466,12 @@ function refreshHint() {
   if (!b || !p || screen !== 'room') return;
   const left = p.hintFreeInMs();
   const free = p.hintFreeByWaiting();
-  b.textContent = free ? t('hint_button_free') : left > 0 ? t('hint_button_wait', clockText(left)) : t('hint_button');
+  const layer = `${p.hintsRevealed() + 1}/${p.hintsTotal()}`; // which layer is next
+  b.textContent = !p.hintAvailable() ? t('hint_button')
+    : free ? t('hint_button_free', layer)
+    : left > 0 ? t('hint_button_wait', clockText(left), layer)
+    : p.nextHintCost() === 0 ? t('hint_button_free', layer) // free by price: label only, no fill
+    : t('hint_button_layer', layer);
   const wait = Coins.hintWaitMs(p.room.difficulty);
   b.style.setProperty('--fill', (free ? 100 : left > 0 ? Math.round((wait - left) * 100 / wait) : 0) + '%');
   b.classList.toggle('free', free);
@@ -764,6 +769,9 @@ function showRoomDone(p, done, index, exitText, stats) {
 function showHints() {
   const p = progress;
   if (!p || modalOpen()) return;
+  if (!p.hintsShown().length && p.hintAvailable() && p.nextHintCost() === 0) { // the first push without a click
+    p.revealHint(); saves.save(p); refreshStatus(); refreshHint();
+  }
   const shown = p.hintsShown();
   const list = shown.map((x, i) => `${i + 1}. ${x}`).join('\n\n');
   const available = p.hintAvailable();
@@ -772,9 +780,11 @@ function showHints() {
   else if (!shown.length) msg = t('hint_none');
   else if (available) msg = list;
   else msg = list + '\n\n' + t('hint_none');
+  if (available) msg += '\n\n' + hintNextLine(p); // which layer comes next, right under the read ones
   const left = p.hintFreeInMs();
   if (available && p.hintFreeByWaiting()) msg += '\n\n' + t('hint_waited');
   else if (available && left > 0) msg += '\n\n' + t('hint_wait', clockText(left));
+  if (available && wallet.balance() < p.nextHintCost()) msg += '\n\n' + t('hint_poor', Coins.reward(p.room.difficulty));
   const buttons = [{ label: t('ok') }];
   if (available) {
     const cost = p.nextHintCost();
@@ -789,12 +799,20 @@ function showHints() {
           refreshHint();
           setTimeout(showHints, 0);
         } else {
-          say(t('hint_poor'));
+          say(t('hint_poor', Coins.reward(p.room.difficulty)));
         }
       },
     });
   }
-  modal({ title: t('hint_button'), message: msg, buttons });
+  const title = p.hintsTotal() > 0 ? t('hints_title', p.hintsRevealed(), p.hintsTotal()) : t('hint_button');
+  modal({ title, message: msg, buttons });
+}
+
+/** "Next: hint 3 of 4, the last one." plus, in a difficulty-1 room, that every layer is free. */
+function hintNextLine(p) {
+  const n = p.hintsRevealed() + 1;
+  const next = t(n === p.hintsTotal() ? 'hint_next_is_last' : 'hint_next_is', n, p.hintsTotal());
+  return Coins.hintsFree(p.room.difficulty) ? next + ' ' + t('hints_free_room') : next;
 }
 
 function showNotes() {

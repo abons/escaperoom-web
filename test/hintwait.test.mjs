@@ -11,10 +11,10 @@ const coinGiver = thing('cg', Side.NORTH, z, 'cg', 'een munt', [], null, coin);
 const locked = thing('l', Side.EAST, z, 'l', 'open', ['k'], 'dicht', null);
 const story = mkStory('t', 'nl', 'T', '', '', '', [
   room('a', 'A', 'taak', '', {}, [giver, coinGiver, locked], exit(Side.SOUTH, z, '1234', [], null, 'naar b'),
-    { hints: ['h1', 'h2'], combos: [combo('k', 'c', item('kc', 'sleutelmunt'), 'samengevoegd')] }),
-  room('b', 'B', 'taak', '', {}, [], exit(Side.SOUTH, z, null, ['k'], 'dicht', 'uit'), { hints: ['x'] }),
+    { difficulty: 2, hints: ['h1', 'h2'], combos: [combo('k', 'c', item('kc', 'sleutelmunt'), 'samengevoegd')] }),
+  room('b', 'B', 'taak', '', {}, [], exit(Side.SOUTH, z, null, ['k'], 'dicht', 'uit'), { difficulty: 2, hints: ['x'] }),
 ]);
-const WAIT = Coins.hintWaitMs(1);
+const WAIT = Coins.hintWaitMs(2); // room a is difficulty 2: 4 min (difficulty 1 gives every layer free)
 
 function timed() {
   const clock = { t: 0 };
@@ -47,7 +47,7 @@ test('waitingWithoutStepMakesNextHintFree', () => {
   c.t = 120000; p.look(Side.WEST);
   assert.equal(p.hintFreeInMs(), WAIT - 120000);
   assert.equal(p.hintFreeByWaiting(), false);
-  c.t = 180000;
+  c.t = WAIT;
   assert.equal(p.nextHintCost(), 0);
   assert.equal(p.hintFreeInMs(), 0);
   assert.equal(p.hintFreeByWaiting(), true);
@@ -97,4 +97,37 @@ test('newRoomStartsItsOwnWait', () => {
   p.resume(); p.revealHint(); c.t = 170000; p.leave();
   assert.equal(p.nextHintCost(), 0);
   assert.equal(p.waitedMs(), 0);
+});
+
+// ---- difficulty 1: every hint layer is free (mirror of CoinsTest.easyRoomsGiveEveryLayerFree, ProgressTest.easyRoomHintsAreFreeWithoutCountdown)
+
+test('easyRoomsGiveEveryLayerFree', () => {
+  assert.equal(Coins.hintsFree(1), true);
+  assert.equal(Coins.hintsFree(0), true);
+  assert.equal(Coins.hintsFree(2), false);
+  assert.deepEqual([0, 1, 2, 3].map((i) => Coins.hintCost(i, 4, undefined, 1)), [0, 0, 0, 0]);
+  assert.deepEqual([0, 1, 2, 3].map((i) => Coins.hintCost(i, 4, undefined, 2)), [0, 1, 1, Coins.LAST_LAYER_COST]);
+  assert.equal(Coins.hintCost(3, 4, 0, 1), 0);
+  assert.equal(Coins.hintsCost(4, 4, 1), 0);
+  assert.equal(Coins.hintsCost(4, 4, 3), 2 + Coins.LAST_LAYER_COST);
+  assert.equal(Coins.hintsCost(4, 4), 2 + Coins.LAST_LAYER_COST); // without difficulty: the list price
+});
+
+test('easyRoomHintsAreFreeWithoutCountdown', () => {
+  const easy = mkStory('e', 'nl', 'E', '', '', '', [
+    room('a', 'A', 'taak', '', {}, [giver], exit(Side.SOUTH, z, '1', [], null, 'uit'), { difficulty: 1, hints: ['h1', 'h2', 'h3'] }),
+  ]);
+  const c = { t: 0 };
+  const p = new Progress(easy);
+  p.clock = () => c.t;
+  p.resume();
+  for (let i = 0; i < 3; i++) {
+    assert.equal(p.nextHintCost(), 0);
+    assert.equal(p.hintFreeInMs(), 0);         // no countdown: it is free anyway
+    assert.equal(p.hintFreeByWaiting(), false); // and no "free by waiting" pulse
+    c.t += 60000; p.revealHint();
+  }
+  assert.equal(p.hintsRevealed(), 3);
+  assert.equal(p.hintsTotal(), 3);
+  assert.equal(p.hintCoinsSpent(), 0);
 });
