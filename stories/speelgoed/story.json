@@ -27,14 +27,15 @@
         "south": "Een rode deur met een bordje, en drie knopjes ernaast.",
         "west": "Een muziekdoos op een tafeltje, en een treintje op de vloer."
       },
+      "variants": [{ "wall": "east", "when": { "found": "knuffelplank" }, "image": "east-leeg" }],
       "things": [
         {
           "id": "knuffelplank",
           "wall": "east",
           "x": 0.41,
           "y": 0.44,
-          "w": 0.19,
-          "h": 0.145,
+          "w": 0.22,
+          "h": 0.16,
           "label": "Beer met sleuteltje",
           "text": "Een beer heeft een sleuteltje op zijn rug. Je pakt het.",
           "again": "De beer kijkt je blij aan. Zijn rug is nu leeg.",

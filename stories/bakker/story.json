@@ -222,7 +222,7 @@
           "text": "Een bord voor elke gast, en bij elk bord een schoteltje voor een gebakje. Teun zit apart, zijn bord staat aan de kop."
         },
         {
-          "id": "bank", "wall": "west", "x": 0.36, "y": 0.5, "w": 0.44, "h": 0.25,
+          "id": "bank", "wall": "west", "x": 0.34, "y": 0.54, "w": 0.64, "h": 0.3,
           "label": "Bank",
           "text": "Tussen de kussens: een doosje lucifers van café 't Anker. Je neemt ze mee.",
           "again": "Tussen de kussens liggen alleen nog kruimels. Iemand zat hier vaak te wachten.",
