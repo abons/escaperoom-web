@@ -738,7 +738,8 @@ export class Progress {
       const left = this.roomLeft(i);
       const intro = r.intro || '';
       const notes = this.#noteTexts(r);
-      const exit = left && r.exit.text ? r.exit.text : null;
+      // the main door's text only once that door was gone through (a room left by a side door never showed it)
+      const exit = (this.finished || this.opened.has(this.doorKey(r.exit, r))) && left && r.exit.text ? r.exit.text : null;
       if (intro || notes.length || exit !== null) out.push({ room: r, intro, notes, exit });
     }
     return out;
@@ -1121,15 +1122,18 @@ export const Difficulty = Object.freeze({
       };
       const none = new Set();
       const maxNeeds = (needs) => needs.reduce((m, n) => Math.max(m, 1 + itemDepth(n, none)), 0);
-      const chain = Math.max(r.things.reduce((m, t) => Math.max(m, maxNeeds(t.needs)), 0), maxNeeds(r.exit.needs));
-      const locks = r.things.reduce((s, t) => s + t.needs.length, 0) + Math.max(1, r.exit.needs.length);
+      const chain = Math.max(r.things.reduce((m, t) => Math.max(m, maxNeeds(t.needs)), 0), maxNeeds(r.exit.needs),
+        (r.doors || []).reduce((m, d) => Math.max(m, maxNeeds(d.needs)), 0));
+      const locks = r.things.reduce((s, t) => s + t.needs.length, 0) + Math.max(1, r.exit.needs.length) + (r.doors || []).reduce((s, d) => s + d.needs.length, 0);
       const est = Math.ceil(
         r.things.length * 0.6 + chain * 1.0 + (r.exit.code !== null ? 1.5 : 0.5) + 1 + r.combos.length * 0.8
         + r.things.filter((t) => t.code !== null).length * 1.0
         + r.things.filter((t) => t.visibleWhen).length * 0.5
         + r.variants.length * 0.3 + r.things.reduce((s, t) => s + (t.search ? t.search.length : 0), 0) * 0.15
         // a fill-in conclusion counts like a code (thing or exit)
-        + (r.things.filter((t) => t.ask).length + (r.exit.ask ? 1 : 0)) * 1.0,
+        + (r.things.filter((t) => t.ask).length + (r.exit.ask ? 1 : 0)) * 1.0
+        // a further door counts its own lock like the main one (code 1.5, needs 0.5, ask 1); an open passage nothing
+        + (r.doors || []).reduce((s, d) => s + (d.code !== null ? 1.5 : d.needs.length > 0 ? 0.5 : 0) + (d.ask ? 1 : 0), 0),
       );
       return { roomId: r.id, things: r.things.length, chain, locks, estMinutes: est };
     });

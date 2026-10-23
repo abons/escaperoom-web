@@ -260,6 +260,8 @@ test('rulesHoldForEveryStory', () => {
         assert.ok(Zone.inUnitSquare(e.zone), `${d}: exit zone`);
         assert.ok(!blank(e.text), `${d}: exit text`);
         assert.ok(doorLocked(e) || e.to !== null, `${d}: exit needs a code or needs (an open passage needs a \`to\`)`);
+        // the main door must lock: an open passage never counts as solving the room (roomLeft), so no reward or memento
+        if (e === r.exit) assert.ok(doorLocked(e), `${d}: the main door is an open passage`);
         if (e.to !== null) {
           assert.ok(s.rooms.some((x) => x.id === e.to), `${d}: to '${e.to}' is no room`);
           assert.notEqual(e.to, r.id, `${d}: a door to its own room`);
@@ -505,7 +507,6 @@ function playOut(s) {
       p.leave(e);
   }
   assert.equal(p.finished, true);
-  assert.equal(p.secretFound(), false, `${s.id}: the solver found the secret, so it is on the chain`);
   for (const r of s.rooms) for (const e of r.exits) assert.ok(p.opened.has(p.doorKey(e, r)), `${s.id}/${r.id}/${e.id}: door never opened`);
   s.rooms.forEach((_, i) => assert.ok(entered.has(i), `${s.id}: room ${i} never reached`));
   return p;

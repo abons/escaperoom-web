@@ -1041,7 +1041,8 @@ function walkThrough(p, e) {
 
 function leave(p, e = p.room.exit) {
   if (p.touring) { leaveTour(p, e); return; }
-  if (p.isOpened(e) || !doorLocked(e)) { walkThrough(p, e); return; }
+  // an opened door, an open passage, or a room already solved through another door: no panel or reward again
+  if (p.isOpened(e) || !doorLocked(e) || p.roomLeft(p.roomIndex)) { walkThrough(p, e); return; }
   const story = p.story;
   const done = p.room, doneIndex = p.roomIndex;
   const stats = t('found_progress', p.foundInRoom(), p.thingsInRoom()) + '  ·  ' + t('room_done_hints', p.hintsShown().length);

@@ -1,7 +1,7 @@
 // Mirror of DoorsTest.kt: doors with a destination (../escaperoom/docs/besluiten/deuren.md).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseStory, Progress, Side, ExitAsk } from '../js/engine.js';
+import { parseStory, Progress, Side, ExitAsk, Difficulty } from '../js/engine.js';
 
 const zone = (x, y, w, h) => ({ x, y, w, h });
 const fixture = () => parseStory('d', {
@@ -118,4 +118,28 @@ test('anAskIsPerDoorAndAnOpenedDoorDoesNotAskAgain', () => {
   const t = Progress.tour(s, 1);
   assert.ok(t.asked.has('exit:b:terug'));
   assert.ok(t.isOpened(door));
+});
+
+test('aLockedSideDoorSolvesTheRoomWithoutTheMainDoorText', () => {
+  const raw = (code) => ({
+    format: 2, title: 'D',
+    rooms: [
+      { id: 'a', title: 'A', task: 't', intro: 'binnen in a', walls: {}, things: [],
+        exit: { wall: 'south', ...zone(0.1, 0.1, 0.2, 0.2), code: '12', text: 'naar b' } },
+      { id: 'b', title: 'B', task: 't', intro: 'binnen in b', walls: {}, things: [],
+        exit: { wall: 'south', ...zone(0.1, 0.1, 0.2, 0.2), code: '60', text: 'uit' },
+        exits: [{ id: 'terug', wall: 'east', ...zone(0.5, 0.5, 0.2, 0.2), to: 'a', text: 'terug', ...(code ? { code } : {}) }] },
+    ],
+  });
+  const s = parseStory('d', raw('7'));
+  const side = s.rooms[1].doors[0];
+  const p = new Progress(s);
+  p.checkCode('12'); p.leave();
+  assert.equal(p.tapExit(side), ExitAsk.ENTER_CODE);
+  assert.ok(p.checkCode('7', side));
+  p.leave(side);
+  assert.ok(p.roomLeft(1));
+  assert.equal(p.journal()[1].exit, null); // 'uit' belongs to the main door, never gone through
+  const est = (st) => Difficulty.analyse(st).find((x) => x.roomId === 'b').estMinutes;
+  assert.ok(est(s) > est(parseStory('d', raw(null))), 'side lock adds to the estimate');
 });
