@@ -1,0 +1,243 @@
+{
+  "format": 1,
+  "difficulty": 3,
+  "lang": "nl",
+  "palette": { "bg": "#161B18", "card": "#222A25", "ink": "#E9E3D2", "accent": "#4FB58A" },
+  "title": "Het Landhuis",
+  "blurb": "In Landhuis Ter Veen is de smaragd weg en staat de klok stil op tien over negen. Drie kamers, drie verdachten, en één klok die liegt.",
+  "intro": "Jij bent de detective die mevrouw Ter Veen midden in de nacht liet halen: haar smaragd is weg. De staande klok in de bibliotheek staat stil op tien over negen, en het hele huis kijkt naar Hanna.",
+  "outro": "Bram legt een witte handschoen naast de smaragd en zegt niets. Dan loopt hij naar de bibliotheek, windt de staande klok op en zet hem op de echte tijd; voor het eerst sinds vanavond tikt hij weer.",
+  "outroSecret": "Mevrouw Ter Veen ziet de foto in je hand en gaat zitten. 'Ik streepte hem door omdat Victor erom vroeg,' zegt ze zacht. 'Dat was mijn misstap, niet de zijne.' Ze pakt een pen.",
+  "rooms": [
+    {
+      "id": "bibliotheek",
+      "title": "De bibliotheek",
+      "difficulty": 2,
+      "memento": { "id": "aandenken_draadje", "name": "Een draadje wit katoen" },
+      "hints": [
+        "De deuren naar de serre zitten op slot. Mevrouw legt haar sleutels niet in het zicht, maar wel in deze kamer.",
+        "De secretaire op de westmuur zit dicht met een slot van letters. In de boekenkast ernaast staat iets verkeerd om.",
+        "Vier boeken staan achterstevoren. Lees van boven naar beneden alleen de eerste letter van elke titel.",
+        "Jachtpartijen, Aquarellen, Delfts blauw, Edelstenen. Open de secretaire, neem de sleutel en gebruik hem op de glazen deuren."
+      ],
+      "task": "De glazen deuren naar de serre zitten op slot. Mevrouw houdt de sleutel altijd dichtbij.",
+      "intro": "Donkergroene panelen, een olielamp op de secretaire. De staande klok tikt niet.",
+      "walls": {
+        "north": "De staande klok, stil; zijn glazen deurtje staat op een kier.",
+        "east": "Een lege vitrine met groen fluweel, en een oude globe op een voet.",
+        "south": "Glazen deuren naar de donkere serre; ernaast een leunstoel met asbak.",
+        "west": "Een boekenkast tot het plafond, en een secretaire met de klep dicht."
+      },
+      "things": [
+        {
+          "id": "staande_klok", "wall": "north", "x": 0.390, "y": 0.230, "w": 0.280, "h": 0.630,
+          "label": "Staande klok",
+          "text": "De klok staat stil op tien over negen. Het glazen deurtje staat open en aan het scharnier hangt een draadje wit katoen. Om tien over negen zat iedereen aan de koffie in de salon; alleen Hanna was in de serre.",
+          "closeup": "klok",
+          "look": [
+            { "id": "wijzerplaat", "x": 0.270, "y": 0.220, "w": 0.460, "h": 0.390, "text": "In het stof op de wijzerplaat loopt een schone streep, precies waar de grote wijzer langs is gedraaid." },
+            { "id": "slinger", "x": 0.410, "y": 0.610, "w": 0.170, "h": 0.200, "text": "De koperen slinger hangt stil. Op het koper zit een witte veeg, als van katoen." },
+            { "id": "opwindsleutel", "x": 0.420, "y": 0.865, "w": 0.190, "h": 0.085, "text": "Onderin ligt de opwindsleutel, zonder stof. Deze klok is kort geleden nog opgewonden." }
+          ]
+        },
+        {
+          "id": "vitrine", "wall": "east", "x": 0.210, "y": 0.420, "w": 0.280, "h": 0.450,
+          "label": "Vitrine",
+          "text": "Het fluweel is leeg: hier lag de Ter Veen-smaragd. Het glas is heel en het slotje onbeschadigd; wie dit opende, had een sleutel. Mevrouw draagt de ene om haar hals, de andere hangt aan Brams sleutelbos. Op het tapijt ervoor ligt een kruimel rode klei."
+        },
+        {
+          "id": "munt_globe", "wall": "east", "x": 0.640, "y": 0.790, "w": 0.200, "h": 0.080,
+          "label": "Voet van de globe",
+          "text": "In de voet van de globe zit een laatje. Er ligt een munt in; die steek je bij je.",
+          "coin": true
+        },
+        {
+          "id": "sigaar", "wall": "south", "x": 0.050, "y": 0.740, "w": 0.190, "h": 0.070,
+          "label": "Asbak",
+          "text": "Een half opgerookte sigaar in de asbak, Victors merk. Hij zat hier vanavond, en hij rookt alleen als hij zenuwachtig is."
+        },
+        {
+          "id": "boekenkast", "wall": "west", "x": 0.295, "y": 0.310, "w": 0.090, "h": 0.400,
+          "label": "Boekenkast",
+          "text": "Vier boeken staan met de rug naar achteren, één per plank, recht onder elkaar. Je draait ze om, van boven naar beneden: 'Jachtpartijen', 'Aquarellen', 'Delfts blauw', 'Edelstenen'."
+        },
+        {
+          "id": "secretaire", "wall": "west", "x": 0.586, "y": 0.530, "w": 0.346, "h": 0.335,
+          "label": "Secretaire",
+          "text": "De klep valt open. In het vakje ligt de sleutel van de serre, en een testament van vandaag, nog niet getekend: 'Het huis aan Victor. De serre aan Hanna.' Eén regel is doorgestreept: 'De smaragd aan Bram, in dienst sinds 1986.'",
+          "again": "Het vakje is leeg. Het testament ligt er nog: 'De smaragd aan Bram, in dienst sinds 1986', doorgestreept.",
+          "code": "JADE", "input": "letters", "len": 4,
+          "closeup": "secretaire-slot",
+          "gives": { "id": "serresleutel", "name": "sleutel van de serre" }
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.335, "y": 0.285, "w": 0.330, "h": 0.580,
+        "needs": "serresleutel",
+        "stuck": "De glazen deuren zitten op slot. Mevrouw sluit ze 's avonds af en legt de sleutel weg, ergens in deze kamer.",
+        "text": "De sleutel draait. De glazen deuren zwaaien open en koude, natte lucht komt je tegemoet."
+      }
+    },
+    {
+      "id": "serre",
+      "title": "De serre",
+      "difficulty": 3,
+      "memento": { "id": "aandenken_label", "name": "Het labeltje van de jongste orchidee" },
+      "hints": [
+        "Het hek naar beneden heeft twee sloten. Hanna werkt hier elke dag; wat zij nodig heeft, ligt tussen haar spullen.",
+        "Op de pottafel aan de westmuur ligt alles door elkaar. Zoek alles van de lijst: onderop ligt iets van Hanna.",
+        "Hanna's tuinschrift zegt hoe het tekenslot werkt. De orchideeën op de oostmuur hebben elk een teken en een leeftijd.",
+        "Van jong naar oud: hart (één), ruit (drie), ster (vijf), maan (twaalf). Gebruik eerst Hanna's sleutel op het hek."
+      ],
+      "task": "Achter in de serre gaat een trap omlaag naar het souterrain, maar het hek zit dicht. Daar beneden woont Bram.",
+      "intro": "Maanlicht door het glazen dak en de geur van natte aarde. Hier was Hanna vanavond, alleen.",
+      "walls": {
+        "north": "Varens tot aan het glas, zilver in het maanlicht, met een stenen kikker ertussen.",
+        "east": "Een etagère met vier orchideeën, elk in een beschilderde pot.",
+        "south": "Een ijzeren hek voor een stenen trap omlaag; ernaast een paar laarzen.",
+        "west": "Een lange pottafel, bedolven onder potten, gereedschap en zakken aarde."
+      },
+      "things": [
+        {
+          "id": "varens", "wall": "north", "x": 0.010, "y": 0.250, "w": 0.440, "h": 0.600,
+          "label": "Varens",
+          "text": "Tussen de varenpotten ligt een verfrommelde brief aan Victor: 'Je speelschuld: vrijdag betalen, anders komen we het halen.' Weggegooid, of verstopt."
+        },
+        {
+          "id": "munt_kikker", "wall": "north", "x": 0.570, "y": 0.770, "w": 0.140, "h": 0.100,
+          "label": "Stenen kikker",
+          "text": "Onder de stenen kikker tussen de varens ligt een munt. Die is voor jou.",
+          "coin": true
+        },
+        {
+          "id": "orchideeen", "wall": "east", "x": 0.310, "y": 0.250, "w": 0.380, "h": 0.610,
+          "label": "Orchideeën",
+          "text": "Vier orchideeën van mevrouw, elk met een teken op de pot en een labeltje met de leeftijd van de plant: de ster vijf jaar, de maan twaalf, het hart één, de ruit drie."
+        },
+        {
+          "id": "laarzen", "wall": "south", "x": 0.690, "y": 0.715, "w": 0.200, "h": 0.140,
+          "label": "Laarzen",
+          "text": "Hanna's laarzen, rode klei tot aan de enkels. Dezelfde klei als bij de vitrine."
+        },
+        {
+          "id": "pottafel", "wall": "west", "x": 0.005, "y": 0.500, "w": 0.990, "h": 0.360,
+          "label": "Pottafel",
+          "text": "Onder de laatste pot ligt Hanna's tuinschrift met een sleutel ertussen. Haar regels van vanavond: '21:00 tulpen oppotten. 23:15 rozen naar de bibliotheek, de klok sloeg net kwart over. 23:30 B. sluit af, handschoenen aan, vraagt hoe laat ik binnen was. Hekslot: mevrouws orchideeën, van jong naar oud.'",
+          "again": "Het tuinschrift ligt open: '23:15, de klok sloeg net kwart over.' En: 'van jong naar oud.'",
+          "closeup": "pottafel-zoek",
+          "search": [
+            { "id": "bloempot", "name": "bloempot", "x": 0.055, "y": 0.032, "w": 0.228, "h": 0.210 },
+            { "id": "troffel", "name": "troffel", "x": 0.285, "y": 0.048, "w": 0.275, "h": 0.228 },
+            { "id": "gieter", "name": "gieter", "x": 0.565, "y": 0.025, "w": 0.370, "h": 0.165 },
+            { "id": "groenetuinhandschoenen", "name": "groene tuinhandschoenen", "x": 0.679, "y": 0.192, "w": 0.275, "h": 0.138 },
+            { "id": "boltouw", "name": "bol touw", "x": 0.050, "y": 0.255, "w": 0.230, "h": 0.160 },
+            { "id": "zaadzakjes", "name": "zaadzakjes", "x": 0.340, "y": 0.281, "w": 0.310, "h": 0.158 },
+            { "id": "zeef", "name": "zeef", "x": 0.655, "y": 0.335, "w": 0.300, "h": 0.190 },
+            { "id": "snoeischaar", "name": "snoeischaar", "x": 0.385, "y": 0.445, "w": 0.260, "h": 0.105 },
+            { "id": "mandmetbollen", "name": "mand met bollen", "x": 0.042, "y": 0.420, "w": 0.257, "h": 0.220 },
+            { "id": "slakkenhuis", "name": "slakkenhuis", "x": 0.330, "y": 0.553, "w": 0.145, "h": 0.080 },
+            { "id": "bril", "name": "bril", "x": 0.508, "y": 0.568, "w": 0.223, "h": 0.082 },
+            { "id": "theekopje", "name": "theekopje", "x": 0.748, "y": 0.543, "w": 0.190, "h": 0.115 },
+            { "id": "oliekannetje", "name": "oliekannetje", "x": 0.080, "y": 0.645, "w": 0.200, "h": 0.115 },
+            { "id": "plantenlabels", "name": "plantenlabels", "x": 0.285, "y": 0.655, "w": 0.250, "h": 0.150 },
+            { "id": "kaarsstompje", "name": "kaarsstompje", "x": 0.590, "y": 0.680, "w": 0.115, "h": 0.102 },
+            { "id": "vogelnestje", "name": "vogelnestje", "x": 0.725, "y": 0.675, "w": 0.235, "h": 0.130 },
+            { "id": "dennenappel", "name": "dennenappel", "x": 0.058, "y": 0.770, "w": 0.176, "h": 0.180 },
+            { "id": "handhark", "name": "handhark", "x": 0.277, "y": 0.805, "w": 0.450, "h": 0.085 },
+            { "id": "zakmes", "name": "zakmes", "x": 0.478, "y": 0.893, "w": 0.237, "h": 0.056 },
+            { "id": "spons", "name": "spons", "x": 0.760, "y": 0.840, "w": 0.195, "h": 0.115 }
+          ],
+          "gives": { "id": "heksleutel", "name": "sleutel van het hek" }
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.335, "y": 0.300, "w": 0.425, "h": 0.395,
+        "needs": "heksleutel",
+        "code": "HDSM", "input": "sequence", "len": 4,
+        "stuck": "Het hek zit dicht met een zwaar hangslot, en ernaast vier knoppen met tekens. Hanna's sleutel ligt vast tussen haar spullen.",
+        "text": "Het hangslot valt open en de tekens klikken: hart, ruit, ster, maan. Je daalt de koude stenen trap af."
+      }
+    },
+    {
+      "id": "souterrain",
+      "title": "Het souterrain",
+      "difficulty": 3,
+      "memento": { "id": "aandenken_smaragd", "name": "De smaragd, één keer in je hand", "plate": "smaragd" },
+      "hints": [
+        "Boven willen ze bewijs, niet alleen een naam. Kijk wat Bram hier beneden bewaart, ook waar het donker is.",
+        "De lamp aan de haak op de oostmuur geeft licht als je hem in je tas kiest. Kijk daarmee in de wijnhoek op de westmuur.",
+        "Brams kist wil het jaar dat hij hier kwam; dat las je al in de bibliotheek. Voor de vraag boven: wie kon de klok na kwart over elf nog stilzetten, en wie stond vanmiddag nog in het testament?",
+        "Het testament in de secretaire: 'in dienst sinds 1986'. De klok tikte om kwart over elf nog (Hanna's tuinschrift) en om 23:40 windt Bram alles op. Bram, omdat hij uit het testament werd geschrapt."
+      ],
+      "task": "Boven in de salon wacht het hele huis op een naam. Ga pas naar boven met het bewijs in je hand.",
+      "intro": "Brams rijk onder de trap: keurig, koud en stil. Licht valt alleen van de deur boven aan de trap.",
+      "walls": {
+        "north": "Een lessenaar met een opengeslagen boek, en een zwarte jas aan een kapstok.",
+        "east": "Een zijtafel met lege flessen en een lijstje; aan een haak hangt een lamp.",
+        "south": "Een smalle trap omhoog naar de salon; onder de deur valt een streep licht.",
+        "west": "Een donkere hoek met oude wijnrekken. Zonder licht zie je er niets."
+      },
+      "variants": [
+        { "wall": "west", "when": { "selected": "stormlamp" }, "image": "west-lamp" }
+      ],
+      "things": [
+        {
+          "id": "huisboek", "wall": "north", "x": 0.275, "y": 0.430, "w": 0.270, "h": 0.415,
+          "label": "Huisboek",
+          "text": "Brams huisboek, in zijn keurige hand. Vanavond: '21:10 koffie in de salon, allen aanwezig behalve H. 23:40 huis gesloten, alle klokken opgewonden. Niets bijzonders.' Voorin: 'Wat van mij is, staat in de wijnhoek, achter het jaar dat ik hier kwam.'"
+        },
+        {
+          "id": "bediendenjas", "wall": "north", "x": 0.652, "y": 0.470, "w": 0.210, "h": 0.375,
+          "label": "Zwarte jas",
+          "text": "Je tilt Brams zwarte jas van de kapstok. In de zak zitten witte katoenen handschoenen; aan de rechterwijsvinger is een draadje losgetrokken. Aan zijn sleutelbos hangt een klein sleuteltje: dat van de vitrine.",
+          "again": "De jas hangt weer. De handschoen met de losse draad zit nog in de zak."
+        },
+        {
+          "id": "nis", "wall": "north", "x": 0.600, "y": 0.300, "w": 0.160, "h": 0.165,
+          "label": "Nis",
+          "visible": { "found": "bediendenjas" },
+          "text": "In de nis naast de jas ligt een kaartje, niet in Brams hand: 'Alles stond voor je klaar.' Geen naam, alleen een getekend sleuteltje."
+        },
+        {
+          "id": "haak", "wall": "east", "x": 0.455, "y": 0.245, "w": 0.095, "h": 0.180,
+          "label": "Haak",
+          "text": "Aan de haak hangt een stormlamp, het glas nog warm: iemand was hier vlak voor jou. Kies hem in je tas en hij geeft licht.",
+          "again": "De haak is leeg.",
+          "gives": { "id": "stormlamp", "name": "stormlamp" }
+        },
+        {
+          "id": "lege_flessen", "wall": "east", "x": 0.378, "y": 0.475, "w": 0.122, "h": 0.120,
+          "label": "Lege flessen",
+          "text": "Drie lege flessen port, met een kaartje: 'Voor meneer Victor, op zijn kamer, 22:30. B.' Victor heeft vanavond niet veel meer gezien dan zijn kussen."
+        },
+        {
+          "id": "geheim_foto", "wall": "east", "x": 0.540, "y": 0.500, "w": 0.110, "h": 0.095,
+          "label": "Lijstje",
+          "text": "Het lijstje op de zijtafel staat met de foto naar de muur. Je draait het om: een jonge Bram naast mevrouw, 1986. Op de achterkant, in haar hand: 'Voor B. De smaragd is voor jou, later. I.'",
+          "secret": true
+        },
+        {
+          "id": "brams_kist", "wall": "west", "x": 0.378, "y": 0.755, "w": 0.260, "h": 0.155,
+          "label": "Kist",
+          "visible": { "selected": "stormlamp" },
+          "text": "De wieltjes klikken. In de kist, gewikkeld in een witte handschoen: de Ter Veen-smaragd. Je neemt hem mee.",
+          "again": "De kist is leeg, op één witte handschoen na.",
+          "code": "1986", "input": "digits", "len": 4,
+          "closeup": "kist-slot", "pad": "wheels",
+          "gives": { "id": "smaragd", "name": "smaragd" }
+        }
+      ],
+      "exit": {
+        "wall": "south", "x": 0.360, "y": 0.210, "w": 0.280, "h": 0.630,
+        "needs": "smaragd",
+        "stuck": "Boven wachten ze op een naam. Met lege handen geloven ze je niet.",
+        "ask": {
+          "text": "Je hand ligt op de leuning en opeens klopt alles. Wie nam de smaragd? ___. En waarom? ___.",
+          "words": ["Bram", "Victor", "Hanna", "zijn speelschulden", "de serre", "hij werd uit het testament geschrapt"],
+          "answer": ["Bram", "hij werd uit het testament geschrapt"]
+        },
+        "text": "Je loopt de trap op met de smaragd in je hand. In de salon kijkt iedereen op, Bram als laatste."
+      }
+    }
+  ]
+}

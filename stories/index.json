@@ -61,6 +61,33 @@
    ]
   },
   {
+   "id": "landhuis",
+   "files": [
+    "landhuis/bibliotheek/east.webp",
+    "landhuis/bibliotheek/klok.webp",
+    "landhuis/bibliotheek/north.webp",
+    "landhuis/bibliotheek/secretaire-slot.webp",
+    "landhuis/bibliotheek/south.webp",
+    "landhuis/bibliotheek/west.webp",
+    "landhuis/items/heksleutel.webp",
+    "landhuis/items/serresleutel.webp",
+    "landhuis/items/smaragd.webp",
+    "landhuis/items/stormlamp.webp",
+    "landhuis/serre/east.webp",
+    "landhuis/serre/north.webp",
+    "landhuis/serre/pottafel-zoek.webp",
+    "landhuis/serre/south.webp",
+    "landhuis/serre/west.webp",
+    "landhuis/souterrain/east.webp",
+    "landhuis/souterrain/kist-slot.webp",
+    "landhuis/souterrain/north.webp",
+    "landhuis/souterrain/south.webp",
+    "landhuis/souterrain/west-lamp.webp",
+    "landhuis/souterrain/west.webp",
+    "landhuis/story.json"
+   ]
+  },
+  {
    "id": "speelgoed",
    "files": [
     "speelgoed/items/opwindsleutel.webp",
