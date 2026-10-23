@@ -20,6 +20,13 @@
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('./sw.js').catch(function () {});
       });
+      // A new version took over (cache-first shell): on the menu reload once, so a returning player sees new
+      // stories at once; in a room leave it, the next load picks it up. Not on the very first install.
+      var hadController = !!navigator.serviceWorker.controller, reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!hadController || reloaded || !document.querySelector('.menu')) return;
+        reloaded = true; location.reload();
+      });
     }
   } catch (e) { /* ignore */ }
 </script>
