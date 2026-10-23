@@ -187,13 +187,14 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .arrow.right { right: 0; }
 
 .msgbox {
-  max-height: 110px; overflow-y: auto; flex: none; margin: 4px 8px;
+  height: 110px; overflow-y: auto; flex: none; margin: 4px 8px;
   background: var(--card); border-left: 3px solid var(--accent); border-radius: 8px;
 }
-.msgbox[hidden], .sel[hidden] { display: none; }
+.msgbox[hidden] { display: block; visibility: hidden; } /* keeps its height: the plate must not jump when a message comes */
+.sel[hidden] { display: block; visibility: hidden; }
 .msg { padding: 8px 14px; font-size: 16px; font-family: var(--serif); white-space: pre-wrap; display: flex; align-items: flex-start; gap: 10px; }
 .msg-item { width: 48px; height: 48px; object-fit: contain; flex: none; }
-.sel { font-size: 13px; color: var(--accent); padding: 4px 16px 0; min-height: 1px; flex: none; }
+.sel { font-size: 13px; color: var(--accent); padding: 4px 16px 0; min-height: 20px; flex: none; }
 .sel b { color: var(--ink); }
 .bottom { display: flex; align-items: center; gap: 8px; padding: 4px 8px 6px 16px; flex: none; }
 .chips { display: flex; gap: 4px; overflow-x: auto; flex: 1; min-height: 62px; align-items: center; scrollbar-width: none; }
@@ -383,7 +384,7 @@ html.big .ask-text { font-size: 24px; }
 /* "Groot" (docs/besluiten/groot.md in the app repo): html.big, text x1.35, message strip 160px, pad keys 52 -> 64 */
 .menu-head .title { flex: 1; }
 html.big body { font-size: 21.6px; }
-html.big .msgbox { max-height: 160px; }
+html.big .msgbox { height: 160px; }
 html.big .msg { font-size: 20px; }
 html.big .task { font-size: 19px; }
 html.big .room-title { font-size: 24px; }
